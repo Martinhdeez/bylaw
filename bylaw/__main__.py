@@ -63,6 +63,35 @@ def cmd_compile(a):
     return 0
 
 
+def cmd_amend(a):
+    from bylaw.amend import apply, closes, draft
+    from bylaw.backtest import backtest
+
+    report = json.loads(Path(a.report).read_text())
+    name = report["run"]["domain"]
+    domain = get_domain(name)
+    hand = json.loads((HAND_RULESETS / f"{name}.json").read_text())
+    base = None if a.no_backtest else backtest(domain, hand)
+    for h in report["holes"]:
+        try:
+            am = draft(domain, hand, h)
+        except ValueError as e:  # the model failed twice: record it, never pass an invalid amendment through
+            h.update(amendment=None, closes=False, error=str(e))
+            print(f"  {h['id']} {h['key']} no amendment: {e}")
+            continue
+        patched = apply(hand, am)
+        h["amendment"], h["closes"] = am, closes(domain, patched, h, report["run"].get("budget", 2000))
+        line = f"  {h['id']} {h['key']} closes {h['closes']}"
+        if base is not None:
+            res = backtest(domain, patched)
+            h["backtest"] = {"tasks": res["tasks"], "blocked": res["blocked"], "baseline_blocked": base["blocked"],
+                             "blocked_tasks": [r["id"] for r in res["results"] if r["blocked"]]}
+            line += f" blocked {res['blocked']}/{res['tasks']} (baseline {base['blocked']})"
+        print(f"{line}: {am['policy_text']}", flush=True)
+    Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
+    print(f"wrote {a.output}: {sum(bool(h.get('closes')) for h in report['holes'])}/{len(report['holes'])} holes closed")
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="bylaw")
     sub = p.add_subparsers(required=True)
@@ -80,6 +109,11 @@ def main(argv=None):
     c.add_argument("--domain", required=True)
     c.add_argument("-o", "--output", required=True)
     c.set_defaults(fn=cmd_compile)
+    am = sub.add_parser("amend", help="draft, prove and backtest one amendment per hole of a report")
+    am.add_argument("report")
+    am.add_argument("-o", "--output", default="amended.json")
+    am.add_argument("--no-backtest", action="store_true", help="skip the gold-task backtest")
+    am.set_defaults(fn=cmd_amend)
     a = p.parse_args(argv)
     return a.fn(a)
 
