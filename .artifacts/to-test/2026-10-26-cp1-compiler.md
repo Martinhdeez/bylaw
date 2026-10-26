@@ -1,7 +1,7 @@
 # CP1 Policy compiler (Muse → RuleSet JSON)
 
 - **Branch:** `feat/cp1-compiler` · **Pull request:** #1 (round 2, after review)
-- **Measured against:** REQ-CP1-1, REQ-CP1-2, REQ-CP1-3. Contracts: C2 (v1.1 conversation facts, v1.3 expression language and evaluation limits), C3 (v1.1 `llm=` injection) and C5 (`compile`).
+- **Measured against:** REQ-CP1-1, REQ-CP1-2, REQ-CP1-3. Contracts: C2 (v1.1 conversation facts, v1.3 expression language and evaluation limits, v1.4 cancel reason vocabulary), C3 (v1.1 `llm=` injection) and C5 (`compile`).
 
 ## Problem
 
@@ -22,12 +22,12 @@ The review of round 1 found the following:
 
 ## Change
 
-1. **C2 comes from EN1.** `bylaw/ruleset_schema.py` is deleted, and the compiler imports `RULESET_SCHEMA`, `validate`, `check`, `RuleError`, `FUNCS` and `hours_between` from `bylaw.rules`. The domain comes from `bylaw.domain.get_domain`, with no fallback. Rebased onto `bylaw/build` (5e2dd54), which carries EN1 (#4) and the spike determinism fix (#3).
+1. **C2 comes from EN1.** `bylaw/ruleset_schema.py` is deleted, and the compiler imports `RULESET_SCHEMA`, `validate`, `check`, `RuleError`, `FUNCS` and `hours_between` from `bylaw.rules`. The domain comes from `bylaw.domain.get_domain`, with no fallback. Rebased onto `bylaw/build` (9521042), which carries EN1 (#4), the spike determinism fix (#3) and contracts v1.4.
 2. **`compile_policy(domain, model=None, llm=None)`** (C3 v1.1).
    - One Muse call carries the policy, the tool schemas and trimmed DB record shapes. It uses structured output, `RULESET_SCHEMA`, `effort="high"` and `max_tokens=64000`; at 32000 the reasoning used up the whole budget and the reply came back empty (see `live-compile-v2.txt` history below).
    - The prompt states:
      - the v1.3 expression language;
-     - the conversation facts `args["reason"]`, `args["reservation_id"]` and `args["complaint"]`;
+     - the conversation facts: `args["reason"]` with the v1.4 vocabulary, `args["reservation_id"]` and `args["complaint"]`;
      - verbatim `policy_ref` quotes, and forbidden goals as end states;
      - rule-writing conventions: one rule per policy condition, a rule that the record exists and is active, implications for conditions that apply to only some calls, flown statuses read from the DB, conditions the API does not check encoded completely.
    - A result that fails `validate` or names an unknown tool goes back to Muse once, with the reason. The result's `domain` is set to the domain name.
@@ -60,7 +60,8 @@ The review of round 1 found the following:
 | Identity hand vs hand | 1.0 | 1.000, `match-rates.txt` |
 | Live match rate, round-1 prompt (`airline.compiled.json`) | n/a | 0.250, `match-rates.txt` |
 | Live match rate, prompt v2 (`airline.compiled.v2.json`) | n/a | 0.643, strict 0.536, `match-rates.txt` |
-| Live match rate, prompt v3, final (`airline.compiled.v3.json`) | n/a | 0.75 (21/28: 17 single, 4 by parts), strict 0.61, `live-compile-v3.txt` |
+| Live match rate, prompt v3 (`airline.compiled.v3.json`) | n/a | 0.750 (21/28: 17 single, 4 by parts), strict 0.607, `match-rates.txt` |
+| Live match rate, prompt v4 = shipped prompt (v3 + v1.4 reason vocabulary, `airline.compiled.v4.json`) | n/a | **0.643** (18/28: 17 single, 1 by parts), strict 0.607, `live-compile-v4.txt` |
 | Mutants killed (16, including the 4 the review listed) | 4 survived (review) | 16/16, `mutations.txt` |
 | Compiler acceptance tests (`origin/test/01-wave1`), offline | n/a | 6 passed, 1 failed (retail, see below), `acceptance-offline.txt` |
 | Live tests (unit + acceptance REQ-CP1-1, REQ-CP1-3) | n/a | 3 passed, `live-pytest.txt` |
@@ -99,12 +100,12 @@ All in `tests/test_compiler.py`.
 
 ## Out of scope and not measured
 
-- **The M1 target (≥0.90) is not met.** The final live rate is 0.75 (strict 0.61). The 7 unmatched hand rules are listed in `live-compile-v3.txt`. Most of them are interpretation choices where both readings are defensible:
+- **The M1 target (≥0.90) is not met.** The shipped prompt scored 0.643 (strict 0.607). The previous prompt scored 0.750; the only change between them is the v1.4 reason list, so a single compile moves by about ±0.1. That is one sample per prompt, not a distribution. The 10 unmatched hand rules are listed in `live-compile-v4.txt`. Most of them are interpretation choices where both readings are defensible:
   - EN1 ANDs the airline-cancelled ground with the stated reason;
   - EN1 adds a `changed_or_cancelled` fact that no contract names;
   - payment source vs payment in profile is split differently.
 
-  Others are slips, for example route chaining on booking. I stopped tuning the prompt after three live compiles, to avoid fitting the prompt to one hand set.
+  Others are slips, for example route chaining on booking. I stopped tuning the prompt after four live compiles, to avoid fitting it to one hand set.
 - **The probes have a ceiling.**
   - They vary one record's arguments, sampled from 60 stride records plus recent ones, and `now` is fixed.
   - Truth-table equality on probes is evidence of equivalence, not proof.
@@ -112,5 +113,5 @@ All in `tests/test_compiler.py`.
 - **Retail:**
   - `test_REQ_CP1_2_retail_hand_against_itself_is_one` fails because `bylaw/rulesets/retail.json` and `get_domain("retail")` do not exist yet (RT1).
   - The probe key that `res` implies is the airline `reservation_id` (marked `ponytail:` in the code).
-- **Live tests:** the live pytest run was served from the on-disk LLM cache, with the same request as the CLI compile of prompt v3. The three compiles (round 1, v2, v3) were real Muse calls. One v2 attempt returned empty at `max_tokens=32000`.
+- **Live tests:** the live pytest run was served from the on-disk LLM cache, with the same request as the CLI compile of prompt v4. The four compiles (round 1, v2, v3, v4) were real Muse calls. One v2 attempt returned empty at `max_tokens=32000`.
 - **Not scored:** precision. Extra compiled rules and forbidden goals are not scored.

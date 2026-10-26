@@ -24,8 +24,8 @@ Return a RuleSet with:
      No other names, attributes or methods (no .items(), .values(), .keys(), .lower(), ...), no imports.
      Use the exact field names and values shown in the DB record shapes and tool schemas.
    - Conversation facts: facts the policy needs but the tool signature lacks arrive as extra args keys:
-     args["reason"] on cancel_reservation ("change of plan" | "airline cancelled flight" | "other", or the
-     reason the user gave, e.g. "health", "weather"); on send_certificate, args["reservation_id"] (the
+     args["reason"] on cancel_reservation, exactly one of "change of plan" | "airline cancelled flight" |
+     "health" | "weather" | "other"; on send_certificate, args["reservation_id"] (the
      reservation the complaint is about) and args["complaint"] ("cancelled" | "delayed").
      A fact the policy says the agent must obtain gets its own rule that it is present.
    - policy_ref: the policy sentence(s) the rule enforces, quoted verbatim from the policy.
