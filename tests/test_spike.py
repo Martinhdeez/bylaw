@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -49,10 +51,18 @@ def test_rules_block_the_direct_route():
 
 
 def test_spike_output_is_deterministic_and_leaves_the_tracked_file_alone(tmp_path):
+    """Processes with different hash seeds, so set-order differences show up. Seeds 1, 4 and 6 give three
+    different outputs when diff() iterates an unsorted key set and the JSON keys are unsorted."""
     tracked = holes_by_hand.OUT.read_bytes()
-    a, b = tmp_path / "a.json", tmp_path / "b.json"
-    holes_by_hand.main(a)
-    holes_by_hand.main(b)
-    assert a.read_text() == b.read_text()
+    spike = Path(holes_by_hand.__file__).parent
+    outputs = set()
+    for seed in ("1", "4", "6"):
+        out = tmp_path / f"seed{seed}.json"
+        code = f"import holes_by_hand; holes_by_hand.main({str(out)!r})"
+        subprocess.run([sys.executable, "-c", code], cwd=spike, check=True, capture_output=True,
+                       env={**os.environ, "PYTHONHASHSEED": seed, "PYTHONPATH": str(spike.parent)})
+        outputs.add(out.read_text())
+    assert len(outputs) == 1
+    a = tmp_path / "seed1.json"
     assert holes_by_hand.OUT.read_bytes() == tracked
     assert json.loads(a.read_text())["class_a_count"] == 3

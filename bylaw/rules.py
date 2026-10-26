@@ -2,9 +2,14 @@
 
 Expressions are Python expression syntax, accepted only if every AST node is on a whitelist, then
 evaluated with no builtins. Names: args db now res user, plus comprehension variables.
-Functions: len any all sum min max abs hours_between zip (zip: C2 v1.1 note). Methods: `.get` only.
+Functions: len any all sum min max abs hours_between zip (zip: C2 v1.3). Methods: `.get` only.
+Evaluation is bounded (C2 v1.3): `*` and `+` on sequences may not build more than MAX_SIZE items, `%`
+is numeric only, `sum`
+takes a numeric start only, and a rule that runs past TIME_LIMIT is stopped by a trace hook.
 """
 import ast
+import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
@@ -47,7 +52,68 @@ def hours_between(a: str, b: str) -> float:
     return abs((datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds()) / 3600
 
 
-FUNCS = {f.__name__: f for f in (len, any, all, sum, min, max, abs, zip, hours_between)}
+MAX_SIZE = 10**6  # elements or characters in any value a rule builds
+TIME_LIMIT = 0.05  # seconds per rule
+_SEQ = (str, list, tuple)
+
+
+class _OverBound(Exception):
+    pass
+
+
+def _mul(a, b):
+    for seq, n in ((a, b), (b, a)):
+        if isinstance(seq, _SEQ) and isinstance(n, int) and len(seq) * n > MAX_SIZE:
+            raise _OverBound(f"value over {MAX_SIZE} elements")
+    return a * b
+
+
+def _add(a, b):
+    if isinstance(a, _SEQ) and isinstance(b, _SEQ) and len(a) + len(b) > MAX_SIZE:
+        raise _OverBound(f"value over {MAX_SIZE} elements")
+    return a + b
+
+
+def _mod(a, b):
+    if isinstance(a, str):  # '%0999999999d' % 1 builds the string in C
+        raise _OverBound("string formatting is not allowed")
+    return a % b
+
+
+def _sum(items, start=0):
+    if not isinstance(start, (int, float)):  # sum(lists, []) concatenates in C, out of reach of _add
+        raise _OverBound("sum start must be a number")
+    return sum(items, start)
+
+
+class _Guard(ast.NodeTransformer):
+    """Routes `*`, `+` and `%` through the size-checked helpers. Runs after validation, so rules cannot name them."""
+
+    def visit_BinOp(self, node):
+        self.generic_visit(node)
+        fn = {ast.Mult: "_mul", ast.Add: "_add", ast.Mod: "_mod"}.get(type(node.op))
+        return ast.Call(ast.Name(fn, ast.Load()), [node.left, node.right], []) if fn else node
+
+
+def _run(code, scope):
+    """eval under a per-opcode deadline check."""
+    deadline = time.perf_counter() + TIME_LIMIT
+
+    def tracer(frame, event, arg):
+        if time.perf_counter() > deadline:
+            raise _OverBound(f"rule ran over {TIME_LIMIT * 1000:.0f} ms")
+        frame.f_trace_opcodes = True
+        return tracer
+
+    previous = sys.gettrace()  # ponytail: replaces a debugger/coverage tracer while a rule runs
+    sys.settrace(tracer)
+    try:
+        return eval(code, scope)
+    finally:
+        sys.settrace(previous)
+
+
+FUNCS = {f.__name__: f for f in (len, any, all, min, max, abs, zip, hours_between)} | {"sum": _sum}
 NAMES = {"args", "db", "now", "res", "user"}
 
 _NODES = (
@@ -84,7 +150,7 @@ def _compile(expr: str):
                 raise RuleError(f"call not allowed in {expr!r}")
         if isinstance(n, ast.Attribute) and not any(isinstance(c, ast.Call) and c.func is n for c in nodes):
             raise RuleError(f".get must be called in {expr!r}")
-    return compile(tree, "<rule>", "eval")
+    return compile(ast.fix_missing_locations(_Guard().visit(tree)), "<rule>", "eval")
 
 
 def validate(ruleset: dict) -> None:
@@ -112,7 +178,7 @@ def _scope(snapshot: dict, args: dict, now: str) -> dict:
             break
     users = snapshot.get("users", {})
     user = users.get(args.get("user_id") or (res or {}).get("user_id"))
-    return {"__builtins__": {}, **FUNCS, "args": args, "db": snapshot, "now": now, "res": res, "user": user}
+    return {"__builtins__": {}, **FUNCS, "_mul": _mul, "_add": _add, "_mod": _mod, "args": args, "db": snapshot, "now": now, "res": res, "user": user}
 
 
 def check(ruleset: dict, snapshot: dict, tool: str, args: dict, now: str) -> list[Verdict]:
@@ -122,7 +188,7 @@ def check(ruleset: dict, snapshot: dict, tool: str, args: dict, now: str) -> lis
         if r["tool"] != tool:
             continue
         try:
-            out.append(Verdict(r["id"], bool(eval(_compile(r["allow_if"]), dict(scope))), r["policy_ref"]))
+            out.append(Verdict(r["id"], bool(_run(_compile(r["allow_if"]), dict(scope))), r["policy_ref"]))
         except Exception as e:  # a rule that cannot be evaluated does not allow the call
             out.append(Verdict(r["id"], False, r["policy_ref"], f"{type(e).__name__}: {e}"))
     return out

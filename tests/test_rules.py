@@ -1,5 +1,6 @@
 """Unit tests for the C2 rule checker (REQ-EN1-1..3)."""
 import json
+import time
 from pathlib import Path
 
 import pytest
@@ -208,3 +209,32 @@ def test_domain_call_strips_conversation_facts_and_keeps_them_in_the_result(airl
     assert step.ok and step.error is None and step.args["reason"] == "change of plan"
     assert d.snapshot(env)["reservations"]["34XLFT"]["status"] == "cancelled"
     assert d.snapshot(d.fresh_env())["reservations"]["34XLFT"]["status"] != "cancelled"
+
+
+# ---- C2 v1.3 evaluation limits: 10^6 elements/characters, 50 ms per rule ----
+
+BIG = {"users": {}, "flights": {}, "reservations": {f"R{i}": {} for i in range(2000)}}
+OVER_BOUND = {  # each would allocate > 10^6 elements or run far past 50 ms if evaluated unbounded
+    "str_repeat": "len('a' * 1000000000) > 0",
+    "str_repeat_huge": "len('a' * 100000000000) > 0",
+    "str_format": "len('%0999999999d' % 1) > 0",
+    "list_repeat": "len([0] * 2000000) > 0",
+    "concat": "len([0] * 600000 + [0] * 600000) > 0",
+    "sum_concat": "len(sum([[0] * 1000] * 2000, [])) > 0",
+    "nested_comprehension": "len([1 for a in db['reservations'] for b in db['reservations'] for c in db['reservations']]) >= 0",
+    "nested_generator": "sum(1 for a in db['reservations'] for b in db['reservations'] for c in db['reservations']) >= 0",
+}
+
+
+@pytest.mark.parametrize("expr", OVER_BOUND.values(), ids=OVER_BOUND.keys())
+def test_rule_over_the_evaluation_bound_fails_fast(expr):
+    t = time.perf_counter()
+    [v] = check(rs(("A", "t", expr)), BIG, "t", {}, NOW)
+    assert time.perf_counter() - t < 1.0
+    assert not v.ok and v.error
+
+
+def test_rules_within_the_bound_still_evaluate():
+    within = "len('a' * 1000) + len([0] * 1000 + [1]) + sum([1, 2]) + len([1 for a in db['reservations']]) + 7 % 4 == 4007"
+    [v] = check(rs(("A", "t", within)), BIG, "t", {}, NOW)
+    assert v.ok and v.error is None
