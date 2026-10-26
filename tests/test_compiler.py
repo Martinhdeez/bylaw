@@ -168,6 +168,57 @@ def test_by_parts_ignores_compiled_rules_the_hand_rule_does_not_imply():
     assert rate(rs, hand) == pytest.approx(2 / 3)
 
 
+def test_match_rate_probes_other_itineraries_for_the_flights_argument():
+    # Only a business reservation given another booking's two-segment itinerary tells these apart.
+    db = copy.deepcopy(DB)
+    for i, (rid, r) in enumerate(sorted(db["reservations"].items())):
+        r["flights"] = [{"flight_number": f"HAT{i}{k}", "date": "2024-05-20"} for k in range(2 if i == 0 else 1)]
+    hand = plus_rule(HAND, "update_reservation_flights", "res['cabin'] != 'business' or len(args['flights']) == 1")
+    m = match_report(plus_rule(HAND, "update_reservation_flights", "res is not None"), hand, make_domain(db))
+    assert m["rate"] == pytest.approx(3 / 4)
+
+
+def test_probes_name_the_record_collection_the_snapshot_has():
+    # A retail-shaped snapshot: rules read `res` through args["order_id"], not reservation_id.
+    db = {"users": DB["users"], "products": {"P1": {"product_id": "P1", "variants": {}}},
+          "orders": {f"#W{i}": {"order_id": f"#W{i}", "user_id": "u_reg", "status": s, "items": [], "payment_history": []}
+                     for i, s in enumerate(["pending", "delivered", "pending", "cancelled"])}}
+    hand = {"domain": "retail", "forbidden_goals": [],
+            "tool_rules": [{"id": "R-cancel-1", "tool": "cancel_pending_order", "allow_if": "res['status'] == 'pending'",
+                            "policy_ref": "x", "note": ""}]}
+    domain = SimpleNamespace(name="retail", now=NOW, fresh_env=lambda: None, snapshot=lambda env: db,
+                             tools=[_tool("cancel_pending_order", "order_id", "reason")])
+    m = match_report(hand, hand, domain)
+    assert m["rate"] == 1.0 and m["discriminable"] == 1
+    assert match_rate(with_rule("R-cancel-1", "res['status'] != 'cancelled'", hand), hand, domain) == 0.0
+
+
+def test_retail_probes_vary_items_new_items_and_payment_methods():
+    variants = {"V1": {"item_id": "V1", "available": True}, "V2": {"item_id": "V2", "available": True},
+                "V3": {"item_id": "V3", "available": False}}
+    db = {"users": {"u1": {"user_id": "u1", "payment_methods": {"gift_card_1": {"source": "gift_card"}}}},
+          "products": {"P1": {"product_id": "P1", "variants": variants},
+                       "P2": {"product_id": "P2", "variants": {"W1": {"item_id": "W1", "available": True}}}},
+          "orders": {f"#W{i}": {"order_id": f"#W{i}", "user_id": "u1", "status": "pending",
+                                "items": [{"item_id": "V1", "product_id": "P1"}],
+                                "payment_history": [{"payment_method_id": "gift_card_1"}]} for i in range(3)}}
+    rule = lambda rid, expr: {"id": rid, "tool": "modify_pending_order_items", "allow_if": expr,  # noqa: E731
+                              "policy_ref": "x", "note": ""}
+    hand = {"domain": "retail", "forbidden_goals": [], "tool_rules": [
+        rule("A", "len(args['item_ids']) > 0"),
+        rule("B", "all(b != a for a, b in zip(args['item_ids'], args['new_item_ids']))"),
+        rule("C", "args['payment_method_id'] in user['payment_methods']"),
+    ]}
+    domain = SimpleNamespace(name="retail", now=NOW, fresh_env=lambda: None, snapshot=lambda env: db,
+                             tools=[_tool("modify_pending_order_items", "order_id", "item_ids", "new_item_ids",
+                                          "payment_method_id")])
+    m = match_report(hand, hand, domain)
+    assert m["rate"] == 1.0 and m["discriminable"] == 3
+    # Differs from C only for a payment method outside the user's profile.
+    assert match_rate({**hand, "tool_rules": hand["tool_rules"][:2] + [rule("C2", "user is not None")]},
+                      hand, domain) == pytest.approx(2 / 3)
+
+
 def test_match_rate_needs_the_same_tool():
     rs = copy.deepcopy(HAND)
     rs["tool_rules"][1]["tool"] = "update_reservation_baggages"
@@ -294,6 +345,13 @@ needs_tau2 = pytest.mark.skipif(not (ROOT / ".context/tau2-bench/data").exists()
 @needs_tau2
 def test_every_airline_hand_rule_is_discriminable_and_matches_itself():
     hand = json.loads((ROOT / "bylaw/rulesets/airline.json").read_text())
+    m = match_report(hand, hand)
+    assert m["rate"] == 1.0 and m["discriminable"] == m["hand_rules"] == len(hand["tool_rules"])
+
+
+@needs_tau2
+def test_every_retail_hand_rule_is_discriminable_and_matches_itself():
+    hand = json.loads((ROOT / "bylaw/rulesets/retail.json").read_text())
     m = match_report(hand, hand)
     assert m["rate"] == 1.0 and m["discriminable"] == m["hand_rules"] == len(hand["tool_rules"])
 

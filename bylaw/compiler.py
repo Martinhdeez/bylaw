@@ -113,7 +113,19 @@ CABINS = ["basic_economy", "economy", "business"]
 NEW_PAX = {"first_name": "Ann", "last_name": "Lee", "dob": "1990-01-01"}
 
 
-def _arg_keys_and_literals(exprs):
+def _record_kind(db):
+    """(args key, collection) of the records calls act on: the collection, other than users, whose records
+    carry their own id under a "*_id" field and a user_id (airline: reservation_id / reservations, retail:
+    order_id / orders)."""
+    for coll, recs in sorted(db.items()):
+        rid, r = next(iter(recs.items()), (None, {})) if isinstance(recs, dict) else (None, {})
+        key = next((k for k, v in r.items() if k.endswith("_id") and v == rid), None) if isinstance(r, dict) else None
+        if coll != "users" and key and "user_id" in r:
+            return key, coll
+    return None, None
+
+
+def _arg_keys_and_literals(exprs, record_key):
     keys, lits = set(), set()
     for e in exprs:
         try:
@@ -128,8 +140,8 @@ def _arg_keys_and_literals(exprs):
                 keys.add(n.args[0].value)
             elif isinstance(n, ast.Constant) and isinstance(n.value, str):
                 lits.add(n.value)
-            elif isinstance(n, ast.Name) and n.id == "res":
-                keys.add("reservation_id")  # ponytail: airline key; retail needs "order_id" when RT1 lands
+            elif isinstance(n, ast.Name) and n.id == "res" and record_key:
+                keys.add(record_key)  # res is named by args (C2), so the probe must name a record
     return keys, sorted(lits)
 
 
@@ -141,7 +153,21 @@ def _own_first(own, values):
     return [own, *sorted({v for v in values if v != own})]
 
 
-def _candidates(key, rid, r, db, lits, others):
+def _items(db, r):
+    """Retail-style item changes for order `r`: its item ids, and per item an available other variant of the
+    same product, an unavailable one, and an item of another product."""
+    own = [i["item_id"] for i in r.get("items", [])]
+    variants = lambda i: db.get("products", {}).get(i["product_id"], {}).get("variants", {})  # noqa: E731
+    alt = [next((v for v, x in sorted(variants(i).items()) if v != i["item_id"] and x.get("available")), i["item_id"])
+           for i in r.get("items", [])]
+    gone = [next((v for v, x in sorted(variants(i).items()) if not x.get("available")), i["item_id"])
+            for i in r.get("items", [])]
+    other = next((v for p in sorted(db.get("products", {})) for v in sorted(db["products"][p]["variants"])
+                  if all(i["product_id"] != p for i in r.get("items", []))), "0")
+    return own, alt, gone, other
+
+
+def _candidates(key, rid, r, db, lits, others, record_key):
     """Values to try for args[key] on a call about record `r`; the first one is the record's own value."""
     users = db.get("users", {})
     uid = r.get("user_id")
@@ -150,18 +176,26 @@ def _candidates(key, rid, r, db, lits, others):
     n = len(r.get("passengers", []))
     pax = r.get("passengers", [])
     route = (r.get("origin"), r.get("destination"), r.get("flight_type"))
-    same_route = [o for o in others if (o.get("origin"), o.get("destination"), o.get("flight_type")) == route and o is not r]
-    if key == "reservation_id":
-        return [rid, "ZZZZZZ", *[o["reservation_id"] for o in others[:2] if o.get("reservation_id") != rid]]
+    same_route = [o for oid, o in others if (o.get("origin"), o.get("destination"), o.get("flight_type")) == route and oid != rid]
+    if key == record_key:
+        return [rid, "ZZZZZZ", *[oid for oid, _ in others if oid != rid][:2]]
     if key == "user_id":
         return [uid, next((k for k in sorted(users) if k != uid), "nobody"), "nobody"]
     if key == "flights":
-        return [_legs(r), *[_legs(o) for o in same_route[:2]], *[_legs(o) for o in others[:2] if o is not r],
+        return [_legs(r), *[_legs(o) for o in same_route[:2]], *[_legs(o) for oid, o in others[:2] if oid != rid],
                 _legs(r)[:1], list(reversed(_legs(r)))]
     if key == "cabin":
         return [r.get("cabin"), *[c for c in CABINS if c != r.get("cabin")]]
     if key == "passengers":
         return [pax, pax + [NEW_PAX], pax[:-1], [NEW_PAX] * 6]
+    if key in ("item_ids", "new_item_ids"):
+        own, alt, gone, other = _items(db, r)
+        if key == "item_ids":
+            return [own, own[:1], [], own[:1] * 2, [other]]
+        return [alt, own, gone, alt[:1], [other] * len(own)]
+    if key == "payment_method_id":
+        first = [p["payment_method_id"] for p in r.get("payment_history", [])[:1]]
+        return _own_first(first[0] if first else "none", [*pays, "credit_card_0000000"])
     if key == "payment_id":
         return [*(pays or ["none"]), "credit_card_0000000"]
     if key == "payment_methods":
@@ -182,9 +216,8 @@ def _candidates(key, rid, r, db, lits, others):
     return [ABSENT, *lits, True, False]
 
 
-def _records(db, now):
-    coll = db.get("reservations") or db.get("orders") or {}
-    items = sorted(coll.items())
+def _records(db, now, coll):
+    items = sorted(db.get(coll, {}).items()) if coll else []
     sample = items[::max(1, len(items) // SAMPLE)]
     seen = {k for k, _ in sample}
     if now:
@@ -195,14 +228,15 @@ def _records(db, now):
 
 def probes(db: dict, now: str, params: set[str], exprs: list[str]) -> list[dict]:
     """Argument dicts for one tool, built from its parameters, DB records and the args keys the rules read."""
-    keys, lits = _arg_keys_and_literals(exprs)
+    record_key, coll = _record_kind(db)
+    keys, lits = _arg_keys_and_literals(exprs, record_key)
     keys = sorted(params | keys)
-    records = _records(db, now)
-    others = [r for _, r in records]
+    records = _records(db, now, coll) or [(None, {})]
+    others = records
     rng = random.Random(0)
     out = []
     for rid, r in records:
-        cands = {k: _candidates(k, rid, r, db, lits, others) for k in keys}
+        cands = {k: _candidates(k, rid, r, db, lits, others, record_key) for k in keys}
         base = {k: c[0] for k, c in cands.items()}
         calls = [base] + [{**base, k: v} for k, c in cands.items() for v in c[1:]]
         calls += [{k: rng.choice(c) for k, c in cands.items()} for _ in range(COMBOS)]
