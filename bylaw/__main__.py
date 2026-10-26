@@ -4,12 +4,14 @@ import json
 import sys
 from pathlib import Path
 
+from bylaw import compiler
+from bylaw.domain import get_domain
+
 HAND_RULESETS = Path(__file__).parent / "rulesets"
 
 
 def cmd_backtest(a):
     from bylaw.backtest import backtest
-    from bylaw.domain import get_domain
 
     domain = get_domain(a.domain)
     hand = json.loads((HAND_RULESETS / f"{a.domain}.json").read_text())
@@ -26,9 +28,6 @@ def cmd_backtest(a):
 
 
 def cmd_compile(a):
-    from bylaw import compiler
-    from bylaw.domain import get_domain
-
     domain = get_domain(a.domain)
     ruleset = compiler.compile_policy(domain)
     Path(a.output).write_text(json.dumps(ruleset, indent=2) + "\n")

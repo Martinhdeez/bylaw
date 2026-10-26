@@ -260,7 +260,7 @@ def test_compile_policy_raises_when_muse_cannot_produce_a_valid_ruleset(bad):
 @pytest.fixture
 def cli(monkeypatch, tmp_path):
     monkeypatch.setattr(bylaw_main, "get_domain", lambda name: DOMAIN)
-    monkeypatch.setattr(bylaw_main, "RULESETS", tmp_path / "rulesets")
+    monkeypatch.setattr(bylaw_main, "HAND_RULESETS", tmp_path / "rulesets")
     monkeypatch.setattr(compiler, "structured", Muse(with_rule("R-cancel-1", "res['cabin'] == 'business'")))
     return tmp_path
 
