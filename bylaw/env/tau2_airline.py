@@ -60,10 +60,10 @@ def diff(before, after) -> dict:
     """{collection: {key: {"before": ..., "after": ...}}} for every changed/added/removed record."""
     b, a = before.model_dump(), after.model_dump()
     out = {}
-    for coll in a:
+    for coll in sorted(a):
         changed = {
             k: {"before": b[coll].get(k), "after": a[coll].get(k)}
-            for k in b[coll].keys() | a[coll].keys()
+            for k in sorted(b[coll].keys() | a[coll].keys())
             if b[coll].get(k) != a[coll].get(k)
         }
         if changed:

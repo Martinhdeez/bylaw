@@ -222,7 +222,7 @@ def show(h):
     print(f"  CLASS {h['class'] or '-'} {('— ' + h['note']) if h['note'] else ''}")
 
 
-def main():
+def main(out=OUT):
     used = set()
     holes = [run(*spec, used) for spec in HOLES]
     for h in holes:
@@ -230,7 +230,7 @@ def main():
     a = [h["id"] for h in holes if h["class"] == "A"]
     c = [h["id"] for h in holes if h["class"] == "C"]
     print(f"\nSUMMARY: {len(a)} Class A holes {a}; Class C (ambiguity, not counted) {c}")
-    OUT.write_text(json.dumps({"class_a_count": len(a), "holes": holes}, indent=2, default=str))
+    Path(out).write_text(json.dumps({"class_a_count": len(a), "holes": holes}, indent=2, sort_keys=True, default=str) + "\n")
     return holes
 
 
