@@ -3,13 +3,10 @@
 Expressions are Python expression syntax, accepted only if every AST node is on a whitelist, then
 evaluated with no builtins. Names: args db now res user, plus comprehension variables.
 Functions: len any all sum min max abs hours_between zip (zip: C2 v1.3). Methods: `.get` only.
-Evaluation is bounded (C2 v1.3): `*` and `+` on sequences may not build more than MAX_SIZE items, `%`
-is numeric only, `sum`
-takes a numeric start only, and a rule that runs past TIME_LIMIT is stopped by a trace hook.
+Evaluation is bounded by work (C2 v1.5): comprehension iterations plus the elements that `*` and `+` build
+count against BUDGET per evaluation; `%` is numeric only, `sum` takes a numeric start only, bytes are rejected.
 """
 import ast
-import sys
-import time
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
@@ -52,42 +49,62 @@ def hours_between(a: str, b: str) -> float:
     return abs((datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds()) / 3600
 
 
-MAX_SIZE = 10**6  # elements or characters in any value a rule builds
-TIME_LIMIT = 0.05  # seconds per rule
+BUDGET = 10**6  # comprehension iterations plus elements/characters built, per rule evaluation (C2 v1.5)
 _SEQ = (str, list, tuple)
 
 
-class _OverBound(Exception):
+class _OverBudget(Exception):
     pass
 
 
-def _mul(a, b):
-    for seq, n in ((a, b), (b, a)):
-        if isinstance(seq, _SEQ) and isinstance(n, int) and len(seq) * n > MAX_SIZE:
-            raise _OverBound(f"value over {MAX_SIZE} elements")
-    return a * b
+class _Budget:
+    """Work counter for one rule evaluation. Comprehension iterables and `*` `+` `%` are routed here by _Guard."""
 
+    def __init__(self):
+        self.left = BUDGET
 
-def _add(a, b):
-    if isinstance(a, _SEQ) and isinstance(b, _SEQ) and len(a) + len(b) > MAX_SIZE:
-        raise _OverBound(f"value over {MAX_SIZE} elements")
-    return a + b
+    def charge(self, n):
+        self.left -= n
+        if self.left < 0:
+            raise _OverBudget(f"rule over the evaluation budget of {BUDGET} iterations and elements")
 
+    def it(self, iterable):
+        for x in iterable:
+            self.charge(1)
+            yield x
 
-def _mod(a, b):
-    if isinstance(a, str):  # '%0999999999d' % 1 builds the string in C
-        raise _OverBound("string formatting is not allowed")
-    return a % b
+    def mul(self, a, b):
+        for seq, n in ((a, b), (b, a)):
+            if isinstance(seq, _SEQ) and isinstance(n, int):
+                self.charge(len(seq) * max(n, 0))  # charged before the value is built
+        return a * b
+
+    def add(self, a, b):
+        if isinstance(a, _SEQ) and isinstance(b, _SEQ):
+            self.charge(len(a) + len(b))
+        return a + b
+
+    @staticmethod
+    def mod(a, b):
+        if isinstance(a, str):  # '%0999999999d' % 1 builds the string in C
+            raise _OverBudget("string formatting is not allowed")
+        return a % b
 
 
 def _sum(items, start=0):
-    if not isinstance(start, (int, float)):  # sum(lists, []) concatenates in C, out of reach of _add
-        raise _OverBound("sum start must be a number")
+    if not isinstance(start, (int, float)):  # sum(lists, []) concatenates in C, out of reach of the budget
+        raise _OverBudget("sum start must be a number")
     return sum(items, start)
 
 
 class _Guard(ast.NodeTransformer):
-    """Routes `*`, `+` and `%` through the size-checked helpers. Runs after validation, so rules cannot name them."""
+    """Routes comprehension iterables and `*`, `+`, `%` through the budget. Runs after validation, so rules
+    cannot name the helpers."""
+
+    def visit_comprehension(self, node):
+        self.generic_visit(node)
+        node.iter = ast.Call(ast.Name("_it", ast.Load()), [node.iter], [])
+        return node
 
     def visit_BinOp(self, node):
         self.generic_visit(node)
@@ -96,21 +113,8 @@ class _Guard(ast.NodeTransformer):
 
 
 def _run(code, scope):
-    """eval under a per-opcode deadline check."""
-    deadline = time.perf_counter() + TIME_LIMIT
-
-    def tracer(frame, event, arg):
-        if time.perf_counter() > deadline:
-            raise _OverBound(f"rule ran over {TIME_LIMIT * 1000:.0f} ms")
-        frame.f_trace_opcodes = True
-        return tracer
-
-    previous = sys.gettrace()  # ponytail: replaces a debugger/coverage tracer while a rule runs
-    sys.settrace(tracer)
-    try:
-        return eval(code, scope)
-    finally:
-        sys.settrace(previous)
+    b = _Budget()
+    return eval(code, {**scope, "_it": b.it, "_mul": b.mul, "_add": b.add, "_mod": b.mod})
 
 
 FUNCS = {f.__name__: f for f in (len, any, all, min, max, abs, zip, hours_between)} | {"sum": _sum}
@@ -140,6 +144,8 @@ def _compile(expr: str):
             raise RuleError(f"{type(n).__name__} not allowed in {expr!r}")
         if isinstance(n, ast.Name) and (n.id.startswith("_") or n.id not in NAMES | FUNCS.keys() | bound):
             raise RuleError(f"name {n.id!r} not allowed in {expr!r}")
+        if isinstance(n, ast.Constant) and isinstance(n.value, bytes):
+            raise RuleError(f"bytes constant not allowed in {expr!r}")
         if isinstance(n, ast.Attribute) and n.attr != "get":
             raise RuleError(f"attribute .{n.attr} not allowed in {expr!r}")
         if isinstance(n, ast.keyword) and n.arg is None:
@@ -178,7 +184,7 @@ def _scope(snapshot: dict, args: dict, now: str) -> dict:
             break
     users = snapshot.get("users", {})
     user = users.get(args.get("user_id") or (res or {}).get("user_id"))
-    return {"__builtins__": {}, **FUNCS, "_mul": _mul, "_add": _add, "_mod": _mod, "args": args, "db": snapshot, "now": now, "res": res, "user": user}
+    return {"__builtins__": {}, **FUNCS, "args": args, "db": snapshot, "now": now, "res": res, "user": user}
 
 
 def check(ruleset: dict, snapshot: dict, tool: str, args: dict, now: str) -> list[Verdict]:
@@ -188,7 +194,7 @@ def check(ruleset: dict, snapshot: dict, tool: str, args: dict, now: str) -> lis
         if r["tool"] != tool:
             continue
         try:
-            out.append(Verdict(r["id"], bool(_run(_compile(r["allow_if"]), dict(scope))), r["policy_ref"]))
+            out.append(Verdict(r["id"], bool(_run(_compile(r["allow_if"]), scope)), r["policy_ref"]))
         except Exception as e:  # a rule that cannot be evaluated does not allow the call
             out.append(Verdict(r["id"], False, r["policy_ref"], f"{type(e).__name__}: {e}"))
     return out
