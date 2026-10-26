@@ -1,6 +1,7 @@
-"""python -m bylaw <subcommand>. Each subcommand is one function taking the parsed args."""
+"""CLI (contract C5): python -m bylaw <subcommand>. Each subcommand is one function taking the parsed args."""
 import argparse
 import json
+import sys
 from pathlib import Path
 
 HAND_RULESETS = Path(__file__).parent / "rulesets"
@@ -24,6 +25,30 @@ def cmd_backtest(a):
     }, indent=2))
 
 
+def cmd_compile(a):
+    from bylaw import compiler
+    from bylaw.domain import get_domain
+
+    domain = get_domain(a.domain)
+    ruleset = compiler.compile_policy(domain)
+    Path(a.output).write_text(json.dumps(ruleset, indent=2) + "\n")
+    print(f"wrote {a.output}: {len(ruleset['tool_rules'])} tool rules, {len(ruleset['forbidden_goals'])} forbidden goals")
+    hand_path = HAND_RULESETS / f"{a.domain}.json"
+    if not hand_path.exists():
+        print(f"no hand RuleSet at {hand_path}; match rate not computed")
+        return 0
+    hand = json.loads(hand_path.read_text())
+    m = compiler.match_report(ruleset, hand, domain)
+    print(f"match rate: {m['rate']:.2f} ({m['matched'] + m['by_parts']}/{m['hand_rules']} hand rules: "
+          f"{m['matched']} by one compiled rule, {m['by_parts']} by several; strict {m['strict_rate']:.2f}; "
+          f"{m['discriminable']}/{m['hand_rules']} discriminable on the probes, {m['matched_discriminable']} of them "
+          f"matched; {m['invalid']} invalid)")
+    for r in m["rules"]:
+        if r["status"] not in ("matched", "by_parts"):
+            print(f"  {r['status']:9} {r['id']}")
+    return 0
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="bylaw")
     sub = p.add_subparsers(required=True)
@@ -31,9 +56,13 @@ def main(argv=None):
     b.add_argument("--domain", required=True)
     b.add_argument("--ruleset", help="RuleSet JSON to test; default: the hand RuleSet (the baseline)")
     b.set_defaults(fn=cmd_backtest)
+    c = sub.add_parser("compile", help="compile a domain policy into a RuleSet with Muse")
+    c.add_argument("--domain", required=True)
+    c.add_argument("-o", "--output", required=True)
+    c.set_defaults(fn=cmd_compile)
     a = p.parse_args(argv)
-    a.fn(a)
+    return a.fn(a)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
