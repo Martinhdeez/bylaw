@@ -1,6 +1,7 @@
 """Acceptance tests for EX1 and the CLI side of PR1: audit CLI, report JSON (C4), replay.
 
 Written blind from docs/plan/01-engine/requirements.md and contracts.md (C1, C4, C5, v1.1).
+v1.2 adds the diff format, the hole key and the replay signature.
 Domain facts (DB shape, clock 2024-05-15T15:00:00, deterministic ids) come from .context/tau2-bench.
 Helpers live in this file on purpose: the wave-1 conftest is on another unmerged branch.
 """
@@ -58,9 +59,35 @@ def assert_c4_entry(e: dict, cls: str) -> None:
             assert isinstance(v["rule_id"], str) and v["rule_id"]
             assert isinstance(v["ok"], bool)
             assert isinstance(v["policy_ref"], str)
-    assert isinstance(e["diff"], dict)
+    assert isinstance(e["key"], str) and e["key"].startswith(e["goal"] + ":"), e.get("key")
+    assert len(e["key"]) > len(e["goal"]) + 1, "key needs a target id"
+    assert_diff_shape(e["diff"])
     assert isinstance(e["goal_true"], bool)
     assert isinstance(e["replays"], str)
+
+
+def assert_diff_shape(diff: dict) -> None:
+    """v1.2: {collection: {record_id: {"before": dict|null, "after": dict|null}}}, changed records only."""
+    assert isinstance(diff, dict)
+    for coll, records in diff.items():
+        assert isinstance(coll, str) and isinstance(records, dict)
+        for rid, change in records.items():
+            assert set(change) == {"before", "after"}, (coll, rid)
+            assert change["before"] is None or isinstance(change["before"], dict)
+            assert change["after"] is None or isinstance(change["after"], dict)
+            assert change["before"] != change["after"], f"unchanged record {coll}/{rid} in diff"
+
+
+def expected_diff(before: dict, after: dict) -> dict:
+    """The v1.2 diff worked out from two C1 snapshots."""
+    out = {}
+    for coll in set(before) | set(after):
+        b, a = before.get(coll) or {}, after.get(coll) or {}
+        changed = {rid: {"before": b.get(rid), "after": a.get(rid)}
+                   for rid in set(b) | set(a) if canon(b.get(rid)) != canon(a.get(rid))}
+        if changed:
+            out[coll] = changed
+    return out
 
 
 def assert_c4_shape(r: dict) -> None:
@@ -78,6 +105,8 @@ def assert_c4_shape(r: dict) -> None:
         assert_c4_entry(a, "C")
     ids = [e["id"] for e in r["holes"] + r["ambiguities"]]
     assert len(ids) == len(set(ids)), "hole/ambiguity ids must be unique"
+    keys = [e["key"] for e in r["holes"] + r["ambiguities"]]
+    assert len(keys) == len(set(keys)), "hole/ambiguity keys must be unique"
     s = r["stats"]
     for key in ("chains_tried", "tool_calls", "llm_calls", "tokens"):
         assert isinstance(s[key], int) and s[key] >= 0, key
@@ -235,8 +264,25 @@ def test_REQ_EX1_3_ambiguities_are_class_C(report):
 
 # ---------- REQ-EX1-4 ----------
 
-def test_REQ_EX1_4_executor_exposes_replay():
-    assert callable(importlib.import_module("bylaw.executor").replay)
+def test_REQ_EX1_4_replay_gives_the_report_diff(report, domain):
+    replay = importlib.import_module("bylaw.executor").replay
+    assert report["holes"], "no holes to replay"
+    for h in report["holes"]:
+        chain = [{"tool": s["tool"], "args": copy.deepcopy(s["args"])} for s in h["chain"]]
+        first = replay(domain, chain)
+        second = replay(domain, copy.deepcopy(chain))
+        assert len(first["steps"]) == len(chain)
+        assert all(step["ok"] for step in first["steps"]), h["id"]
+        assert_diff_shape(first["diff"])
+        assert first["diff"], f"{h['id']}: replay changed nothing"
+        assert canon(first["diff"]) == canon(h["diff"]), f"{h['id']}: replay diff != report diff"
+        assert canon(second["diff"]) == canon(first["diff"]), f"{h['id']}: replay is not deterministic"
+
+
+def test_REQ_EX1_4_report_diff_matches_the_db_change_seen_through_c1(report, domain):
+    for h in report["holes"]:
+        before, after, _ = replay_by_contract(domain, h["chain"])
+        assert canon(h["diff"]) == canon(expected_diff(before, after)), h["id"]
 
 
 def test_REQ_EX1_4_hole_chain_reproduces_the_same_diff_on_fresh_envs(report, domain):
@@ -278,4 +324,4 @@ def test_REQ_PR1_1_llm_audit_finds_at_least_the_no_llm_holes(report, tmp_path):
     assert muse["run"]["budget"] == DEFAULT_BUDGET
     assert muse["stats"]["tool_calls"] <= DEFAULT_BUDGET
     assert muse["stats"]["llm_calls"] > 0
-    assert {h["goal"] for h in report["holes"]} <= {h["goal"] for h in muse["holes"]}
+    assert {h["key"] for h in report["holes"]} <= {h["key"] for h in muse["holes"]}

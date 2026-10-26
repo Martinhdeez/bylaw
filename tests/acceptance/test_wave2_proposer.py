@@ -1,7 +1,7 @@
 """Acceptance tests for PR1: bounded search (C6) and the bench CLI (C5).
 
 Written blind from docs/plan/01-engine/requirements.md and contracts.md.
-C5 gives bench no offline mode, so the whole bench test is @pytest.mark.live.
+v1.2: `bench --modes bfs` runs offline and the bench JSON has a schema; the muse row is live.
 """
 import importlib
 import json
@@ -77,21 +77,60 @@ def test_REQ_PR1_3_llm_search_never_exceeds_budget(search, domain, ruleset):
         assert_chain_shape(chain, domain)
 
 
-# ---------- REQ-PR1-2 (live: bench always runs muse mode) ----------
+# ---------- REQ-PR1-2 ----------
 
-@pytest.mark.live
-def test_REQ_PR1_2_bench_prints_and_writes_bfs_and_muse_table(tmp_path):
+BENCH_BUDGET = 30
+ROW_KEYS = {"mode", "holes", "hole_keys", "tool_calls", "llm_calls", "tokens", "seconds"}
+
+
+def bench(tmp_path, modes: str):
     out = tmp_path / "bench.json"
     proc = subprocess.run(
-        [sys.executable, "-m", "bylaw", "bench", "--domain", "airline", "--budget", "30", "-o", str(out)],
+        [sys.executable, "-m", "bylaw", "bench", "--domain", "airline", "--budget", str(BENCH_BUDGET),
+         "--modes", modes, "-o", str(out)],
         cwd=ROOT, capture_output=True, text=True, timeout=1800,
     )
     assert proc.returncode == 0, proc.stderr[-4000:]
-    text = proc.stdout.lower()
-    for mode in ("bfs", "muse"):
+    return proc.stdout, json.loads(out.read_text())
+
+
+def assert_bench_shape(data: dict, modes: list[str]) -> dict:
+    assert data["domain"] == "airline"
+    assert data["budget"] == BENCH_BUDGET
+    rows = {r["mode"]: r for r in data["rows"]}
+    assert sorted(rows) == sorted(modes) and len(data["rows"]) == len(modes)
+    for r in rows.values():
+        assert ROW_KEYS <= set(r), ROW_KEYS - set(r)
+        assert isinstance(r["hole_keys"], list) and all(isinstance(k, str) for k in r["hole_keys"])
+        assert len(set(r["hole_keys"])) == len(r["hole_keys"])
+        assert r["holes"] == len(r["hole_keys"])
+        assert isinstance(r["tool_calls"], int) and 0 <= r["tool_calls"] <= BENCH_BUDGET
+        assert isinstance(r["llm_calls"], int) and isinstance(r["tokens"], int)
+        assert isinstance(r["seconds"], (int, float)) and r["seconds"] >= 0
+    return rows
+
+
+def assert_table_printed(stdout: str, modes: list[str]) -> None:
+    text = stdout.lower()
+    for mode in modes:
         assert mode in text, f"no {mode} row in the printed table"
     for column in (r"holes", r"tool[ _-]?calls", r"llm[ _-]?calls", r"wall|seconds|time"):
         assert re.search(column, text), f"no {column!r} column in the printed table"
-    data = json.loads(out.read_text())
-    dumped = json.dumps(data).lower()
-    assert "bfs" in dumped and "muse" in dumped
+
+
+def test_REQ_PR1_2_bench_bfs_runs_offline_and_writes_the_table(tmp_path):
+    stdout, data = bench(tmp_path, "bfs")
+    rows = assert_bench_shape(data, ["bfs"])
+    assert rows["bfs"]["llm_calls"] == 0
+    assert rows["bfs"]["tokens"] == 0
+    assert rows["bfs"]["tool_calls"] > 0
+    assert_table_printed(stdout, ["bfs"])
+
+
+@pytest.mark.live
+def test_REQ_PR1_2_bench_prints_and_writes_bfs_and_muse_table(tmp_path):
+    stdout, data = bench(tmp_path, "bfs,muse")
+    rows = assert_bench_shape(data, ["bfs", "muse"])
+    assert rows["bfs"]["llm_calls"] == 0
+    assert rows["muse"]["llm_calls"] > 0
+    assert_table_printed(stdout, ["bfs", "muse"])
