@@ -25,6 +25,17 @@ pyproject.toml  .env.example  README.md
 
 tau2-bench is a dependency: `uv add "tau2 @ git+https://github.com/sierra-research/tau2-bench"`, with `TAU2_DATA_DIR` pointing at a checkout's `data/`. Fallback: `uv pip install -e .context/tau2-bench`.
 
+## Decisions (user, 2026-10-26)
+
+- Domains: τ² **airline + retail**. The engine is domain-agnostic, and every domain is a plug-in: env loader, goals and hand-written rules.
+- **Muse must be essential and measured.**
+  - Muse compiles the policy into rules and goals. Without it there is no engine for a new policy.
+  - Muse proposes chains and drafts amendments.
+  - Measure Muse-guided search against blind BFS: holes found per tool-call budget and per wall-clock. Show the result in the UI.
+- Deploy: the user's OVH VPS via docker compose, only after the user gives the go-ahead.
+- Git: commit and push to `bylaw/build` per milestone. Never touch `main`. No PRs unless asked.
+- Order: M0 → M1 → M2 → M3 → M4. Each milestone closes with a green acceptance check, a commit and a push.
+
 ## M0 — Spike gate (no LLM)
 
 - `spike/holes_by_hand.py` executes H1, H2 and H3 on fresh DB copies, using real target reservations from the DB (e.g. T1QOBS for H1). These are the money-leaking and no-excuse holes.
