@@ -12,8 +12,8 @@ from bylaw.rules import check  # noqa: E402
 
 
 @pytest.fixture(scope="module")
-def holes():
-    return holes_by_hand.main()
+def holes(tmp_path_factory):
+    return holes_by_hand.main(tmp_path_factory.mktemp("spike") / "holes.json")
 
 
 def test_at_least_three_class_a(holes):
@@ -44,3 +44,12 @@ def test_rules_block_the_direct_route():
     cancel = {"tool": "cancel_reservation", "args": {"reservation_id": "T1QOBS"}, "meta": {"reason": "change of plan"}}
     assert not check(db, change).ok
     assert not check(db, cancel).ok
+
+
+def test_spike_output_is_deterministic_and_leaves_the_tracked_file_alone(tmp_path):
+    tracked = holes_by_hand.OUT.read_bytes()
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    holes_by_hand.main(a)
+    holes_by_hand.main(b)
+    assert a.read_text() == b.read_text()
+    assert holes_by_hand.OUT.read_bytes() == tracked
