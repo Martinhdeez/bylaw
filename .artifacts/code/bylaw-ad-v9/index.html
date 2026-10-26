@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=JetBrains+Mono:wght@500;700&display=block" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #07090e;
+        --panel: #111725;
+        --line: #232c40;
+        --ink: #f4f6f9;
+        --muted: #7d889b;
+        --red: #ff4d2e;
+        --green: #2be3a0;
+        --blue: #5b8cff;
+        --paper: #eef1f5;
+        --display: "Archivo", sans-serif;
+        --mono: "JetBrains Mono", monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--display); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .clip { position: absolute; inset: 0; }
+      .center { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      .huge { font-weight: 900; font-stretch: 64%; text-transform: uppercase; line-height: 0.9; letter-spacing: -0.01em; }
+      .red { color: var(--red); } .green { color: var(--green); } .muted { color: var(--muted); }
+
+      /* boarding pass */
+      .pass { position: absolute; left: 310px; top: 300px; width: 1300px; height: 480px; background: var(--paper); color: #0b0f17; border-radius: 26px; display: grid; grid-template-columns: 1fr 300px; overflow: hidden; }
+      .pass .main { padding: 50px 60px; display: flex; flex-direction: column; justify-content: space-between; }
+      .pass .route { font: 900 170px/0.9 var(--display); font-stretch: 72%; }
+      .pass .meta { display: flex; gap: 60px; font: 700 30px var(--mono); }
+      .pass .meta span { display: flex; flex-direction: column; gap: 6px; }
+      .pass .meta small { font: 500 18px var(--mono); color: #5b6576; letter-spacing: 0.1em; }
+      .pass .badge { align-self: flex-start; font: 800 30px var(--display); letter-spacing: 0.08em; padding: 10px 20px; border: 4px solid var(--red); color: var(--red); border-radius: 8px; }
+      .pass .stub { border-left: 4px dashed #c4cbd6; display: flex; align-items: center; justify-content: center; }
+      .pass .bars { width: 120px; height: 360px; background: repeating-linear-gradient(0deg, #0b0f17 0 6px, transparent 6px 10px, #0b0f17 10px 13px, transparent 13px 20px); }
+      .hl { background: var(--red); color: #fff; padding: 0 10px; border-radius: 6px; }
+      .chip { position: absolute; font: 900 92px/1 var(--display); font-stretch: 80%; text-transform: uppercase; padding: 18px 34px; border-radius: 16px; background: var(--green); color: #04130d; }
+      #ok1 { left: 1060px; top: 170px; transform: rotate(-4deg); }
+      #ok2 { left: 1080px; top: 170px; transform: rotate(3deg); }
+      .flash { position: absolute; inset: 0; background: var(--red); }
+      .hole-o { display: inline-block; width: 0.78em; height: 0.78em; border-radius: 50%; background: #000; box-shadow: 0 0 0 0.09em var(--red), 0 0 60px 10px rgba(255,77,46,0.55); vertical-align: -0.02em; margin: 0 0.02em; }
+
+      /* no villain */
+      .nos { display: flex; gap: 34px; }
+      .no { position: relative; font: 900 84px/1 var(--display); font-stretch: 72%; text-transform: uppercase; color: var(--muted); padding: 18px 30px; border: 4px solid var(--line); border-radius: 16px; }
+      .no::after { content: ""; position: absolute; left: -10px; right: -10px; top: 50%; height: 8px; background: var(--red); transform: scaleX(var(--s, 0)); transform-origin: left center; border-radius: 4px; }
+
+      /* market */
+      .mk { position: absolute; top: 150px; width: 700px; height: 560px; border-radius: 24px; border: 2px solid var(--line); background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
+      .mk .lbl { font: 700 26px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
+      .agent { width: 220px; height: 220px; border-radius: 50%; border: 10px solid var(--green); display: grid; place-items: center; font: 900 120px var(--display); color: var(--green); box-shadow: 0 0 80px 10px rgba(43,227,160,0.25); }
+      .pol { position: relative; width: 210px; height: 270px; background: var(--paper); border-radius: 14px; padding: 26px; }
+      .pol i { display: block; height: 11px; border-radius: 3px; background: #c9d0db; margin-bottom: 15px; }
+      .hole { position: absolute; border-radius: 50%; background: #000; }
+      .pol .hole { width: 70px; height: 70px; left: 100px; top: 120px; box-shadow: 0 0 0 7px var(--red), 0 0 40px 12px rgba(255,77,46,0.6); }
+      .mkline { position: absolute; left: 0; right: 0; font-size: 110px; }
+
+      /* logo */
+      .logo { display: flex; align-items: center; gap: 56px; }
+      .logo svg { overflow: visible; }
+      .word { font: 900 230px/0.8 var(--display); font-stretch: 112%; letter-spacing: -0.03em; }
+      .built { margin-top: 56px; font: 700 30px var(--mono); color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; }
+      .built b { color: var(--ink); }
+
+      /* capability layout */
+      .cap { position: absolute; left: 120px; top: 120px; display: flex; flex-direction: column; gap: 18px; width: 640px; }
+      .cap .k { font: 700 26px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--blue); display: flex; align-items: center; gap: 14px; }
+      .cap .k::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 20px 4px rgba(91,140,255,0.6); }
+      .cap .k.g { color: var(--green); } .cap .k.g::before { background: var(--green); box-shadow: 0 0 20px 4px rgba(43,227,160,0.6); }
+      .cap .t { font: 900 150px/0.88 var(--display); font-stretch: 64%; text-transform: uppercase; }
+      .cap .d { font: 500 34px/1.3 var(--display); font-stretch: 90%; color: var(--muted); }
+      .stage { position: absolute; left: 860px; top: 120px; width: 940px; height: 840px; }
+
+      /* read + watch */
+      .sheet { position: absolute; width: 220px; height: 280px; background: var(--paper); border-radius: 12px; padding: 22px; }
+      .sheet i { display: block; height: 10px; border-radius: 3px; background: #c9d0db; margin-bottom: 14px; }
+      .sheet.case { background: #1a2234; }
+      .sheet.case i { background: #2e3a52; }
+      .sheet.vid { background: #0c111b; border: 2px solid var(--blue); display: flex; flex-direction: column; justify-content: space-between; }
+      .sheet.vid .play { width: 0; height: 0; border-left: 60px solid var(--blue); border-top: 36px solid transparent; border-bottom: 36px solid transparent; margin: 50px auto 0; }
+      .sheet.vid span { font: 700 17px var(--mono); color: var(--ink); }
+      .ctx { position: absolute; left: 120px; right: 120px; bottom: 30px; display: flex; flex-direction: column; gap: 14px; }
+      .ctx .bar { height: 26px; background: var(--line); border-radius: 13px; overflow: hidden; }
+      .ctx .bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transform-origin: left center; }
+      .ctx .num { font: 900 110px/1 var(--display); font-stretch: 70%; }
+      .ctx .num small { font: 700 28px var(--mono); color: var(--muted); letter-spacing: 0.1em; margin-left: 16px; }
+
+      /* graph */
+      #graph { position: absolute; inset: 0; width: 940px; height: 840px; }
+
+      /* proof terminal */
+      .term { position: absolute; left: 0; right: 0; top: 40px; background: #0c111b; border: 2px solid var(--line); border-radius: 20px; padding: 40px 44px; display: flex; flex-direction: column; gap: 22px; font: 500 26px var(--mono); }
+      .term .h { font: 700 22px var(--mono); color: var(--red); letter-spacing: 0.12em; }
+      .term .r { display: flex; justify-content: space-between; padding: 18px 22px; border-radius: 10px; background: var(--panel); }
+      .term .r b { font-weight: 700; color: var(--green); }
+      .term .r.bad { outline: 3px solid var(--red); }
+      .term .r.bad b { color: var(--red); }
+      .term .q { color: var(--muted); }
+      .stamp { position: absolute; right: 30px; bottom: 60px; font: 900 64px/1 var(--display); font-stretch: 80%; color: var(--green); border: 7px solid var(--green); border-radius: 14px; padding: 16px 28px; transform: rotate(-5deg); text-transform: uppercase; white-space: nowrap; }
+      .stamp small { display: block; font: 700 20px var(--mono); letter-spacing: 0.1em; margin-top: 8px; }
+
+      /* patch */
+      .diff { position: absolute; left: 0; right: 0; top: 30px; background: var(--paper); color: #0b0f17; border-radius: 18px; padding: 40px 44px; display: flex; flex-direction: column; gap: 14px; }
+      .diff .f { font: 700 20px var(--mono); color: #5b6576; margin-bottom: 10px; }
+      .diff p { font: 600 34px/1.3 var(--display); font-stretch: 90%; padding: 12px 18px; border-radius: 8px; }
+      .diff .minus { color: #8a93a3; }
+      .diff .plus { background: rgba(43,227,160,0.28); border-left: 8px solid #12b07a; }
+      .met { position: absolute; left: 0; right: 0; top: 470px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+      .met div { background: var(--panel); border: 2px solid var(--line); border-radius: 18px; padding: 28px 32px; display: flex; flex-direction: column; gap: 10px; }
+      .met b { font: 900 100px/0.9 var(--display); font-stretch: 66%; color: var(--green); }
+      .met span { font: 700 22px var(--mono); color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+      /* bench */
+      .bench { display: flex; flex-direction: column; align-items: center; gap: 40px; }
+      .bench .logo2 { font: 900 220px/0.9 var(--display); font-stretch: 70%; }
+      .bench .sub { font: 700 34px var(--mono); color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+      .trace { display: flex; align-items: center; gap: 26px; }
+      .step { font: 700 36px var(--mono); padding: 22px 30px; border-radius: 14px; background: var(--panel); border: 3px solid var(--green); display: flex; gap: 16px; align-items: center; }
+      .step b { color: var(--green); }
+      .step.bad { border-color: var(--red); }
+      .step.bad b { color: var(--red); }
+      .arrow { font: 900 60px var(--display); color: var(--muted); }
+
+      /* open weights */
+      .bldg { position: absolute; left: 260px; right: 260px; top: 200px; height: 420px; border: 5px dashed var(--line); border-radius: 30px; display: flex; align-items: center; justify-content: center; gap: 60px; }
+      .bldg .lbl { position: absolute; left: 40px; top: -22px; background: var(--ground); padding: 0 16px; font: 700 26px var(--mono); color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; }
+      .bldg .pol { width: 170px; height: 220px; }
+      .model { font: 900 64px/1 var(--display); font-stretch: 80%; padding: 32px 40px; border-radius: 20px; border: 4px solid var(--blue); color: var(--ink); box-shadow: 0 0 60px 6px rgba(91,140,255,0.3); text-align: center; }
+      .model small { display: block; font: 700 22px var(--mono); color: var(--blue); letter-spacing: 0.14em; margin-top: 12px; }
+
+      /* input */
+      .card { position: absolute; top: 230px; width: 600px; height: 560px; background: var(--panel); border: 3px solid var(--line); border-radius: 24px; padding: 34px 38px; display: flex; flex-direction: column; gap: 14px; }
+      .card .lbl { font: 700 24px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
+      .card .ttl { font: 900 64px/1 var(--display); font-stretch: 72%; text-transform: uppercase; margin-bottom: 8px; }
+      .card .tool { font: 500 24px var(--mono); color: var(--ink); padding: 10px 16px; background: #0c111b; border-radius: 8px; }
+      .card .rule { font: 600 26px/1.25 var(--display); font-stretch: 90%; color: #0b0f17; background: var(--paper); padding: 12px 16px; border-radius: 8px; }
+      .banner { position: absolute; top: 110px; left: 0; right: 0; text-align: center; font: 700 30px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .banner b { color: var(--ink); }
+      .shock { position: absolute; left: 50%; top: 50%; width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%; border: 10px solid var(--red); }
+
+      /* scan */
+      .scan { display: flex; flex-direction: column; align-items: center; gap: 30px; }
+      .scan .k { font: 700 34px var(--mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue); }
+      .scan .w { font: 900 330px/0.85 var(--display); font-stretch: 64%; text-transform: uppercase; }
+      .scan .v { font: 700 40px var(--mono); color: var(--muted); }
+      .scan .v b { color: var(--ink); }
+
+      .bgx { position: absolute; inset: 0; opacity: 0.32; }
+      .bgx .sheet { width: 200px; height: 260px; }
+      .bigplayer { position: absolute; left: 260px; top: 140px; width: 1400px; height: 800px; background: #0c111b; border: 3px solid var(--blue); border-radius: 26px; overflow: hidden; }
+      .bigplayer .row { position: absolute; left: 60px; right: 60px; height: 70px; border-radius: 12px; background: #151c2b; }
+      .bigplayer .pb { position: absolute; left: 60px; right: 60px; bottom: 50px; height: 10px; background: var(--line); border-radius: 5px; }
+      .bigplayer .pb i { position: absolute; inset: 0; background: var(--red); border-radius: 5px; transform-origin: left center; }
+      .scan { position: relative; }
+      /* holes */
+      .hf { position: absolute; top: 90px; left: 0; right: 0; display: flex; justify-content: center; align-items: baseline; gap: 40px; }
+      .hf span { font: 700 40px var(--mono); letter-spacing: 0.2em; color: var(--muted); }
+      .hf b { font: 900 260px/0.8 var(--display); font-stretch: 64%; color: var(--red); }
+      .hc { position: absolute; top: 470px; width: 520px; height: 400px; background: var(--paper); color: #0b0f17; border-radius: 22px; padding: 34px 36px; display: flex; flex-direction: column; gap: 14px; }
+      .hc .hole { position: relative; width: 90px; height: 90px; box-shadow: 0 0 0 8px var(--red), 0 0 50px 14px rgba(255,77,46,0.55); margin-bottom: 10px; }
+      .hc .id { font: 700 22px var(--mono); color: var(--red); letter-spacing: 0.12em; }
+      .hc .t { font: 900 54px/0.95 var(--display); font-stretch: 70%; text-transform: uppercase; }
+      .hc .c { font: 700 22px var(--mono); color: #12a06e; }
+
+      /* v7 graphics */
+      .ic { flex: none; display: block; }
+      .tgt { position: relative; width: 300px; height: 330px; border: 4px solid var(--line); border-radius: 22px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+      .tgt span { font: 900 54px/1 var(--display); font-stretch: 72%; text-transform: uppercase; color: var(--muted); }
+      .tgt .x { position: absolute; inset: 0; border-radius: 22px; box-shadow: inset 0 0 0 4px var(--red); }
+      .tgt .x::before, .tgt .x::after { content: ""; position: absolute; left: 40px; right: 40px; top: 50%; height: 7px; margin-top: -3.5px; background: var(--red); border-radius: 4px; }
+      .tgt .x::before { transform: rotate(45deg); } .tgt .x::after { transform: rotate(-45deg); }
+      .tgt .ok { position: absolute; top: 14px; right: 18px; font: 700 20px var(--mono); color: var(--red); letter-spacing: 0.1em; }
+      #xhair { position: absolute; left: 0; top: 0; width: 200px; height: 200px; }
+      .hud { position: absolute; top: 60px; right: 90px; font: 700 30px var(--mono); letter-spacing: 0.14em; color: var(--muted); }
+      .hud b { color: var(--red); }
+      .runs { position: absolute; left: 0; top: 520px; display: flex; gap: 22px; align-items: center; font: 700 22px var(--mono); color: var(--muted); letter-spacing: 0.12em; }
+      .runs i { width: 64px; height: 64px; border-radius: 50%; border: 5px solid var(--line); display: grid; place-items: center; font: 900 30px var(--display); font-style: normal; color: #04130d; }
+      .crowd { position: absolute; left: 0; right: 0; top: 330px; display: grid; grid-template-columns: repeat(25, 1fr); gap: 8px 6px; }
+      .crowd svg { width: 30px; height: 30px; color: #2e3a52; }
+      .fixp { position: absolute; right: 30px; top: -20px; width: 130px; height: 130px; border-radius: 18px; background: var(--green); color: #04130d; font: 900 30px var(--display); display: grid; place-items: center; transform: rotate(-8deg); box-shadow: 0 10px 40px rgba(43,227,160,0.4); }
+      .holeD { position: absolute; right: 60px; top: 8px; width: 74px; height: 74px; border-radius: 50%; background: #000; box-shadow: 0 0 0 7px var(--red), 0 0 40px 10px rgba(255,77,46,0.6); }
+      .th { display: flex; align-items: center; gap: 36px; }
+      .hc .big { position: absolute; right: 30px; top: 30px; }
+      .card .head { display: flex; align-items: center; gap: 22px; }
+      /* thesis */
+      .th { font: 900 140px/1 var(--display); font-stretch: 64%; text-transform: uppercase; }
+    
+      .bar { position: absolute; top: 34px; left: 50%; transform: translateX(-50%); display: flex; gap: 14px; z-index: 50; }
+      .bar div { width: 270px; display: flex; flex-direction: column; gap: 10px; }
+      .bar span { font: 700 19px var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: #3c475e; }
+      .bar i { display: block; height: 5px; border-radius: 3px; background: #1a2131; overflow: hidden; }
+      .bar i b { display: block; height: 100%; width: 100%; background: var(--red); transform-origin: left center; transform: scaleX(0); }
+      .sec { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+      .sec .n { font: 900 260px/0.8 var(--display); font-stretch: 64%; color: var(--red); }
+      .sec .l { font: 900 150px/0.9 var(--display); font-stretch: 64%; text-transform: uppercase; }
+      .cap2 { position: absolute; left: 0; right: 0; bottom: 110px; text-align: center; font: 900 96px/0.95 var(--display); font-stretch: 64%; text-transform: uppercase; }
+      .chipx { position: absolute; display: flex; align-items: center; gap: 18px; padding: 22px 30px; border-radius: 18px; background: var(--panel); border: 2px solid var(--line); font: 800 44px var(--display); font-stretch: 80%; }
+      .ring { position: absolute; left: 50%; top: 43%; width: 330px; height: 330px; margin: -165px 0 0 -165px; border-radius: 50%; border: 3px solid rgba(91,140,255,0.4); display: grid; place-items: center; box-shadow: 0 0 120px rgba(91,140,255,0.2); }
+      .paper { position: absolute; background: var(--paper); color: #0b0f17; border-radius: 20px; padding: 40px 46px; display: flex; flex-direction: column; gap: 18px; }
+      .paper h4 { font: 700 22px var(--mono); color: #5b6576; }
+      .paper p { font: 700 40px/1.2 var(--display); font-stretch: 85%; padding-left: 22px; border-left: 6px solid #c4cbd6; }
+      .tile3 { width: 420px; height: 420px; border-radius: 26px; background: var(--panel); border: 2px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; text-align: center; padding: 30px; }
+      .tile3 span { font: 900 54px/1 var(--display); font-stretch: 72%; text-transform: uppercase; }
+      .io { position: absolute; width: 470px; padding: 26px 30px; border-radius: 20px; background: var(--panel); border: 2px solid var(--line); display: flex; align-items: center; gap: 22px; }
+      .io b { font: 800 40px/1.05 var(--display); font-stretch: 80%; }
+      .io small { display: block; font: 700 18px var(--mono); color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+      .colh { position: absolute; top: 170px; font: 700 26px var(--mono); letter-spacing: 0.2em; color: var(--muted); }
+      .rulec { font: 500 27px var(--mono); padding: 16px 22px; border-radius: 10px; background: #0c111b; border: 2px solid var(--line); }
+      .rulec b { font-weight: 700; margin-right: 18px; }
+      .btn { font: 800 44px var(--display); font-stretch: 85%; padding: 22px 56px; border-radius: 16px; background: var(--green); color: #04130d; }
+      .node { position: absolute; width: 280px; height: 220px; border-radius: 22px; background: var(--panel); border: 2px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font: 700 22px var(--mono); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+      .req { position: absolute; font: 700 26px var(--mono); padding: 14px 22px; border-radius: 12px; white-space: nowrap; }
+      .blk { position: absolute; font: 900 60px/1 var(--display); font-stretch: 80%; color: var(--red); border: 6px solid var(--red); border-radius: 12px; padding: 10px 22px; transform: rotate(-6deg); white-space: nowrap; }
+
+      .chiprow { position: absolute; top: 130px; left: 0; right: 0; display: flex; justify-content: center; gap: 30px; }
+      .chipm { font: 900 64px/1 var(--display); font-stretch: 80%; text-transform: uppercase; padding: 16px 30px; border-radius: 14px; background: var(--green); color: #04130d; }
+      .tnum { font: 900 64px/1 var(--display); font-style: normal; font-stretch: 70%; color: var(--red); }
+      #H3 .term { font-size: 21px; gap: 18px; }
+      #H3 .term .r { white-space: nowrap; gap: 20px; }
+      #H3 .runs { top: 560px; }
+      #H3 .stamp { bottom: 40px; }
+      #H4 .crowd { top: 385px; }
+      #H4 .met { top: 500px; }
+      .flow { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 20px 4px rgba(91,140,255,0.6); }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true"><defs>
+      <mask id="mN3" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120"><rect width="120" height="120" fill="#fff" /><g transform="translate(60 60) scale(0.84) translate(-60 -60)"><rect x="26" y="16" width="22" height="88" rx="5" fill="#000" /><rect x="38" y="46" width="56" height="58" rx="24" fill="#000" /></g><path d="M122.0 6.0 L109.3 12.7 L107.5 25.3 L92.0 33.6 L90.0 47.9 L73.5 57.3 L66.2 73.0 L52.3 76.6 L45.5 94.7 L31.0 101.9 L22.0 118.0" fill="none" stroke="#000" stroke-width="7" stroke-linejoin="round" /></mask>
+      <symbol id="N3" viewBox="0 0 120 120"><rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor" mask="url(#mN3)" /><circle cx="65.0" cy="72.6" r="7.6" fill="#07090E" stroke="#FF4D2E" stroke-width="5" /></symbol>
+      <mask id="mE" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120"><circle id="revE" cx="122" cy="6" r="0" fill="#fff" /><g transform="translate(60 60) scale(0.84) translate(-60 -60)"><rect x="26" y="16" width="22" height="88" rx="5" fill="#000" /><rect x="38" y="46" width="56" height="58" rx="24" fill="#000" /></g><path id="crackE" d="M122.0 6.0 L109.3 12.7 L107.5 25.3 L92.0 33.6 L90.0 47.9 L73.5 57.3 L66.2 73.0 L52.3 76.6 L45.5 94.7 L31.0 101.9 L22.0 118.0" fill="none" stroke="#000" stroke-width="7" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" /></mask>
+    </defs></svg>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="89.71" data-width="1920" data-height="1080">
+      <div id="c1" class="clip center" data-start="0.0" data-duration="1.25" data-track-index="0"><div class="sec" id="c1x"><span class="n">1</span><span class="l">The problem</span></div></div>
+      <div id="P1" class="clip" data-start="1.25" data-duration="5.96" data-track-index="0"><div class="ring" id="p1ring"><svg class="ic" width="200" height="200" viewBox="0 0 24 24" style="color: #5b8cff"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8" /> <rect width="16" height="12" x="4" y="8" rx="2" /> <path d="M2 14h2" /> <path d="M20 14h2" /> <path d="M15 13v2" /> <path d="M9 13v2" /></g></svg></div><div id="p1u" style="position: absolute; left: 150px; top: 640px"><svg class="ic" width="110" height="110" viewBox="0 0 24 24" style="color: #3c475e"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <circle cx="9" cy="7" r="4" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <path d="M16 3.13a4 4 0 0 1 0 7.75" /></g></svg></div><div class="chipx" id="p1a" style="left: 230px; top: 260px"><svg class="ic" width="54" height="54" viewBox="0 0 24 24" style="color: #5b8cff"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" /></g></svg>Cancels flights</div><div class="chipx" id="p1b" style="left: 1290px; top: 220px"><svg class="ic" width="54" height="54" viewBox="0 0 24 24" style="color: #2be3a0"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2" /> <circle cx="12" cy="12" r="2" /> <path d="M6 12h.01M18 12h.01" /></g></svg>Refunds money</div><div class="chipx" id="p1c" style="left: 1310px; top: 560px"><svg class="ic" width="54" height="54" viewBox="0 0 24 24" style="color: #f4f6f9"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /> <path d="M13 5v2" /> <path d="M13 17v2" /> <path d="M13 11v2" /></g></svg>Changes bookings</div><p class="cap2" id="p1t">AI agents now serve <span class="red">your customers</span></p></div>
+      <div id="P2" class="clip" data-start="7.21" data-duration="4.6" data-track-index="0"><div id="p2bot" style="position: absolute; left: 230px; top: 330px"><svg class="ic" width="200" height="200" viewBox="0 0 24 24" style="color: #5b8cff"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8" /> <rect width="16" height="12" x="4" y="8" rx="2" /> <path d="M2 14h2" /> <path d="M20 14h2" /> <path d="M15 13v2" /> <path d="M9 13v2" /></g></svg></div><div id="p2arr" style="position: absolute; left: 500px; top: 400px"><svg class="ic" width="90" height="90" viewBox="0 0 24 24" style="color: #3c475e"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /></g></svg></div><div class="paper" id="p2doc" style="left: 660px; top: 170px; width: 1040px"><h4>policy.md · the company's rules</h4><p>Basic economy flights cannot be modified.</p><p>Business flights can always be cancelled.</p><p>Free bags depend on cabin and member tier.</p><div id="p2hole" class="hole" style="width: 130px; height: 130px; right: -40px; top: -50px; box-shadow: 0 0 0 10px var(--red), 0 0 60px 16px rgba(255,77,46,0.6)"></div></div><p class="cap2" id="p2t" style="bottom: 90px">Policies have <span class="red">holes.</span></p></div>
+      <div id="P4" class="clip" data-start="11.81" data-duration="7.55" data-track-index="0"><div class="chiprow" id="p4chips"><div id="ok1" class="chipm">✓ Upgrade</div><div id="ok2" class="chipm">✓ Change flight</div><div id="ok3" class="chipm">✓ Downgrade</div></div><div id="pass1" class="pass" style="top: 340px"><div class="main"><div class="route">JFK → SFO</div><div class="meta"><span><small>DATE</small><b id="pdate">OCT 28</b></span><span><small>DEPARTS</small>09:40</span><span><small>RES</small>8XK2QF</span></div><div id="pbadge" class="badge">BASIC ECONOMY · NO CHANGES</div></div><div class="stub"><div class="bars"></div></div></div><div id="p4flash" class="flash center"><p class="huge" style="font-size: 330px; color: #fff">Changed.</p></div></div>
+      <div id="P5" class="clip" data-start="19.36" data-duration="4.66" data-track-index="0"><div class="center" style="position: absolute; inset: 0"><p id="hud" class="hud">SUSPECTS CLEARED <b id="hudn">0</b>/3</p><div id="nos" class="nos"><div class="tgt" id="no1"><svg class="ic" width="150" height="150" viewBox="0 0 24 24" style="color: #f4f6f9"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /> <path d="M7 11V7a5 5 0 0 1 9.9-1" /></g></svg><span>Jailbreak</span><b class="ok">CLEARED</b><div class="x"></div></div><div class="tgt" id="no2"><svg class="ic" width="150" height="150" viewBox="0 0 24 24" style="color: #f4f6f9"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V7h-5a8 8 0 0 0-5 2 8 8 0 0 0-5-2H2Z" /> <path d="M6 11c1.5 0 3 .5 3 2-2 0-3 0-3-2Z" /> <path d="M18 11c-1.5 0-3 .5-3 2 2 0 3 0 3-2Z" /></g></svg><span>Attacker</span><b class="ok">CLEARED</b><div class="x"></div></div><div class="tgt" id="no3"><svg class="ic" width="150" height="150" viewBox="0 0 24 24" style="color: #f4f6f9"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2 1.88 1.88" /> <path d="M14.12 3.88 16 2" /> <path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" /> <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" /> <path d="M12 20v-9" /> <path d="M6.53 9C4.6 8.8 3 7.1 3 5" /> <path d="M6 13H2" /> <path d="M3 21c0-2.1 1.7-3.9 3.8-4" /> <path d="M20.97 5c0 2.1-1.6 3.8-3.5 4" /> <path d="M22 13h-4" /> <path d="M17.2 17c2.1.1 3.8 1.9 3.8 4" /></g></svg><span>Agent bug</span><b class="ok">CLEARED</b><div class="x"></div></div></div><svg id="xhair" viewBox="0 0 24 24" style="color: #ff4d2e"><g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="12" cy="12" r="10" /><line x1="22" x2="18" y1="12" y2="12" /><line x1="6" x2="2" y1="12" y2="12" /><line x1="12" x2="12" y1="6" y2="2" /><line x1="12" x2="12" y1="22" y2="18" /></g></svg><p id="pv1" class="huge" style="font-size: 110px; margin-top: 50px; display: flex; align-items: center; gap: 30px"><svg class="ic" width="120" height="120" viewBox="0 0 24 24" style="color: #2be3a0"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8" /> <rect width="16" height="12" x="4" y="8" rx="2" /> <path d="M2 14h2" /> <path d="M20 14h2" /> <path d="M15 13v2" /> <path d="M9 13v2" /></g></svg>The agent did nothing wrong.</p><p id="pv2" class="huge red" style="font-size: 180px; margin-top: 20px">The law was wr<span id="holeO" class="hole-o"></span>ng.</p></div></div>
+      <div id="P6" class="clip" data-start="24.02" data-duration="2.95" data-track-index="0"><div id="mkL" class="mk" style="left: 200px"><span class="lbl green">Guardrails</span><svg class="ic" width="220" height="220" viewBox="0 0 24 24" style="color: #2be3a0"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /></g></svg><span class="lbl muted">check the agent</span></div><div id="mkR" class="mk" style="right: 200px"><span class="lbl red">The policy</span><div class="pol"><i></i><i style="width: 70%"></i><i></i><i style="width: 50%"></i><i></i><i style="width: 80%"></i><div id="mkHole" class="hole"></div></div><span class="lbl muted">checked by nobody</span></div><p id="p6t" class="huge mkline" style="top: 780px; text-align: center">Nobody checks <span class="red">the law.</span></p></div>
+      <div id="P7" class="clip" data-start="26.97" data-duration="3.28" data-track-index="0"><p class="colh" style="left: 0; right: 0; text-align: center; top: 150px">EVERY HOLE COSTS</p><div style="position: absolute; left: 0; right: 0; top: 290px; display: flex; justify-content: center; gap: 50px"><div class="tile3" id="p7a"><svg class="ic" width="150" height="150" viewBox="0 0 24 24" style="color: #ff4d2e"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2" /> <circle cx="12" cy="12" r="2" /> <path d="M6 12h.01M18 12h.01" /></g></svg><span>Money</span><em id="p7n" class="tnum">$0</em></div><div class="tile3" id="p7b"><svg class="ic" width="150" height="150" viewBox="0 0 24 24" style="color: #ff4d2e"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <circle cx="9" cy="7" r="4" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <path d="M16 3.13a4 4 0 0 1 0 7.75" /></g></svg><span>Fairness</span><em class="tnum" style="font-size: 30px">same rule, different outcome</em></div><div class="tile3" id="p7c"><svg class="ic" width="150" height="150" viewBox="0 0 24 24" style="color: #ff4d2e"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8" /> <path d="m16 16 6-6" /> <path d="m8 8 6-6" /> <path d="m9 7 8 8" /> <path d="m21 11-8-8" /></g></svg><span>Audits</span><em class="tnum" style="font-size: 30px">failed</em></div></div></div>
+      <div id="c2" class="clip center" data-start="30.25" data-duration="1.25" data-track-index="0"><div class="sec" id="c2x"><span class="n">2</span><span class="l">What it does</span></div></div>
+      <div id="Q1" class="clip" data-start="31.5" data-duration="2.94" data-track-index="0"><div class="center" style="position: absolute; inset: 0"><div class="logo"><svg id="markE" width="260" height="260" viewBox="0 0 120 120"><rect x="8" y="8" width="104" height="104" rx="28" fill="#f4f6f9" mask="url(#mE)" /><circle id="ringE" cx="65" cy="72.6" r="7.6" fill="#07090e" stroke="#ff4d2e" stroke-width="5" /></svg><div id="wordE" class="word">bylaw</div></div><p id="q1t" class="huge" style="font-size: 96px; margin-top: 70px">The auditor for <span class="red">your agents' rules.</span></p></div></div>
+      <div id="Q2" class="clip" data-start="34.44" data-duration="7.88" data-track-index="0"><p class="colh" style="left: 150px">YOU GIVE</p><p class="colh" style="right: 330px">YOU GET</p><i class="flow" id="fl0" style="left: 600px; top: 360px"></i><i class="flow" id="fl1" style="left: 600px; top: 620px"></i><i class="flow" id="fl2" style="left: 1180px; top: 300px"></i><i class="flow" id="fl3" style="left: 1180px; top: 520px"></i><i class="flow" id="fl4" style="left: 1180px; top: 740px"></i><div class="io" id="qi1" style="left: 120px; top: 300px"><svg class="ic" width="80" height="80" viewBox="0 0 24 24" style="color: #5b8cff"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8" /> <rect width="16" height="12" x="4" y="8" rx="2" /> <path d="M2 14h2" /> <path d="M20 14h2" /> <path d="M15 13v2" /> <path d="M9 13v2" /></g></svg><div><small>your agent</small><b>Its tools</b></div></div><div class="io" id="qi2" style="left: 120px; top: 560px"><svg class="ic" width="80" height="80" viewBox="0 0 24 24" style="color: #f4f6f9"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /> <path d="M14 2v4a2 2 0 0 0 2 2h4" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></g></svg><div><small>your policy</small><b>Its rules</b></div></div><div id="qc" style="position: absolute; left: 770px; top: 340px"><svg width="380" height="380" style="color: #f4f6f9"><use href="#N3" /></svg></div><div class="io" id="qo1" style="left: 1330px; top: 230px"><div class="hole" style="position: relative; flex: none; width: 70px; height: 70px; box-shadow: 0 0 0 7px var(--red), 0 0 40px 10px rgba(255,77,46,0.5)"></div><div><small>1 · proven</small><b>The holes</b></div></div><div class="io" id="qo2" style="left: 1330px; top: 450px"><svg class="ic" width="80" height="80" viewBox="0 0 24 24" style="color: #2be3a0"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></g></svg><div><small>2 · ready to approve</small><b>The patches</b></div></div><div class="io" id="qo3" style="left: 1330px; top: 670px"><svg class="ic" width="80" height="80" viewBox="0 0 24 24" style="color: #f4f6f9"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /> <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" /> <path d="M7 21h10" /> <path d="M12 3v18" /> <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" /></g></svg><div><small>3 · measured</small><b>What each costs</b></div></div></div>
+      <div id="Q3" class="clip" data-start="42.32" data-duration="3.38" data-track-index="0"><div style="position: absolute; left: 0; right: 0; top: 230px; display: flex; justify-content: center; align-items: center; gap: 60px"><svg class="ic" width="170" height="170" viewBox="0 0 24 24" style="color: #f4f6f9"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <circle cx="9" cy="7" r="4" /> <polyline points="16 11 18 13 22 9" /></g></svg><div id="q3btn" class="btn">Approve patch</div></div><div style="position: absolute; left: 0; right: 0; top: 560px; display: flex; justify-content: center; align-items: center; gap: 50px"><svg class="ic" width="130" height="130" viewBox="0 0 24 24" style="color: #5b8cff"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8" /> <rect width="16" height="12" x="4" y="8" rx="2" /> <path d="M2 14h2" /> <path d="M20 14h2" /> <path d="M15 13v2" /> <path d="M9 13v2" /></g></svg><svg class="ic" width="70" height="70" viewBox="0 0 24 24" style="color: #3c475e"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /></g></svg><div id="q3sh"><svg class="ic" width="170" height="170" viewBox="0 0 24 24" style="color: #2be3a0"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /></g></svg></div><svg class="ic" width="70" height="70" viewBox="0 0 24 24" style="color: #3c475e"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /></g></svg><svg class="ic" width="130" height="130" viewBox="0 0 24 24" style="color: #7d889b"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></g></svg></div><p class="cap2" id="q3t" style="bottom: 90px; font-size: 84px">Enforced in <span class="green">real time.</span></p></div>
+      <div id="c3" class="clip center" data-start="45.7" data-duration="1.25" data-track-index="0"><div class="sec" id="c3x"><span class="n">3</span><span class="l">How it does it</span></div></div>
+      <div id="H1" class="clip" data-start="46.95" data-duration="5.72" data-track-index="0"><div class="cap"><span class="k">Step 1 · Muse Spark · 1M context</span><span class="t">Reads</span><span class="d">The whole policy at once, turned into rules a machine can check.</span></div><div class="stage"><div class="paper" id="h1doc" style="left: 0; right: 0; top: 0; padding: 30px 36px"><h4>policy.md</h4><p style="font-size: 30px">Basic economy flights cannot be modified.</p><p style="font-size: 30px">Business flights can always be cancelled.</p></div><div id="h1r" style="position: absolute; left: 0; right: 0; top: 330px; display: flex; flex-direction: column; gap: 16px"><div class="rulec"><b class="red">FORBIDDEN</b>basic_economy ∧ flights_changed</div><div class="rulec"><b class="red">FORBIDDEN</b>refund &gt; refundable_fare</div><div class="rulec"><b class="green">RULE</b>cancel ⇐ &lt;24h ∨ business ∨ insured</div><div class="rulec"><b class="green">RULE</b>free_bags = f(cabin, tier)</div></div></div></div>
+      <div id="H2" class="clip" data-start="52.67" data-duration="5.26" data-track-index="0"><div class="cap"><span class="k">Step 2 · Muse Spark · max reasoning</span><span class="t">Searches</span><span class="d">Chains of allowed actions that end somewhere forbidden.</span></div><div class="stage"><svg id="graph" viewBox="0 0 940 840"><g stroke="#232c40" stroke-width="4" fill="none"><path d="M160 140 L470 140" /><path d="M160 140 L160 420" /><path d="M160 420 L470 420" /><path d="M470 140 L780 420" /><path d="M470 420 L470 680" /><path d="M160 420 L470 680" /></g><path id="hot" d="M160 140 L470 140 L780 420 L780 650" stroke="#ff4d2e" stroke-width="10" fill="none" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" /><g font-family="JetBrains Mono, monospace" font-size="22" text-anchor="middle" font-weight="700"><g class="gn"><rect x="20" y="100" width="280" height="80" rx="12" fill="#111725" stroke="#2be3a0" stroke-width="3" /><text x="160" y="148" fill="#f4f6f9">get_reservation</text></g><g class="gn"><rect x="330" y="100" width="280" height="80" rx="12" fill="#111725" stroke="#2be3a0" stroke-width="3" /><text x="470" y="148" fill="#f4f6f9">cabin → economy ✓</text></g><g class="gn"><rect x="20" y="380" width="280" height="80" rx="12" fill="#111725" stroke="#232c40" stroke-width="3" /><text x="160" y="428" fill="#7d889b">search_flights</text></g><g class="gn"><rect x="330" y="380" width="280" height="80" rx="12" fill="#111725" stroke="#232c40" stroke-width="3" /><text x="470" y="428" fill="#7d889b">cancel</text></g><g class="gn"><rect x="640" y="380" width="280" height="80" rx="12" fill="#111725" stroke="#2be3a0" stroke-width="3" /><text x="780" y="428" fill="#f4f6f9">change flights ✓</text></g><g class="gn"><rect x="330" y="640" width="280" height="80" rx="12" fill="#111725" stroke="#232c40" stroke-width="3" /><text x="470" y="688" fill="#7d889b">send_certificate</text></g><g id="goal"><rect x="640" y="610" width="280" height="110" rx="12" fill="#ff4d2e" /><text x="780" y="655" fill="#07090e" font-size="22">cabin → basic ✓</text><text x="780" y="695" fill="#07090e" font-size="30" font-weight="800">FORBIDDEN</text></g></g></svg></div></div>
+      <div id="H3" class="clip" data-start="57.93" data-duration="5.25" data-track-index="0"><div class="cap"><span class="k g">Step 3 · <span style="font-family: Georgia, serif">τ</span>²-bench simulator</span><span class="t">Proves</span><span class="d">Every chain runs for real. If it doesn't reproduce, it doesn't count.</span></div><div class="stage"><div class="term"><span class="h">HOLE #1 · CLASS A · CIRCUMVENTION</span><div class="r"><span><span class="q">›</span> update_reservation_flights(cabin="economy")</span><b>✓ allowed</b></div><div class="r"><span><span class="q">›</span> update_reservation_flights(flights=[…])</span><b>✓ allowed</b></div><div class="r"><span><span class="q">›</span> update_reservation_flights(cabin="basic_economy")</span><b>✓ allowed</b></div><div class="r bad"><span>= basic economy itinerary changed</span><b>✗ forbidden</b></div></div><div class="runs">REPLAYS <i id="run1"></i><i id="run2"></i><i id="run3"></i><i id="run4"></i><i id="run5"></i></div><div id="stampH" class="stamp">Reproduced 5/5<small>EXECUTED TRACE · NOT AN OPINION</small></div></div></div>
+      <div id="H4" class="clip" data-start="63.18" data-duration="6.08" data-track-index="0"><div class="cap"><span class="k">Step 4 · Muse Spark drafts</span><span class="t">Patches</span><span class="d">Every amendment is replayed against every past case.</span></div><div class="stage"><div class="diff"><span class="f">policy.md · amendment 1</span><div id="holeD" class="holeD"></div><div id="fixp" class="fixp">FIXED</div><p class="minus">Basic economy flights cannot be modified.</p><p id="plus" class="plus">+ A cabin change does not unlock flight changes. The original fare's rules apply.</p></div><div id="crowd" class="crowd"><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg><svg class="ic" width="30" height="30" viewBox="0 0 24 24" style="color: #2e3a52"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" /></g></svg></div><div class="met"><div><b id="replayed">0/43</b><span>past cases replayed</span></div><div><b id="blocked">0</b><span>honest customers blocked</span></div></div></div></div>
+      <div id="H5" class="clip" data-start="69.26" data-duration="4.21" data-track-index="0"><div class="cap"><span class="k">Step 5 · a human approves</span><span class="t">Enforces</span><span class="d">An MCP proxy in front of your agent.</span></div><div class="stage"><div class="node" style="left: 0; top: 260px"><svg class="ic" width="110" height="110" viewBox="0 0 24 24" style="color: #5b8cff"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8" /> <rect width="16" height="12" x="4" y="8" rx="2" /> <path d="M2 14h2" /> <path d="M20 14h2" /> <path d="M15 13v2" /> <path d="M9 13v2" /></g></svg>your agent</div><div class="node" id="pxy" style="left: 330px; top: 260px; border-color: var(--green)"><svg width="110" height="110" style="color: #f4f6f9"><use href="#N3" /></svg>MCP proxy</div><div class="node" style="left: 660px; top: 260px"><svg class="ic" width="110" height="110" viewBox="0 0 24 24" style="color: #7d889b"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></g></svg>tools</div><div id="rq1" class="req" style="left: 10px; top: 160px; background: rgba(43,227,160,0.15); color: var(--green)">get_reservation ✓</div><div id="rq2" class="req" style="left: 10px; top: 540px; background: rgba(255,77,46,0.15); color: var(--red)">change flights · basic fare</div><div id="blk" class="blk" style="left: 300px; top: 620px">BLOCKED</div></div></div>
+      <div id="H6" class="clip" data-start="73.47" data-duration="5.55" data-track-index="0"><div id="bench" class="bench" style="position: absolute; left: 0; right: 0; top: 110px"><span class="sub">the policy frontier labs grade agents on</span><span class="logo2" style="font-size: 170px"><span style="font-family: Georgia, serif">τ</span>²-bench <span class="muted" style="font-size: 100px">airline</span></span></div><div class="hc" id="hh1" style="left: 120px"><svg class="ic" width="110" height="110" viewBox="0 0 24 24" style="color: #0b0f17; position: absolute; right: 30px; top: 30px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /> <path d="M13 5v2" /> <path d="M13 17v2" /> <path d="M13 11v2" /></g></svg><div class="hole"></div><span class="id">#1 · CLASS A</span><span class="t">Basic economy, changed</span><span class="c">✓ upgrade ✓ change ✓ downgrade</span></div><div class="hc" id="hh2" style="left: 700px"><svg class="ic" width="110" height="110" viewBox="0 0 24 24" style="color: #0b0f17; position: absolute; right: 30px; top: 30px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2" /> <circle cx="12" cy="12" r="2" /> <path d="M6 12h.01M18 12h.01" /></g></svg><div class="hole"></div><span class="id">#2 · CLASS A</span><span class="t">Non-refundable, refunded</span><span class="c">✓ upgrade ✓ cancel</span></div><div class="hc" id="hh3" style="left: 1280px"><svg class="ic" width="110" height="110" viewBox="0 0 24 24" style="color: #0b0f17; position: absolute; right: 30px; top: 30px"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2" /> <path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14" /> <path d="M10 20h4" /> <circle cx="16" cy="20" r="2" /> <circle cx="8" cy="20" r="2" /></g></svg><div class="hole"></div><span class="id">#3 · CLASS A</span><span class="t">Free bags kept</span><span class="c">✓ upgrade ✓ add bags ✓ downgrade</span></div></div>
+      <div id="H7" class="clip" data-start="79.02" data-duration="3.94" data-track-index="0"><div id="cloudX" style="position: absolute; left: 1690px; top: 300px"><svg class="ic" width="200" height="200" viewBox="0 0 24 24" style="color: #ff4d2e"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="m2 2 20 20" /> <path d="M5.782 5.782A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.307-.193" /> <path d="M21.532 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7.008 7.008 0 0 0 10 5.07" /></g></svg></div><div id="bldg" class="bldg"><span class="lbl">your infrastructure</span><div class="pol"><i></i><i style="width: 70%"></i><i></i><i style="width: 50%"></i><i></i></div><div id="model" class="model">Muse Spark Open<small>OPEN WEIGHTS</small></div><svg width="200" height="200" style="color: #f4f6f9"><use href="#N3" /></svg></div><p id="k1" class="huge" style="position: absolute; top: 720px; left: 0; right: 0; text-align: center; font-size: 104px">Your policy never <span class="green">leaves the building.</span></p></div>
+      <div id="E1" class="clip" data-start="82.96" data-duration="3.49" data-track-index="0"><div class="center" style="position: absolute; inset: 0"><p id="l1" class="th" style="font-size: 130px"><svg class="ic" width="130" height="130" viewBox="0 0 24 24" style="color: #f4f6f9"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /> <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" /></g></svg>Muse writes the law.</p><p id="l2" class="th red" style="font-size: 130px"><svg class="ic" width="130" height="130" viewBox="0 0 24 24" style="color: #ff4d2e"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9" /> <path d="m18 15 4-4" /> <path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" /></g></svg>Muse breaks the law.</p><p id="l3" class="th green" style="font-size: 130px"><svg class="ic" width="130" height="130" viewBox="0 0 24 24" style="color: #2be3a0"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /></g></svg>Code enforces it.</p></div></div>
+      <div id="E2" class="clip" data-start="86.45" data-duration="3.26" data-track-index="0"><div class="center" style="position: absolute; inset: 0"><div class="logo" id="logoM"><svg width="200" height="200" style="color: #f4f6f9"><use href="#N3" /></svg><div class="word" style="font-size: 190px">bylaw</div></div><p id="m1" class="huge" style="font-size: 120px; margin-top: 60px">Find the h<span class="hole-o"></span>les <span class="red">first.</span></p><p id="m2" class="built">Built on <b>Muse Spark</b> · runs on <b>Muse Spark Open</b></p></div></div>
+      <div id="bar" class="clip" data-start="0" data-duration="89.71" data-track-index="1"><div class="bar"><div><span id="bl1">1 · The problem</span><i><b id="bf1"></b></i></div><div><span id="bl2">2 · What it does</span><i><b id="bf2"></b></i></div><div><span id="bl3">3 · How it does it</span><i><b id="bf3"></b></i></div></div></div>
+      <audio id="pad" data-start="0" data-duration="89.71" src="assets/pad.wav" data-volume="0.17"></audio>
+      <audio id="arp" data-start="32.35" data-duration="50.61" src="assets/arp.wav" data-volume="0.22"></audio>
+      <audio id="vo-s1" data-start="1.4" data-duration="5.51" src="assets/vo/s1.wav" data-volume="1"></audio>
+      <audio id="vo-s2" data-start="7.36" data-duration="2.65" src="assets/vo/s2.wav" data-volume="1"></audio>
+      <audio id="vo-s3" data-start="10.23" data-duration="1.28" src="assets/vo/s3.wav" data-volume="1"></audio>
+      <audio id="vo-s4a" data-start="11.96" data-duration="2.62" src="assets/vo/s4a.wav" data-volume="1"></audio>
+      <audio id="vo-s4b" data-start="14.8" data-duration="3.05" src="assets/vo/s4b.wav" data-volume="1"></audio>
+      <audio id="vo-s4c" data-start="18.07" data-duration="0.99" src="assets/vo/s4c.wav" data-volume="1"></audio>
+      <audio id="vo-s5a" data-start="19.51" data-duration="3.01" src="assets/vo/s5a.wav" data-volume="1"></audio>
+      <audio id="vo-s5b" data-start="22.74" data-duration="0.98" src="assets/vo/s5b.wav" data-volume="1"></audio>
+      <audio id="vo-s6" data-start="24.17" data-duration="2.5" src="assets/vo/s6.wav" data-volume="1"></audio>
+      <audio id="vo-s7" data-start="27.12" data-duration="2.83" src="assets/vo/s7.wav" data-volume="1"></audio>
+      <audio id="vo-s8" data-start="31.65" data-duration="2.49" src="assets/vo/s8.wav" data-volume="1"></audio>
+      <audio id="vo-s9" data-start="34.59" data-duration="2.88" src="assets/vo/s9.wav" data-volume="1"></audio>
+      <audio id="vo-s10" data-start="37.69" data-duration="4.33" src="assets/vo/s10.wav" data-volume="1"></audio>
+      <audio id="vo-s11" data-start="42.47" data-duration="2.93" src="assets/vo/s11.wav" data-volume="1"></audio>
+      <audio id="vo-s12" data-start="47.1" data-duration="5.27" src="assets/vo/s12.wav" data-volume="1"></audio>
+      <audio id="vo-s13" data-start="52.82" data-duration="4.81" src="assets/vo/s13.wav" data-volume="1"></audio>
+      <audio id="vo-s14" data-start="58.08" data-duration="4.8" src="assets/vo/s14.wav" data-volume="1"></audio>
+      <audio id="vo-s15" data-start="63.33" data-duration="5.63" src="assets/vo/s15.wav" data-volume="1"></audio>
+      <audio id="vo-s16" data-start="69.41" data-duration="3.76" src="assets/vo/s16.wav" data-volume="1"></audio>
+      <audio id="vo-s17" data-start="73.62" data-duration="5.1" src="assets/vo/s17.wav" data-volume="1"></audio>
+      <audio id="vo-s18" data-start="79.17" data-duration="3.49" src="assets/vo/s18.wav" data-volume="1"></audio>
+      <audio id="vo-s19" data-start="83.11" data-duration="3.04" src="assets/vo/s19.wav" data-volume="1"></audio>
+      <audio id="vo-s20" data-start="86.6" data-duration="1.51" src="assets/vo/s20.wav" data-volume="1"></audio>
+      <audio id="fx25" data-start="-0.3" data-duration="1.2" src="assets/whoosh.wav" data-volume="0.35"></audio>
+      <audio id="fx26" data-start="0.1" data-duration="1.0" src="assets/thud.wav" data-volume="0.4"></audio>
+      <audio id="fx27" data-start="29.95" data-duration="1.2" src="assets/whoosh.wav" data-volume="0.35"></audio>
+      <audio id="fx28" data-start="30.35" data-duration="1.0" src="assets/thud.wav" data-volume="0.4"></audio>
+      <audio id="fx29" data-start="45.4" data-duration="1.2" src="assets/whoosh.wav" data-volume="0.35"></audio>
+      <audio id="fx30" data-start="45.8" data-duration="1.0" src="assets/thud.wav" data-volume="0.4"></audio>
+      <audio id="fx31" data-start="4.15" data-duration="0.6" src="assets/pop.wav" data-volume="0.35"></audio>
+      <audio id="fx32" data-start="4.98" data-duration="0.6" src="assets/pop.wav" data-volume="0.35"></audio>
+      <audio id="fx33" data-start="5.92" data-duration="0.6" src="assets/pop.wav" data-volume="0.35"></audio>
+      <audio id="fx34" data-start="10.33" data-duration="2" src="assets/boom.wav" data-volume="0.5"></audio>
+      <audio id="fx35" data-start="14.8" data-duration="0.6" src="assets/pop.wav" data-volume="0.45"></audio>
+      <audio id="fx36" data-start="15.96" data-duration="0.6" src="assets/pop.wav" data-volume="0.45"></audio>
+      <audio id="fx37" data-start="17.0" data-duration="0.6" src="assets/pop.wav" data-volume="0.45"></audio>
+      <audio id="fx38" data-start="18.07" data-duration="2" src="assets/boom.wav" data-volume="0.55"></audio>
+      <audio id="fx39" data-start="19.82" data-duration="0.6" src="assets/pop.wav" data-volume="0.5"></audio>
+      <audio id="fx40" data-start="20.66" data-duration="0.6" src="assets/pop.wav" data-volume="0.5"></audio>
+      <audio id="fx41" data-start="21.42" data-duration="0.6" src="assets/pop.wav" data-volume="0.5"></audio>
+      <audio id="fx42" data-start="22.74" data-duration="1.0" src="assets/thud.wav" data-volume="0.55"></audio>
+      <audio id="fx43" data-start="23.42" data-duration="1.2" src="assets/whoosh.wav" data-volume="0.4"></audio>
+      <audio id="fx44" data-start="27.83" data-duration="0.6" src="assets/pop.wav" data-volume="0.35"></audio>
+      <audio id="fx45" data-start="28.54" data-duration="0.6" src="assets/pop.wav" data-volume="0.35"></audio>
+      <audio id="fx46" data-start="29.24" data-duration="0.6" src="assets/pop.wav" data-volume="0.35"></audio>
+      <audio id="fx47" data-start="30.5" data-duration="1.7" src="assets/riser.wav" data-volume="0.4"></audio>
+      <audio id="fx48" data-start="31.6" data-duration="0.9" src="assets/crackle.wav" data-volume="0.5"></audio>
+      <audio id="fx49" data-start="32.35" data-duration="2" src="assets/boom.wav" data-volume="0.5"></audio>
+      <audio id="fx50" data-start="35.74" data-duration="0.6" src="assets/pop.wav" data-volume="0.3"></audio>
+      <audio id="fx51" data-start="36.89" data-duration="0.6" src="assets/pop.wav" data-volume="0.3"></audio>
+      <audio id="fx52" data-start="38.77" data-duration="0.6" src="assets/pop.wav" data-volume="0.3"></audio>
+      <audio id="fx53" data-start="40.07" data-duration="0.6" src="assets/pop.wav" data-volume="0.3"></audio>
+      <audio id="fx54" data-start="41.24" data-duration="0.6" src="assets/pop.wav" data-volume="0.3"></audio>
+      <audio id="fx55" data-start="43.2" data-duration="1.0" src="assets/thud.wav" data-volume="0.45"></audio>
+      <audio id="fx56" data-start="60.72" data-duration="0.6" src="assets/pop.wav" data-volume="0.25"></audio>
+      <audio id="fx57" data-start="61.02" data-duration="0.6" src="assets/pop.wav" data-volume="0.25"></audio>
+      <audio id="fx58" data-start="61.32" data-duration="0.6" src="assets/pop.wav" data-volume="0.25"></audio>
+      <audio id="fx59" data-start="61.62" data-duration="0.6" src="assets/pop.wav" data-volume="0.25"></audio>
+      <audio id="fx60" data-start="61.92" data-duration="0.6" src="assets/pop.wav" data-volume="0.25"></audio>
+      <audio id="fx61" data-start="62.32" data-duration="1.0" src="assets/thud.wav" data-volume="0.45"></audio>
+      <audio id="fx62" data-start="65.3" data-duration="1.0" src="assets/thud.wav" data-volume="0.4"></audio>
+      <audio id="fx63" data-start="72.04" data-duration="2" src="assets/boom.wav" data-volume="0.45"></audio>
+      <audio id="fx64" data-start="76.43" data-duration="0.6" src="assets/pop.wav" data-volume="0.4"></audio>
+      <audio id="fx65" data-start="76.88" data-duration="0.6" src="assets/pop.wav" data-volume="0.4"></audio>
+      <audio id="fx66" data-start="77.33" data-duration="0.6" src="assets/pop.wav" data-volume="0.4"></audio>
+      <audio id="fx67" data-start="86.5" data-duration="2" src="assets/boom.wav" data-volume="0.55"></audio>
+    </div>
+    <script>
+      const V = {"s1": [1.4, 5.51], "s2": [7.36, 2.65], "s3": [10.23, 1.28], "s4a": [11.96, 2.62], "s4b": [14.8, 3.05], "s4c": [18.07, 0.99], "s5a": [19.51, 3.01], "s5b": [22.74, 0.98], "s6": [24.17, 2.5], "s7": [27.12, 2.83], "s8": [31.65, 2.49], "s9": [34.59, 2.88], "s10": [37.69, 4.33], "s11": [42.47, 2.93], "s12": [47.1, 5.27], "s13": [52.82, 4.81], "s14": [58.08, 4.8], "s15": [63.33, 5.63], "s16": [69.41, 3.76], "s17": [73.62, 5.1], "s18": [79.17, 3.49], "s19": [83.11, 3.04], "s20": [86.6, 1.51]}, SC = {"c1": [0.0, 1.25], "P1": [1.25, 7.21], "P2": [7.21, 11.81], "P4": [11.81, 19.36], "P5": [19.36, 24.02], "P6": [24.02, 26.97], "P7": [26.97, 30.25], "c2": [30.25, 31.5], "Q1": [31.5, 34.44], "Q2": [34.44, 42.32], "Q3": [42.32, 45.7], "c3": [45.7, 46.95], "H1": [46.95, 52.67], "H2": [52.67, 57.93], "H3": [57.93, 63.18], "H4": [63.18, 69.26], "H5": [69.26, 73.47], "H6": [73.47, 79.02], "H7": [79.02, 82.96], "E1": [82.96, 86.45], "E2": [86.45, 89.71]}, SECT = {"1": [0.0, 30.249999999999996], "2": [30.249999999999996, 45.69999999999998], "3": [45.69999999999998, 82.96]};
+      window.__timelines = window.__timelines || {};
+      const master = gsap.timeline({ paused: true });
+      const tl = gsap.timeline();
+      const P = (l, f) => V[l][0] + f * V[l][1];
+      const S0 = (id) => SC[id][0];
+      const slam = (sel, t, from = 1.6) => tl.fromTo(sel, { opacity: 0, scale: from }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, t);
+      const rise = (sel, t, d = 0.45) => tl.fromTo(sel, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: d, ease: "power3.out" }, t);
+      const fade = (sel, t, d = 0.35) => tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: d }, t);
+      const shake = (t, amp = 18) => tl.fromTo("#root", { x: amp, y: -amp / 2 }, { x: 0, y: 0, duration: 0.4, ease: "elastic.out(1, 0.25)" }, t);
+      const punch = (sel, t) => tl.fromTo(sel, { scale: 1.12 }, { scale: 1, duration: 0.5, ease: "power3.out" }, t);
+      const count = (id, to, t, d, fmt = (v) => Math.round(v).toLocaleString("en-US")) => {
+        const o = { v: 0 };
+        tl.fromTo(o, { v: 0 }, { v: to, duration: d, ease: "power2.out", onUpdate: () => { document.getElementById(id).textContent = fmt(o.v); } }, t);
+      };
+      const pop = (sel, t) => tl.fromTo(sel, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.4)" }, t);
+
+      // progress bar
+      [1, 2, 3].forEach((n) => {
+        const [a, b] = SECT[n];
+        tl.set("#bl" + n, { color: "#3c475e" }, 0);
+        tl.set("#bl" + n, { color: "#f4f6f9" }, a);
+        tl.fromTo("#bf" + n, { scaleX: 0 }, { scaleX: 1, duration: b - a, ease: "none" }, a);
+        if (n < 3) tl.set("#bl" + n, { color: "#7d889b" }, b);
+      });
+
+      // section cards
+      ["c1", "c2", "c3"].forEach((c) => {
+        const t = S0(c);
+        tl.fromTo("#" + c + "x .n", { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power4.in" }, t);
+        rise("#" + c + "x .l", t + 0.2, 0.35);
+        shake(t + 0.3, 16);
+      });
+
+      // P1 agents at work
+      tl.set(["#p1a", "#p1b", "#p1c", "#p1t", "#p1u"], { opacity: 0 }, S0("P1"));
+      tl.fromTo("#p1ring", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.8)" }, S0("P1"));
+      tl.fromTo("#p1ring", { boxShadow: "0 0 60px rgba(91,140,255,0.1)" }, { boxShadow: "0 0 160px rgba(91,140,255,0.45)", duration: 0.8, yoyo: true, repeat: 3 }, S0("P1") + 0.3);
+      fade("#p1u", P("s1", 0.15));
+      rise("#p1t", P("s1", 0.05));
+      [["#p1a", 0.5], ["#p1b", 0.65], ["#p1c", 0.82]].forEach(([s, f]) => { pop(s, P("s1", f)); shake(P("s1", f) + 0.03, 8); });
+
+      // P2 policy, then the hole
+      tl.set(["#p2hole", "#p2t"], { opacity: 0 }, S0("P2"));
+      tl.fromTo("#P2 > div:not(.paper)", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, stagger: 0.1 }, S0("P2"));
+      tl.fromTo("#p2doc", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, S0("P2") + 0.15);
+      tl.fromTo("#p2doc p", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.25, stagger: 0.25 }, P("s2", 0.5));
+      tl.fromTo("#p2hole", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(3)" }, V["s3"][0] + 0.1);
+      shake(V["s3"][0] + 0.12, 26);
+      slam("#p2t", V["s3"][0] + 0.2, 1.4);
+
+      // P4 ticket: upgrade, change flight, downgrade, changed
+      tl.set(["#ok1", "#ok2", "#ok3", "#p4flash"], { opacity: 0 }, S0("P4"));
+      tl.fromTo("#pass1", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, S0("P4"));
+      tl.fromTo("#pbadge", { scale: 1 }, { scale: 1.12, duration: 0.18, yoyo: true, repeat: 3 }, P("s4a", 0.45));
+      slam("#ok1", P("s4b", 0.0), 2.2);
+      tl.set("#pbadge", { textContent: "ECONOMY · CHANGES OK", color: "#12a06e", borderColor: "#12a06e" }, P("s4b", 0.05));
+      punch("#pass1", P("s4b", 0.05));
+      slam("#ok2", P("s4b", 0.38), 2.2);
+      tl.to("#pass1", { x: -60, duration: 0.12, yoyo: true, repeat: 1 }, P("s4b", 0.4));
+      tl.set("#pdate", { textContent: "OCT 29", backgroundColor: "#ff4d2e", color: "#fff", padding: "0 10px", borderRadius: "6px" }, P("s4b", 0.45));
+      slam("#ok3", P("s4b", 0.72), 2.2);
+      tl.set("#pbadge", { textContent: "BASIC ECONOMY · NO CHANGES", color: "#ff4d2e", borderColor: "#ff4d2e" }, P("s4b", 0.76));
+      punch("#pass1", P("s4b", 0.76));
+      tl.fromTo("#pdate", { scale: 1 }, { scale: 1.3, duration: 0.15, yoyo: true, repeat: 3 }, P("s4b", 0.85));
+      tl.fromTo("#p4flash", { opacity: 0 }, { opacity: 1, duration: 0.08 }, V["s4c"][0]);
+      slam("#p4flash p", V["s4c"][0], 2.2);
+      shake(V["s4c"][0] + 0.05, 30);
+
+      // P5 shooter clears the suspects, then the verdict and a zoom through the hole
+      tl.set(["#pv1", "#pv2", "#P5 .x", "#P5 .ok"], { opacity: 0 }, S0("P5"));
+      fade("#hud", S0("P5") + 0.05, 0.2);
+      tl.fromTo("#nos .tgt", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.08, ease: "back.out(2)" }, S0("P5"));
+      tl.fromTo("#xhair", { opacity: 0, x: 860, y: 900 }, { opacity: 1, x: 520, y: 175, duration: 0.25, ease: "power3.out" }, S0("P5") + 0.1);
+      [[1, 0.02, 520], [2, 0.3, 860], [3, 0.55, 1200]].forEach(([n, f, x], i) => {
+        const t = P("s5a", f) + 0.25, sel = "#no" + n;
+        if (i) tl.to("#xhair", { x, duration: 0.2, ease: "power3.inOut" }, t - 0.22);
+        tl.fromTo("#xhair", { scale: 0.7 }, { scale: 1, duration: 0.18 }, t);
+        tl.fromTo(sel + " .x", { opacity: 0, scale: 2 }, { opacity: 1, scale: 1, duration: 0.16, ease: "back.out(2)" }, t);
+        tl.set(sel + " .ok", { opacity: 1 }, t);
+        tl.to(sel + " .ic", { opacity: 0.3, rotation: (i - 1) * 12, duration: 0.2 }, t);
+        tl.set("#hudn", { textContent: String(n) }, t);
+        shake(t, 14);
+      });
+      tl.to("#xhair", { opacity: 0, scale: 2, duration: 0.2 }, P("s5a", 0.75));
+      rise("#pv1", P("s5a", 0.68), 0.35);
+      tl.fromTo("#pv1 .ic", { scale: 0, rotation: -20 }, { scale: 1, rotation: 0, duration: 0.3, ease: "back.out(3)" }, P("s5a", 0.72));
+      tl.to(["#nos", "#pv1", "#hud"], { opacity: 0.2, duration: 0.25 }, V["s5b"][0] - 0.05);
+      slam("#pv2", V["s5b"][0], 1.5);
+      shake(V["s5b"][0] + 0.05, 20);
+      tl.fromTo("#holeO", { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(3)" }, V["s5b"][0] + 0.25);
+      tl.to("#holeO", { scale: 80, duration: 0.5, ease: "power3.in" }, SC["P5"][1] - 0.5);
+
+      // P6 guardrails watch the agent, nobody watches the policy
+      tl.set(["#mkR", "#mkHole", "#p6t"], { opacity: 0 }, S0("P6"));
+      tl.fromTo("#mkL", { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, S0("P6") + 0.05);
+      tl.fromTo("#mkR", { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, P("s6", 0.4));
+      tl.fromTo("#mkHole", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(3)" }, P("s6", 0.6));
+      rise("#p6t", P("s6", 0.7));
+
+      // P7 what each hole costs
+      tl.set(["#p7a", "#p7b", "#p7c"], { opacity: 0 }, S0("P7"));
+      fade("#P7 .colh", S0("P7"));
+      [["#p7a", 0.25], ["#p7b", 0.5], ["#p7c", 0.75]].forEach(([s, f]) => { pop(s, P("s7", f)); shake(P("s7", f) + 0.05, 10); });
+      count("p7n", 48200, P("s7", 0.25), 2.2, (v) => "−$" + Math.round(v).toLocaleString("en-US"));
+      tl.fromTo("#P7 .tile3", { boxShadow: "0 0 0 rgba(255,77,46,0)" }, { boxShadow: "0 0 70px rgba(255,77,46,0.35)", duration: 0.5, yoyo: true, repeat: 1, stagger: 0.25 }, P("s7", 0.85));
+
+      // Q1 logo builds while it cracks
+      const q = S0("Q1");
+      tl.set(["#ringE", "#wordE", "#q1t"], { opacity: 0 }, q);
+      tl.fromTo("#revE", { attr: { r: 0 } }, { attr: { r: 170 }, duration: 0.8, ease: "none" }, q + 0.05);
+      tl.fromTo("#crackE", { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.8, ease: "none" }, q + 0.07);
+      [0.2, 0.4, 0.6].forEach((d, i) => tl.fromTo("#markE", { x: i % 2 ? -6 : 6, y: 4 }, { x: 0, y: 0, duration: 0.12 }, q + d));
+      tl.fromTo("#ringE", { opacity: 0, scale: 0, transformOrigin: "65px 72.6px" }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(3)" }, q + 0.85);
+      shake(q + 0.85, 24);
+      tl.fromTo("#wordE", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, q + 0.95);
+      rise("#q1t", P("s8", 0.35));
+
+      // Q2 what goes in, what comes out, with data flowing through Bylaw
+      tl.set(["#qi1", "#qi2", "#qc", "#qo1", "#qo2", "#qo3", ".flow"], { opacity: 0 }, S0("Q2"));
+      fade("#Q2 .colh", S0("Q2"));
+      tl.fromTo("#qi1", { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.35, ease: "back.out(1.6)" }, P("s9", 0.4));
+      tl.fromTo("#qi2", { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.35, ease: "back.out(1.6)" }, P("s9", 0.8));
+      slam("#qc", P("s9", 0.92), 1.6);
+      shake(P("s9", 0.95), 14);
+      ["#fl0", "#fl1"].forEach((d, i) => tl.fromTo(d, { opacity: 1, x: 0 }, { opacity: 0, x: 200, duration: 0.55, ease: "power1.in", repeat: 6, repeatDelay: 0.1 }, P("s9", 0.95) + i * 0.3));
+      [["#qo1", "#fl2", 0.25], ["#qo2", "#fl3", 0.55], ["#qo3", "#fl4", 0.82]].forEach(([s, d, f]) => {
+        tl.fromTo(d, { opacity: 1, x: -40 }, { opacity: 0, x: 140, duration: 0.4, ease: "power1.in", repeat: 2 }, P("s10", f) - 0.4);
+        tl.fromTo(s, { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 0.35, ease: "back.out(1.6)" }, P("s10", f));
+      });
+
+      // Q3 human approves, enforced live
+      tl.set(["#q3sh", "#q3t"], { opacity: 0 }, S0("Q3"));
+      tl.fromTo("#Q3 > div", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15 }, S0("Q3"));
+      tl.fromTo("#q3btn", { scale: 1 }, { scale: 0.9, duration: 0.1, yoyo: true, repeat: 1 }, P("s11", 0.25));
+      tl.to("#q3btn", { backgroundColor: "#f4f6f9", duration: 0.15 }, P("s11", 0.3));
+      pop("#q3sh", P("s11", 0.55));
+      rise("#q3t", P("s11", 0.7));
+
+      // H1 reads
+      rise("#H1 .cap", S0("H1"));
+      tl.set("#h1r .rulec", { opacity: 0 }, S0("H1"));
+      tl.fromTo("#h1doc", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4 }, S0("H1") + 0.1);
+      tl.fromTo("#h1r .rulec", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.25, stagger: 0.3, ease: "power3.out" }, P("s12", 0.5));
+
+      // H2 searches
+      rise("#H2 .cap", S0("H2"));
+      fade("#graph", S0("H2") + 0.05);
+      tl.to("#hot", { attr: { "stroke-dashoffset": 0 }, duration: V["s13"][1] * 0.55, ease: "power2.inOut" }, P("s13", 0.3));
+      tl.fromTo("#goal", { scale: 1, transformOrigin: "780px 665px" }, { scale: 1.12, duration: 0.18, yoyo: true, repeat: 5 }, P("s13", 0.85));
+
+      // H3 proves
+      rise("#H3 .cap", S0("H3"));
+      tl.set(["#stampH"], { opacity: 0 }, S0("H3"));
+      tl.fromTo("#H3 .term > *", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.25, stagger: 0.3, ease: "power3.out" }, S0("H3") + 0.1);
+      fade("#H3 .runs", P("s14", 0.45), 0.2);
+      [1, 2, 3, 4, 5].forEach((i) => tl.fromTo("#run" + i, { background: "rgba(43,227,160,0)", borderColor: "#232c40", textContent: "" }, { background: "#2be3a0", borderColor: "#2be3a0", textContent: "✓", duration: 0.1 }, P("s14", 0.55) + (i - 1) * 0.3));
+      slam("#stampH", P("s14", 0.55) + 1.6, 2.2);
+      shake(P("s14", 0.55) + 1.65, 16);
+
+      // H4 patches
+      rise("#H4 .cap", S0("H4"));
+      tl.set(["#fixp", "#plus", "#H4 .met"], { opacity: 0 }, S0("H4"));
+      fade("#H4 .diff", S0("H4") + 0.05, 0.3);
+      tl.fromTo("#holeD", { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(3)" }, S0("H4") + 0.3);
+      tl.fromTo("#plus", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.35 }, P("s15", 0.2));
+      tl.fromTo("#fixp", { opacity: 0, scale: 2.4, rotation: 20 }, { opacity: 1, scale: 1, rotation: -8, duration: 0.25, ease: "back.out(2)" }, P("s15", 0.35));
+      shake(P("s15", 0.37), 12);
+      tl.fromTo("#crowd svg", { color: "#2e3a52" }, { color: "#2be3a0", duration: 0.06, stagger: 0.03 }, P("s15", 0.5));
+      fade("#H4 .met", P("s15", 0.7), 0.3);
+      count("replayed", 43, P("s15", 0.7), 1.0, (v) => Math.round(v) + "/43");
+      punch("#blocked", P("s15", 0.9));
+
+      // H5 enforces
+      rise("#H5 .cap", S0("H5"));
+      tl.set(["#rq1", "#rq2", "#blk"], { opacity: 0 }, S0("H5"));
+      tl.fromTo("#H5 .node", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.12 }, S0("H5") + 0.1);
+      tl.fromTo("#rq1", { opacity: 0, x: 0 }, { opacity: 1, x: 0, duration: 0.2 }, P("s16", 0.25));
+      tl.to("#rq1", { x: 680, duration: 0.9, ease: "power1.inOut" }, P("s16", 0.3));
+      tl.fromTo("#rq2", { opacity: 0, x: 0 }, { opacity: 1, x: 0, duration: 0.2 }, P("s16", 0.5));
+      tl.to("#rq2", { x: 290, duration: 0.45, ease: "power2.in" }, P("s16", 0.55));
+      tl.to("#rq2", { x: 250, opacity: 0.4, duration: 0.2 }, P("s16", 0.55) + 0.45);
+      tl.fromTo("#pxy", { borderColor: "#2be3a0" }, { borderColor: "#ff4d2e", duration: 0.1, yoyo: true, repeat: 3 }, P("s16", 0.55) + 0.45);
+      slam("#blk", P("s16", 0.7), 2);
+      shake(P("s16", 0.7) + 0.05, 18);
+
+      // H6 tested on tau2-bench: three holes
+      tl.set(["#hh1", "#hh2", "#hh3"], { opacity: 0 }, S0("H6"));
+      rise("#bench", S0("H6") + 0.05, 0.5);
+      [1, 2, 3].forEach((n, i) => {
+        const t = P("s17", 0.55) + i * 0.45;
+        tl.fromTo("#hh" + n, { opacity: 0, scale: 1.8, rotation: -4 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.25, ease: "back.out(2.4)" }, t);
+        tl.fromTo("#hh" + n + " .ic", { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(3)" }, t + 0.1);
+        shake(t, i === 2 ? 26 : 14);
+      });
+
+      // H7 open weights
+      tl.set(["#k1", "#cloudX"], { opacity: 0 }, S0("H7"));
+      tl.fromTo("#bldg", { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.4 }, S0("H7") + 0.05);
+      slam("#model", P("s18", 0.15), 1.4);
+      tl.fromTo("#cloudX", { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.3 }, P("s18", 0.5));
+      rise("#k1", P("s18", 0.6));
+
+      // E1 thesis
+      [["#l1", 0.0], ["#l2", 0.33], ["#l3", 0.64]].forEach(([s, f]) => {
+        slam(s, P("s19", f) + 0.05, 1.3);
+        tl.fromTo(s + " .ic", { rotation: -40, scale: 0 }, { rotation: 0, scale: 1, duration: 0.3, ease: "back.out(3)" }, P("s19", f) + 0.1);
+      });
+
+      // E2 end card
+      tl.set(["#m1", "#m2"], { opacity: 0 }, S0("E2"));
+      tl.fromTo("#logoM", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power4.in" }, S0("E2"));
+      shake(S0("E2") + 0.3, 22);
+      rise("#m1", P("s20", 0.3));
+      fade("#m2", P("s20", 0.8), 0.5);
+
+      master.add(tl, 0);
+      window.__timelines["main"] = master;
+      master.seek(0);
+
+    </script>
+  </body>
+</html>
