@@ -11,6 +11,7 @@ setup:
 		git -C $(TAU2_DIR) checkout -q FETCH_HEAD; \
 	fi
 	uv sync
+	@if [ -f web/package.json ]; then cd web && npm ci; fi
 
 tau2:
 	@test -f $(TAU2_DIR)/pyproject.toml || { echo "$(TAU2_DIR) is missing. Run 'make setup' first."; exit 1; }
