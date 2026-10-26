@@ -141,7 +141,9 @@ def test_hand_ruleset_names_only_domain_tools_and_goals(airline, hand):
     assert {g["id"] for g in hand["forbidden_goals"]} == set(d.goals) == {f"G{i}" for i in range(1, 8)}
 
 
-def test_cabin_and_flights_in_one_call_is_denied_but_each_alone_is_not(airline, hand):
+def test_basic_economy_may_change_cabin_but_never_flights(airline, hand):
+    """Policy: "Basic economy flights cannot be modified." / "all reservations, including basic economy,
+    can change cabin without changing the flights." """
     d, snap = airline
     r = snap["reservations"]["T1QOBS"]  # basic economy, one way JFK-MIA, HAT060 on 2024-05-26
     pid = next(k for k, v in snap["users"][r["user_id"]]["payment_methods"].items() if v["source"] == "credit_card")
@@ -153,8 +155,17 @@ def test_cabin_and_flights_in_one_call_is_denied_but_each_alone_is_not(airline, 
         return failing(hand, snap, "update_reservation_flights", args, d.now)
 
     assert upd("economy", same) == []
-    assert "R-flights-not-both" in upd("economy", other)
+    assert upd("economy", other) == ["R-flights-not-basic"]
     assert upd("basic_economy", other) == ["R-flights-not-basic"]
+
+
+def test_other_cabins_may_change_cabin_and_flights_in_one_call(airline, hand):
+    """Gold tasks 15 and 16 (v1.4 baseline): business M05KNL goes to economy on new flights in one call."""
+    d, snap = airline
+    assert snap["reservations"]["M05KNL"]["cabin"] == "business"
+    args = {"reservation_id": "M05KNL", "cabin": "economy", "payment_id": "gift_card_8887175",
+            "flights": [{"flight_number": "HAT110", "date": "2024-05-24"}, {"flight_number": "HAT172", "date": "2024-05-24"}]}
+    assert failing(hand, snap, "update_reservation_flights", args, d.now) == []
 
 
 def test_bags_cannot_be_removed_or_exceed_the_free_allowance(airline, hand):

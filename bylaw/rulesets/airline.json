@@ -37,13 +37,6 @@
       "note": ""
     },
     {
-      "id": "R-flights-not-both",
-      "tool": "update_reservation_flights",
-      "allow_if": "not (args['cabin'] != res['cabin'] and {(f['flight_number'], f['date']) for f in args['flights']} != {(f['flight_number'], f['date']) for f in res['flights']})",
-      "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
-      "note": "M0 reading: a cabin change and a flight change are never made in the same call."
-    },
-    {
       "id": "R-flights-cabin-not-flown",
       "tool": "update_reservation_flights",
       "allow_if": "not args['cabin'] != res['cabin'] or not any(db['flights'].get(f['flight_number'], {}).get('dates', {}).get(f['date'], {}).get('status') in ['flying', 'landed'] for f in res['flights'])",
@@ -54,8 +47,8 @@
       "id": "R-flights-not-basic",
       "tool": "update_reservation_flights",
       "allow_if": "not ({(f['flight_number'], f['date']) for f in args['flights']} != {(f['flight_number'], f['date']) for f in res['flights']}) or res['cabin'] != 'basic_economy'",
-      "policy_ref": "Basic economy flights cannot be modified.",
-      "note": ""
+      "policy_ref": "Basic economy flights cannot be modified. ... In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+      "note": "Reads the booked cabin, so a basic economy reservation cannot change flights even in the call that changes its cabin. Other cabins may change cabin and flights in one call (contracts 01 v1.4, gold tasks 15 and 16)."
     },
     {
       "id": "R-flights-route",

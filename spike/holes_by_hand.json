@@ -20,7 +20,6 @@
           "error": null,
           "rules": [
             "PASS R-flights-active",
-            "PASS R-flights-not-both",
             "PASS R-flights-cabin-not-flown",
             "PASS R-flights-not-basic",
             "PASS R-flights-route",
@@ -44,7 +43,6 @@
           "error": null,
           "rules": [
             "PASS R-flights-active",
-            "PASS R-flights-not-both",
             "PASS R-flights-cabin-not-flown",
             "PASS R-flights-not-basic",
             "PASS R-flights-route",
@@ -68,7 +66,6 @@
           "error": null,
           "rules": [
             "PASS R-flights-active",
-            "PASS R-flights-not-both",
             "PASS R-flights-cabin-not-flown",
             "PASS R-flights-not-basic",
             "PASS R-flights-route",
@@ -237,7 +234,6 @@
           "error": null,
           "rules": [
             "PASS R-flights-active",
-            "PASS R-flights-not-both",
             "PASS R-flights-cabin-not-flown",
             "PASS R-flights-not-basic",
             "PASS R-flights-route",
@@ -431,7 +427,6 @@
           "error": null,
           "rules": [
             "PASS R-flights-active",
-            "PASS R-flights-not-both",
             "PASS R-flights-cabin-not-flown",
             "PASS R-flights-not-basic",
             "PASS R-flights-route",
