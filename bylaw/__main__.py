@@ -15,10 +15,11 @@ def cmd_backtest(a):
     base = backtest(domain, hand)
     res = backtest(domain, json.loads(Path(a.ruleset).read_text())) if a.ruleset else base
     print(json.dumps({
-        "domain": a.domain, "ruleset": a.ruleset or str(HAND_RULESETS / f"{a.domain}.json"),
+        "domain": a.domain, "ruleset": a.ruleset or f"bylaw/rulesets/{a.domain}.json",
         "tasks": res["tasks"], "blocked": res["blocked"], "unknown": res["unknown"],
         "baseline_blocked": base["blocked"], "delta": res["blocked"] - base["blocked"],
-        "blocked_tasks": [{k: r[k] for k in ("id", "rule_id", "step")} for r in res["results"] if r["blocked"]],
+        "blocked_tasks": [r["id"] for r in res["results"] if r["blocked"]],
+        "blocking": [{k: r[k] for k in ("id", "rule_id", "step")} for r in res["results"] if r["blocked"]],
         "unknown_tasks": [r["id"] for r in res["results"] if r["unknown"]],
     }, indent=2))
 

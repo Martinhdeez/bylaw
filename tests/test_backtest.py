@@ -20,8 +20,8 @@ def _facts(task_id):
 
 
 def test_cancel_reason_inferred_from_the_user_scenario():
-    assert _facts("19")["reason"] == "other"  # "cancel the trip using the travel insurance as you feel unwell"
-    assert _facts("7")["reason"] == "other"  # "You are sick."
+    assert _facts("19")["reason"] == "health"  # "cancel the trip using the travel insurance as you feel unwell"
+    assert _facts("7")["reason"] == "health"  # "You are sick."
     assert _facts("14")["reason"] == "change of plan"  # "cancel the current one and book a new one"
 
 
@@ -39,7 +39,6 @@ def test_airline_cancelled_flight_reason():
 # --- backtest against a minimal fake domain (C1 surface) ---
 from dataclasses import dataclass
 
-import pytest
 
 from bylaw import backtest as bt
 
@@ -77,29 +76,6 @@ RULES = {"domain": "fake", "tool_rules": [
 ], "forbidden_goals": []}
 
 
-@pytest.fixture(autouse=True)
-def _c2_rules(monkeypatch):
-    """Until EN1's C2 `rules.check` lands, stand in for it with plain eval of the same expressions."""
-    from bylaw import rules
-
-    if hasattr(rules, "RULESET_SCHEMA"):
-        return
-
-    @dataclass
-    class Verdict:
-        rule_id: str
-        ok: bool
-        policy_ref: str
-        error: str | None = None
-
-    def check(ruleset, snapshot, tool, args, now):
-        return [Verdict(r["id"], bool(eval(r["allow_if"], {}, {"args": args, "db": snapshot, "now": now})), r["policy_ref"])
-                for r in ruleset["tool_rules"] if r["tool"] == tool]
-
-    monkeypatch.setattr(bt, "rules", type("C2", (), {"check": staticmethod(check),
-                                                     "allowed": staticmethod(lambda vs: all(v.ok for v in vs))}))
-
-
 def _gold(monkeypatch, tasks):
     monkeypatch.setattr(bt, "load_gold", lambda domain: tasks)
 
@@ -134,7 +110,7 @@ def test_inferred_reason_reaches_the_rule_and_missing_reason_is_unknown(monkeypa
     res = _by_id(r)
     assert not res["plan"]["blocked"]
     assert res["sick"]["blocked"] and res["sick"]["rule_id"] == "R-why"
-    assert res["nobody-knows"]["unknown"] and not res["nobody-knows"]["blocked"]
+    assert res["nobody-knows"] == {"id": "nobody-knows", "blocked": False, "rule_id": None, "step": None, "unknown": True}
     assert (r["tasks"], r["blocked"], r["unknown"]) == (3, 1, 1)
 
 
@@ -143,3 +119,29 @@ def test_a_block_before_the_unknown_fact_still_counts_as_blocked(monkeypatch):
         {"tool": "inc", "args": {}}, {"tool": "inc", "args": {}}, {"tool": "cancel_reservation", "args": {}}]}])
     res = _by_id(bt.backtest(_Counter(), RULES))["t"]
     assert res["blocked"] and not res["unknown"] and res["step"] == 1
+
+
+# --- the real airline domain through the CLI ---
+import json  # noqa: E402
+
+from bylaw.__main__ import HAND_RULESETS, main  # noqa: E402
+
+
+def test_cli_reports_an_amendment_as_a_delta_over_the_hand_baseline(tmp_path, capsys):
+    hand = json.loads((HAND_RULESETS / "airline.json").read_text())
+    no_cancels = {**hand, "tool_rules": hand["tool_rules"] + [
+        {"id": "A-no-cancel", "tool": "cancel_reservation", "allow_if": "False", "policy_ref": "", "note": ""}]}
+    path = tmp_path / "patched.json"
+    path.write_text(json.dumps(no_cancels))
+
+    main(["backtest", "--domain", "airline"])
+    base = json.loads(capsys.readouterr().out)
+    main(["backtest", "--domain", "airline", "--ruleset", str(path)])
+    patched = json.loads(capsys.readouterr().out)
+
+    assert base["tasks"] == patched["tasks"] == 43
+    assert base["delta"] == 0 and base["baseline_blocked"] == base["blocked"]
+    assert patched["baseline_blocked"] == base["blocked"]
+    assert patched["delta"] == patched["blocked"] - base["blocked"] > 0
+    assert set(base["blocked_tasks"]) <= set(patched["blocked_tasks"])
+    assert any(t["rule_id"] == "A-no-cancel" for t in patched["blocking"])
