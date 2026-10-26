@@ -107,6 +107,20 @@ def test_malformed_templates_are_ignored():
     assert chains == list(search(DOMAIN, RULES, 20, use_llm=False))
 
 
+def _is_cert(chain):
+    return [t for t, _ in chain] == ["send_certificate"] * 2
+
+
+def test_a_template_that_keeps_missing_loses_its_turns_and_one_that_hits_keeps_them():
+    """The caller sends back whether each chain found something; a template that misses is dropped early."""
+    gen = search(DOMAIN, RULES, 40, use_llm=True, llm=ScriptedMuse({"G7": [G7_TWICE]}))
+    missed = [next(gen)] + [gen.send(False) for _ in range(3)]
+    assert [_is_cert(c) for c in missed] == [True, True, False, False]
+    gen = search(DOMAIN, RULES, 40, use_llm=True, llm=ScriptedMuse({"G7": [G7_TWICE]}))
+    hit = [next(gen)] + [gen.send(True) for _ in range(3)]
+    assert all(map(_is_cert, hit))
+
+
 @pytest.mark.live
 def test_live_muse_templates_bind_to_targets_and_change_the_search():
     chains = list(search(DOMAIN, RULES, 40, use_llm=True))

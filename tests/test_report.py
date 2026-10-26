@@ -55,3 +55,13 @@ def test_muse_audit_proves_what_its_templates_find_and_counts_its_calls(report):
     g7 = [e for e in muse["ambiguities"] if e["goal"] == "G7"]
     assert g7 and all(e["replays"] == "5/5" and [s["tool"] for s in e["chain"]] == ["send_certificate"] * 2 for e in g7)
     assert not any(e["goal"] == "G7" for e in report["ambiguities"])  # blind BFS never sends certificates
+
+
+def test_a_muse_template_that_finds_nothing_hands_its_budget_back_to_the_bfs():
+    from tests.test_proposer import G7_TWICE, ScriptedMuse, _cert
+
+    dud = {**G7_TWICE, "steps": [_cert(), _cert("lost luggage")]}  # the rules block step 2: never a hole
+    muse = audit(DOMAIN, RULES, budget=40, use_llm=True, llm=ScriptedMuse({"G7": [dud]}))
+    # two misses (4 write steps) drop the template; the BFS gets the other 36
+    keys = lambda r: [e["key"] for e in r["holes"] + r["ambiguities"]]
+    assert keys(muse) == keys(audit(DOMAIN, RULES, budget=36))

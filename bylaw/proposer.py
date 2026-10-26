@@ -29,12 +29,13 @@ def search(domain, ruleset: dict, budget: int, use_llm: bool, llm=None):
         raise NotImplementedError(f"no BFS move set for domain {domain.name!r}")
     spent, seen = 0, set()
     if use_llm:
-        for chain in _muse_chains(domain, ruleset, llm or muse.structured):
-            if spent + len(chain) > budget * MUSE_SHARE:
-                break
+        templates = _muse_chains(domain, ruleset, llm or muse.structured)
+        chain = next(templates, None)
+        while chain is not None and spent + len(chain) <= budget * MUSE_SHARE:
             spent += len(chain)
             seen.add(json.dumps(chain, sort_keys=True, default=str))
-            yield chain
+            found = yield chain  # the caller may send back whether the chain found a hole
+            chain = _send(templates, found)
     for chain in _bfs(domain, budget - spent):
         if json.dumps(chain, sort_keys=True, default=str) not in seen:
             yield chain
@@ -174,7 +175,8 @@ Answer with chain TEMPLATES. Each template is bound to every target reservation 
   `args` ({"user_id", "reservation_id"} of the target) and `now`. Same expression language as the rules: literals,
   and/or/not, comparisons, arithmetic, subscripts, `.get(...)`, comprehensions, and only the functions
   len any all sum min max abs zip hours_between. "True" binds every target.
-- `steps[].args_json`: a JSON object with the tool's arguments. A string value starting with "=" is an expression in
+- `steps[].args_json`: the tool's arguments as one strict JSON object (double-quoted keys and strings, every
+  argument the tool requires). A string value starting with "=" is an expression in
   the same language, evaluated on the target before the chain runs, e.g. "=res['reservation_id']",
   "=[{'flight_number': f['flight_number'], 'date': f['date']} for f in res['flights']]",
   "=[k for k, p in user['payment_methods'].items() if p['source'] == 'credit_card'][0]". Expressions see the
@@ -228,7 +230,7 @@ def _ask(domain, ruleset, llm, db, goal) -> dict:
                     "flight_statuses": ["available", "on time", "delayed", "cancelled", "flying", "landed"]},
     }
     return llm([{"role": "system", "content": _SYSTEM}, {"role": "user", "content": json.dumps(prompt, default=str)}],
-               _TEMPLATE_SCHEMA, "chain_templates", effort="high", max_tokens=16000)
+               _TEMPLATE_SCHEMA, "chain_templates", effort="high", max_tokens=32000)
 
 
 def _eval(expr: str, scope: dict):
@@ -274,11 +276,22 @@ def _muse_chains(domain, ruleset, llm):
         replies = list(ex.map(lambda g: _ask(domain, ruleset, llm, db, g), goals))
     per_goal = [[_instances(domain, ruleset, db, t, domain.targets(g.id)) for t in r.get("templates", [])]
                 for g, r in zip(goals, replies)]
-    gens = [ts[i] for i in range(max(map(len, per_goal), default=0)) for ts in per_goal if i < len(ts)]
-    while gens:
-        for g in list(gens):
-            chain = next(g, None)
+    live = [[ts[i], 0, 0] for i in range(max(map(len, per_goal), default=0)) for ts in per_goal if i < len(ts)]
+    while live:
+        for t in list(live):  # t = [bindings, hits, misses]
+            chain = next(t[0], None)
             if chain is None:
-                gens.remove(g)
-            else:
-                yield chain
+                live.remove(t)
+                continue
+            found = yield chain
+            if found is not None:
+                t[1 if found else 2] += 1
+                if t[2] > 2 * t[1] + 1:  # hit rate under about 1/3: the template's turns go to the others
+                    live.remove(t)
+
+
+def _send(gen, value):
+    try:
+        return gen.send(value)
+    except StopIteration:
+        return None

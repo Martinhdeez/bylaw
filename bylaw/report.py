@@ -71,6 +71,18 @@ def _git(*args) -> str:
         return ""
 
 
+def _steered(search_gen, entries: dict):
+    """Yields the search's chains and sends back, after each one is tried, whether it added a proven entry."""
+    n, found = len(entries), None
+    while True:
+        try:
+            proposal = search_gen.send(found)
+        except StopIteration:
+            return
+        yield proposal
+        found, n = len(entries) > n, len(entries)
+
+
 def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "", llm=None) -> dict:
     """`llm` replaces bylaw.llm.structured (tests script Muse with it). llm_calls counts the requests the search
     made; tokens counts what the API billed for them (0 for a reply served from the disk cache)."""
@@ -84,7 +96,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         asked.append(1)
         return (llm or muse.structured)(*a, **kw)
 
-    for proposal in search(domain, ruleset, budget, use_llm, llm=counted):
+    for proposal in _steered(search(domain, ruleset, budget, use_llm, llm=counted), entries):
         chain = [{"tool": t, "args": a} for t, a in proposal]
         r = run(domain, chain, ruleset)
         chains_tried += 1
