@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -6,9 +7,10 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spike"))
 import holes_by_hand  # noqa: E402
 
-from bylaw.env.tau2_airline import airline, snapshot  # noqa: E402
-from bylaw.goals import GOALS  # noqa: E402
-from bylaw.rules import check  # noqa: E402
+from bylaw.domain import get_domain  # noqa: E402
+from bylaw.rules import allowed, check  # noqa: E402
+
+DOMAIN = get_domain("airline")
 
 
 @pytest.fixture(scope="module")
@@ -18,7 +20,7 @@ def holes(tmp_path_factory):
 
 def test_at_least_three_class_a(holes):
     class_a = [h for h in holes if h["class"] == "A"]
-    assert len(class_a) >= 3
+    assert [h["id"] for h in class_a] == ["H1", "H2", "H3"]
     for h in class_a:
         assert h["goal_true"]
         assert all(s["allowed"] and s["error"] is None for s in h["chain"])
@@ -29,21 +31,21 @@ def test_cancel_rebook_is_never_counted(holes):
 
 
 def test_goals_false_on_untouched_db():
-    env = airline.fresh_env()
-    before, after = snapshot(env), snapshot(env)
-    assert {g: fn(before, after, []) for g, fn in GOALS.items()} == {g: [] for g in GOALS}
+    snap = DOMAIN.snapshot(DOMAIN.fresh_env())
+    assert {g: goal.check(snap, snap, []) for g, goal in DOMAIN.goals.items()} == {g: False for g in DOMAIN.goals}
 
 
 def test_rules_block_the_direct_route():
-    """Negative control: the one-step versions of H1/H2 must fail the rules."""
-    db = airline.base_db
+    """Negative control: the one-step versions of H1/H2 must fail the JSON rules."""
+    db = holes_by_hand.airline.base_db
     r = db.reservations["T1QOBS"]  # basic economy, no insurance, booked >24h ago
     pid = holes_by_hand.card(db, r)
     alt = holes_by_hand.other_date(db, r, "basic_economy")
-    change = {"tool": "update_reservation_flights", "args": {"reservation_id": "T1QOBS", "cabin": "basic_economy", "flights": [alt], "payment_id": pid}}
-    cancel = {"tool": "cancel_reservation", "args": {"reservation_id": "T1QOBS"}, "meta": {"reason": "change of plan"}}
-    assert not check(db, change).ok
-    assert not check(db, cancel).ok
+    snap = DOMAIN.snapshot(DOMAIN.fresh_env())
+    change = {"reservation_id": "T1QOBS", "cabin": "basic_economy", "flights": [alt], "payment_id": pid}
+    cancel = {"reservation_id": "T1QOBS", "reason": "change of plan"}
+    assert not allowed(check(holes_by_hand.RULES, snap, "update_reservation_flights", change, DOMAIN.now))
+    assert not allowed(check(holes_by_hand.RULES, snap, "cancel_reservation", cancel, DOMAIN.now))
 
 
 def test_spike_output_is_deterministic_and_leaves_the_tracked_file_alone(tmp_path):
@@ -53,3 +55,4 @@ def test_spike_output_is_deterministic_and_leaves_the_tracked_file_alone(tmp_pat
     holes_by_hand.main(b)
     assert a.read_text() == b.read_text()
     assert holes_by_hand.OUT.read_bytes() == tracked
+    assert json.loads(a.read_text())["class_a_count"] == 3
