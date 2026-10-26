@@ -83,7 +83,8 @@ def draft(domain, ruleset: dict, hole: dict, model=None, llm=None) -> dict:
     messages = [{"role": "system", "content": SYSTEM},
                 {"role": "user", "content": f"POLICY:\n{domain.policy_text}\n\nCURRENT RULESET:\n"
                                             f"{json.dumps(ruleset, indent=1)}\n\nHOLE:\n{_hole_text(domain, hole)}"}]
-    opts = {"model": model} if model else {}
+    # high effort spends its reasoning inside max_tokens: the 4000 default came back empty (finish_reason=length)
+    opts = {"max_tokens": 32000, **({"model": model} if model else {})}
     for attempt in range(2):
         ans = ask(messages, ANSWER_SCHEMA, "amendment", effort="high", **opts)
         problem = _problem(domain, ruleset, ans) if isinstance(ans, dict) else "the answer must be a JSON object"
