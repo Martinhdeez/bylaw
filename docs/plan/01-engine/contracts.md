@@ -100,3 +100,7 @@ def get_domain(name: str) -> Domain
 
 - **C2 cancel reason vocabulary:** `args["reason"]` on `cancel_reservation` is one of `"change of plan"`, `"airline cancelled flight"`, `"health"`, `"weather"`, `"other"`. Insurance covers `"health"` and `"weather"` only (policy: "health or weather reasons"). Supersedes the list in v1.1.
 - **Honest-customer baseline:** the hand RuleSet must block 0 of the 43 airline gold tasks (unknown tasks excluded). A hand rule that blocks a gold action is a rule bug unless the gold action contradicts the policy text, which is then written down with the quote.
+
+## v1.5 (2026-10-27, from review of PR #8), binding on all items
+
+- **C2 evaluation limits (replaces the v1.3 wording):** `check` bounds each rule evaluation by work, not wall-clock: at most 10^6 comprehension iterations plus elements or characters built, summed over the evaluation. Over the budget gives `Verdict(ok=False, error=...)`. `check` is safe to call from several threads at once. `bytes` constants are rejected by `validate`.
