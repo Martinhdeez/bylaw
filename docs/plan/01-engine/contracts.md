@@ -95,3 +95,8 @@ def get_domain(name: str) -> Domain
 
 - **C2 expression language (from EN1, approved by the orchestrator):** `zip` joins the function whitelist; the M0 route rule (flight segments chain end to end) needs pairwise access to the segment list. Arithmetic `+ - * / // %` (no `**`), unary `- +`, `x if c else y` and slices are accepted as part of "Python expression syntax"; keyword arguments to whitelisted functions are accepted, `*args`/`**kwargs` are not. `hours_between(a, b)` is the absolute distance in hours, so argument order does not matter. A rule that raises while being evaluated (for example `res` is None) gives `Verdict(ok=False, error=...)`; `check` never raises for a bad expression, `validate` does. `send_certificate` also reads `args["complaint"]` ("cancelled" | "delayed") as a conversation fact.
 - **C2 evaluation limits:** `check` evaluates a rule under a bound (no value above 10^6 elements or characters, a time limit of 50 ms per rule); a rule over the bound gives `Verdict(ok=False, error=...)`. Muse-compiled rulesets are untrusted input.
+
+## v1.4 (2026-10-27, from BT1 findings), binding on all items
+
+- **C2 cancel reason vocabulary:** `args["reason"]` on `cancel_reservation` is one of `"change of plan"`, `"airline cancelled flight"`, `"health"`, `"weather"`, `"other"`. Insurance covers `"health"` and `"weather"` only (policy: "health or weather reasons"). Supersedes the list in v1.1.
+- **Honest-customer baseline:** the hand RuleSet must block 0 of the 43 airline gold tasks (unknown tasks excluded). A hand rule that blocks a gold action is a rule bug unless the gold action contradicts the policy text, which is then written down with the quote.
