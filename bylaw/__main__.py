@@ -37,7 +37,8 @@ def cmd_audit(a):
     Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
     s = report["stats"]
     print(f"wrote {a.output}: {len(report['holes'])} Class A holes, {len(report['ambiguities'])} ambiguities; "
-          f"{s['chains_tried']} chains, {s['tool_calls']} tool calls, {s['seconds']}s")
+          f"{s['chains_tried']} chains, {s['tool_calls']} tool calls, {s['llm_calls']} LLM calls, "
+          f"{s['tokens']} tokens, {s['seconds']}s")
     for e in report["holes"] + report["ambiguities"]:
         print(f"  {e['id']} {e['class']} {e['key']} replays {e['replays']} money_delta {e['money_delta']} "
               f"{' -> '.join(st['tool'] for st in e['chain'])}")
@@ -152,6 +153,27 @@ def cmd_replay(a):
         print(line(n, s["tool"], proxy.call(s["tool"], s["args"])))
 
 
+def cmd_bench(a):
+    from bylaw.report import audit
+
+    domain = get_domain(a.domain)
+    ruleset = json.loads((HAND_RULESETS / f"{a.domain}.json").read_text())
+    modes, rows = a.modes.split(","), []
+    if set(modes) - {"bfs", "muse"}:
+        raise SystemExit(f"unknown mode in --modes {a.modes!r}; known: bfs, muse")
+    for mode in modes:
+        r = audit(domain, ruleset, a.budget, use_llm=mode == "muse")
+        rows.append({"mode": mode, "holes": len(r["holes"]), "hole_keys": [h["key"] for h in r["holes"]],
+                     "ambiguities": len(r["ambiguities"]), "ambiguity_keys": [h["key"] for h in r["ambiguities"]],
+                     **{k: r["stats"][k] for k in ("tool_calls", "llm_calls", "tokens", "seconds")}, "commit": r["run"]["commit"]})
+    Path(a.output).write_text(json.dumps({"domain": a.domain, "budget": a.budget, "rows": rows}, indent=2) + "\n")
+    cols = ("mode", "holes", "ambiguities", "tool_calls", "llm_calls", "tokens", "seconds")
+    print(f"bench {a.domain} budget {a.budget} -> {a.output}")
+    print(" | ".join(f"{c:>11}" for c in cols))
+    for row in rows:
+        print(" | ".join(f"{row[c]!s:>11}" for c in cols))
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="bylaw")
     sub = p.add_subparsers(required=True)
@@ -184,6 +206,12 @@ def main(argv=None):
     what.add_argument("--gold", action="store_true", help="replay the tau2 gold tasks; prints blocked: N/total")
     rp.add_argument("--report", help="C4 report; default: the latest in the report store")
     rp.set_defaults(fn=cmd_replay)
+    be = sub.add_parser("bench", help="holes per tool-call budget, Muse-guided vs blind BFS")
+    be.add_argument("--domain", required=True)
+    be.add_argument("--budget", type=int, required=True, help="write tool calls each mode may execute")
+    be.add_argument("--modes", default="bfs,muse", help="comma-separated: bfs, muse")
+    be.add_argument("-o", "--output", default="bench.json")
+    be.set_defaults(fn=cmd_bench)
     a = p.parse_args(argv)
     return a.fn(a)
 

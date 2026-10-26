@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from bylaw import llm as muse
 from bylaw.executor import run
 from bylaw.proposer import search
 from bylaw.verifier import prove
@@ -70,12 +71,20 @@ def _git(*args) -> str:
         return ""
 
 
-def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "") -> dict:
+def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "", llm=None) -> dict:
+    """`llm` replaces bylaw.llm.structured (tests script Muse with it). llm_calls counts the requests the search
+    made; tokens counts what the API billed for them (0 for a reply served from the disk cache)."""
     t0 = time.monotonic()
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     db = domain.snapshot(domain.fresh_env())
     entries, chains_tried, tool_calls = {}, 0, 0
-    for proposal in search(domain, ruleset, budget, use_llm):
+    asked, billed_from = [], len(muse.CALLS)
+
+    def counted(*a, **kw):
+        asked.append(1)
+        return (llm or muse.structured)(*a, **kw)
+
+    for proposal in search(domain, ruleset, budget, use_llm, llm=counted):
         chain = [{"tool": t, "args": a} for t, a in proposal]
         r = run(domain, chain, ruleset)
         chains_tried += 1
@@ -97,10 +106,12 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     holes = [{"id": f"H{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == "A"), 1)]
     ambiguities = [{"id": f"C{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == "C"), 1)]
     return {
-        "run": {"commit": _git("rev-parse", "HEAD"), "domain": domain.name, "model": model,
+        "run": {"commit": _git("rev-parse", "HEAD"), "domain": domain.name,
+                "model": model or (muse.model() if use_llm else ""),
                 "mode": "muse" if use_llm else "bfs", "started": started, "budget": budget,
                 "goals_commit": _git("log", "-1", "--format=%H", "--", "bylaw/goals.py")},
         "holes": holes, "ambiguities": ambiguities,
-        "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": 0, "tokens": 0,
+        "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": len(asked),
+                  "tokens": sum(c["prompt_tokens"] + c["completion_tokens"] for c in muse.CALLS[billed_from:]),
                   "seconds": round(time.monotonic() - t0, 2)},
     }
