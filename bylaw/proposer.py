@@ -19,7 +19,10 @@ MAX_DEPTH = 4
 CABINS = ("basic_economy", "economy", "business")
 REASON = "change of plan"
 MAX_SHIFT_DAYS = 30
-MUSE_SHARE = 0.5  # ponytail: fixed split, Muse templates get at most half the budget; adapt to hit rate if it matters
+# Muse templates get at most half the budget, so the BFS half still finds what blind BFS finds on the whole
+# budget (REQ-PR1-1): measured, BFS at 1000 finds every Class A key BFS at 2000 finds.
+# ponytail: fixed split; give winning templates more when the BFS half is known to plateau earlier.
+MUSE_SHARE = 0.5
 SAMPLES = 8  # example target records shown to Muse per goal
 
 
