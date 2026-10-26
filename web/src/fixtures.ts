@@ -217,6 +217,7 @@ export const RETAIL: Report = {
 export const CLASS_C_NOTE =
   "Cancel and rebook inside a permitted cancel ground is the method the policy allows. Listed for review, not counted.";
 
+// Placeholder numbers: backtest counts, blocked cases and token figures below are invented for the prototype, not measured.
 export const AMENDMENTS: Record<string, Amendment> = {
   H1: {
     hole: "H1",
@@ -255,6 +256,7 @@ export const AMENDMENTS: Record<string, Amendment> = {
   },
 };
 
+// Placeholder numbers: every bench figure below is invented for the prototype until `bylaw bench` produces real ones.
 export const BENCH: { budget: number; rows: BenchRow[] } = {
   budget: 2000,
   rows: [
