@@ -18,13 +18,13 @@
             "reservation_id": "T1QOBS"
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cabin and flights not changed in the same call",
-            "PASS cabin change: no flight in the reservation has been flown",
-            "PASS payment method is in the user profile",
-            "PASS single gift card or credit card for change/refund"
+            "PASS R-flights-active",
+            "PASS R-flights-not-both",
+            "PASS R-flights-cabin-not-flown",
+            "PASS R-flights-not-basic",
+            "PASS R-flights-route",
+            "PASS R-flights-payment"
           ],
           "tool": "update_reservation_flights"
         },
@@ -42,14 +42,13 @@
             "reservation_id": "T1QOBS"
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cabin and flights not changed in the same call",
-            "PASS flight change: reservation is not basic economy",
-            "PASS flight change: same origin, destination and trip type",
-            "PASS payment method is in the user profile",
-            "PASS single gift card or credit card for change/refund"
+            "PASS R-flights-active",
+            "PASS R-flights-not-both",
+            "PASS R-flights-cabin-not-flown",
+            "PASS R-flights-not-basic",
+            "PASS R-flights-route",
+            "PASS R-flights-payment"
           ],
           "tool": "update_reservation_flights"
         },
@@ -67,13 +66,13 @@
             "reservation_id": "T1QOBS"
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cabin and flights not changed in the same call",
-            "PASS cabin change: no flight in the reservation has been flown",
-            "PASS payment method is in the user profile",
-            "PASS single gift card or credit card for change/refund"
+            "PASS R-flights-active",
+            "PASS R-flights-not-both",
+            "PASS R-flights-cabin-not-flown",
+            "PASS R-flights-not-basic",
+            "PASS R-flights-route",
+            "PASS R-flights-payment"
           ],
           "tool": "update_reservation_flights"
         }
@@ -200,11 +199,9 @@
       "failing_step": null,
       "goal": "G1",
       "goal_true": true,
-      "goals_hit": {
-        "G1": [
-          "T1QOBS"
-        ]
-      },
+      "goals_hit": [
+        "G1"
+      ],
       "id": "H1",
       "leak_usd": 0,
       "money": {
@@ -238,30 +235,28 @@
             "reservation_id": "1ERWZ8"
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cabin and flights not changed in the same call",
-            "PASS cabin change: no flight in the reservation has been flown",
-            "PASS payment method is in the user profile",
-            "PASS single gift card or credit card for change/refund"
+            "PASS R-flights-active",
+            "PASS R-flights-not-both",
+            "PASS R-flights-cabin-not-flown",
+            "PASS R-flights-not-basic",
+            "PASS R-flights-route",
+            "PASS R-flights-payment"
           ],
           "tool": "update_reservation_flights"
         },
         {
           "allowed": true,
           "args": {
+            "reason": "change of plan",
             "reservation_id": "1ERWZ8"
           },
           "error": null,
-          "meta": {
-            "reason": "change of plan"
-          },
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cancellation reason obtained",
-            "PASS no portion of the trip has been flown",
-            "PASS cancel ground: business flight"
+            "PASS R-cancel-active",
+            "PASS R-cancel-reason",
+            "PASS R-cancel-not-flown",
+            "PASS R-cancel-ground"
           ],
           "tool": "cancel_reservation"
         }
@@ -372,11 +367,9 @@
       "failing_step": null,
       "goal": "G2",
       "goal_true": true,
-      "goals_hit": {
-        "G2": [
-          "1ERWZ8"
-        ]
-      },
+      "goals_hit": [
+        "G2"
+      ],
       "id": "H2",
       "leak_usd": 117,
       "money": {
@@ -401,13 +394,12 @@
             "total_baggages": 3
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS bags: can add but not remove (total)",
-            "PASS bags: paid bags are not turned into free ones",
-            "PASS bags: free bags within allowance (3)",
-            "PASS payment method is in the user profile"
+            "PASS R-bags-active",
+            "PASS R-bags-no-remove",
+            "PASS R-bags-paid-stay-paid",
+            "PASS R-bags-free-allowance",
+            "PASS R-bags-payment"
           ],
           "tool": "update_reservation_baggages"
         },
@@ -437,13 +429,13 @@
             "reservation_id": "018BE2"
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cabin and flights not changed in the same call",
-            "PASS cabin change: no flight in the reservation has been flown",
-            "PASS payment method is in the user profile",
-            "PASS single gift card or credit card for change/refund"
+            "PASS R-flights-active",
+            "PASS R-flights-not-both",
+            "PASS R-flights-cabin-not-flown",
+            "PASS R-flights-not-basic",
+            "PASS R-flights-route",
+            "PASS R-flights-payment"
           ],
           "tool": "update_reservation_flights"
         }
@@ -574,11 +566,9 @@
       "failing_step": null,
       "goal": "G5",
       "goal_true": true,
-      "goals_hit": {
-        "G5": [
-          "018BE2"
-        ]
-      },
+      "goals_hit": [
+        "G5"
+      ],
       "id": "H3",
       "leak_usd": 100,
       "money": {
@@ -597,17 +587,15 @@
         {
           "allowed": true,
           "args": {
+            "reason": "change of plan",
             "reservation_id": "00GMVN"
           },
           "error": null,
-          "meta": {
-            "reason": "change of plan"
-          },
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cancellation reason obtained",
-            "PASS no portion of the trip has been flown",
-            "PASS cancel ground: booked within 24h, business flight"
+            "PASS R-cancel-active",
+            "PASS R-cancel-reason",
+            "PASS R-cancel-not-flown",
+            "PASS R-cancel-ground"
           ],
           "tool": "cancel_reservation"
         },
@@ -643,14 +631,13 @@
             "user_id": "aarav_brown_5556"
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS user exists",
-            "PASS at most five passengers",
-            "PASS flights match origin, destination and trip type",
-            "PASS all payment methods are in the user profile",
-            "PASS at most 1 certificate, 1 credit card, 3 gift cards",
-            "PASS bags: free allowance 2 applied"
+            "PASS R-book-user",
+            "PASS R-book-max-pax",
+            "PASS R-book-route",
+            "PASS R-book-payment-in-profile",
+            "PASS R-book-payment-mix",
+            "PASS R-book-bags"
           ],
           "tool": "book_reservation"
         }
@@ -777,11 +764,9 @@
       "failing_step": null,
       "goal": "G3",
       "goal_true": true,
-      "goals_hit": {
-        "G3": [
-          "00GMVN->HATHAT"
-        ]
-      },
+      "goals_hit": [
+        "G3"
+      ],
       "id": "H4",
       "leak_usd": 0,
       "money": {
@@ -800,17 +785,15 @@
         {
           "allowed": true,
           "args": {
+            "reason": "change of plan",
             "reservation_id": "00Y36Z"
           },
           "error": null,
-          "meta": {
-            "reason": "change of plan"
-          },
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cancellation reason obtained",
-            "PASS no portion of the trip has been flown",
-            "PASS cancel ground: booked within 24h, business flight"
+            "PASS R-cancel-active",
+            "PASS R-cancel-reason",
+            "PASS R-cancel-not-flown",
+            "PASS R-cancel-ground"
           ],
           "tool": "cancel_reservation"
         },
@@ -868,14 +851,13 @@
             "user_id": "sofia_anderson_8718"
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS user exists",
-            "PASS at most five passengers",
-            "PASS flights match origin, destination and trip type",
-            "PASS all payment methods are in the user profile",
-            "PASS at most 1 certificate, 1 credit card, 3 gift cards",
-            "PASS bags: free allowance 12 applied"
+            "PASS R-book-user",
+            "PASS R-book-max-pax",
+            "PASS R-book-route",
+            "PASS R-book-payment-in-profile",
+            "PASS R-book-payment-mix",
+            "PASS R-book-bags"
           ],
           "tool": "book_reservation"
         }
@@ -1085,11 +1067,9 @@
       "failing_step": null,
       "goal": "G4",
       "goal_true": true,
-      "goals_hit": {
-        "G4": [
-          "00Y36Z->HATHAT"
-        ]
-      },
+      "goals_hit": [
+        "G4"
+      ],
       "id": "H5",
       "leak_usd": 0,
       "money": {
@@ -1108,17 +1088,15 @@
         {
           "allowed": true,
           "args": {
+            "reason": "change of plan",
             "reservation_id": "1KUOX2"
           },
           "error": null,
-          "meta": {
-            "reason": "change of plan"
-          },
           "rules": [
-            "PASS reservation exists and is active",
-            "PASS cancellation reason obtained",
-            "PASS no portion of the trip has been flown",
-            "PASS cancel ground: booked within 24h"
+            "PASS R-cancel-active",
+            "PASS R-cancel-reason",
+            "PASS R-cancel-not-flown",
+            "PASS R-cancel-ground"
           ],
           "tool": "cancel_reservation"
         },
@@ -1154,14 +1132,13 @@
             "user_id": "anya_khan_1074"
           },
           "error": null,
-          "meta": {},
           "rules": [
-            "PASS user exists",
-            "PASS at most five passengers",
-            "PASS flights match origin, destination and trip type",
-            "PASS all payment methods are in the user profile",
-            "PASS at most 1 certificate, 1 credit card, 3 gift cards",
-            "PASS bags: free allowance 1 applied"
+            "PASS R-book-user",
+            "PASS R-book-max-pax",
+            "PASS R-book-route",
+            "PASS R-book-payment-in-profile",
+            "PASS R-book-payment-mix",
+            "PASS R-book-bags"
           ],
           "tool": "book_reservation"
         }
@@ -1288,11 +1265,9 @@
       "failing_step": null,
       "goal": "G1",
       "goal_true": true,
-      "goals_hit": {
-        "G1": [
-          "1KUOX2->HATHAT"
-        ]
-      },
+      "goals_hit": [
+        "G1"
+      ],
       "id": "H6",
       "leak_usd": 0,
       "money": {
