@@ -10,3 +10,4 @@ Plan: `docs/plan/01-engine/00-plan.md`. Progress: 0 / 8.
 - [ ] **TA1** Acceptance tests wave 1 — test-author — PR #
 - [ ] **TA2** Acceptance tests wave 2 — test-author — PR #
 - [ ] **UI1** Web UI prototype → implementation — designer — PR #
+  - [x] Prototype on fixtures — PR #2
