@@ -76,3 +76,9 @@ def get_domain(name: str) -> Domain
 - `search(domain, ruleset, budget: int, use_llm: bool) -> Iterator[list[tuple[str, dict]]]` yields candidate chains of (tool, args).
 - Depth ≤ 4, WRITE tools only (reads are free and not counted). Arguments are instantiated from `domain.targets(goal)`.
 - With `use_llm`, Muse proposes abstract chains per goal first (`effort="high"`), then BFS fills the remaining budget.
+
+## v1.1 (2026-10-26, from TA1 findings), binding on all items
+
+- **C1 snapshot shape:** `Domain.snapshot(env)` returns the τ² DB dump as a dict whose top-level collections are keyed by id. Airline: `{"users": {id: {...}}, "reservations": {id: {...}}, "flights": {...}}`. Retail: `{"users": {...}, "orders": {...}, "products": {...}}`.
+- **C2 conversation facts in `args`:** facts the policy needs but the τ² tool signature lacks are passed as extra keys in the call's `args`, and rules read them from `args`. Examples: the cancellation reason as `args["reason"]` ("change of plan" | "airline cancelled flight" | "other"), and the certificate's reservation as `args["reservation_id"]` on `send_certificate`. `Domain.call` strips the keys the τ² tool does not accept before calling it.
+- **C3 offline injection:** the signature is `compile_policy(domain, model=None, llm=None)`. `llm`, if given, is a callable with the signature of `bylaw.llm.structured(messages, schema, name, effort=None, **opts) -> dict`, used instead of the real client. Tests use it to script the model.
