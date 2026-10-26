@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=block" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #0b1019;
+        --panel: #121927;
+        --line: #263145;
+        --ink: #e7ebf1;
+        --muted: #93a0b5;
+        --stamp: #ff6b4e;
+        --allow: #39c99c;
+        --esc: #f2b44a;
+        --display: "Archivo", "Arial Narrow", sans-serif;
+        --body: "Public Sans", system-ui, sans-serif;
+        --mono: "JetBrains Mono", Menlo, monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--body); }
+      #root { position: relative; width: 100%; height: 100%; }
+      .clip { position: absolute; inset: 0; }
+      .center { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 28px; }
+      .big { font: 900 120px/0.95 var(--display); font-stretch: 68%; text-transform: uppercase; letter-spacing: -0.01em; }
+      .mid { font: 800 76px/1 var(--display); font-stretch: 72%; text-transform: uppercase; }
+      .red { color: var(--stamp); }
+      .muted { color: var(--muted); }
+      .mono { font-family: var(--mono); }
+      .eyebrow { font: 600 22px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+      .grain { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(255,107,78,0.06), transparent 60%); pointer-events: none; }
+
+      /* S2 chat */
+      #s2 { padding: 90px 110px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 70px; }
+      .chat { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 36px; display: flex; flex-direction: column; gap: 18px; }
+      .chat .hdr { font: 600 18px var(--mono); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; display: flex; justify-content: space-between; }
+      .msg { max-width: 88%; padding: 18px 22px; border-radius: 12px; font-size: 25px; line-height: 1.4; }
+      .msg .who { display: block; font: 600 15px var(--mono); letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
+      .user { background: #1b2436; align-self: flex-start; }
+      .agent { border: 1px solid var(--line); align-self: flex-end; }
+      .ok { color: var(--allow); font: 600 19px var(--mono); }
+      .tool { align-self: flex-end; font: 19px var(--mono); background: #0f1622; padding: 12px 16px; border-radius: 8px; display: flex; gap: 18px; }
+      .tool b { color: var(--allow); }
+      .clauses { display: flex; flex-direction: column; gap: 30px; justify-content: center; }
+      .clause { border-left: 5px solid var(--line); padding-left: 26px; display: flex; flex-direction: column; gap: 8px; }
+      .clause span { font: 600 17px var(--mono); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+      .clause p { font: 600 34px/1.25 var(--display); font-stretch: 90%; }
+      .clause.green { border-color: var(--allow); }
+      .clause.bad { border-color: var(--stamp); }
+      .clause.bad p { color: var(--stamp); }
+      .stamp { display: inline-block; font: 900 64px/1 var(--display); font-stretch: 112%; letter-spacing: 0.08em; color: var(--stamp); border: 7px solid var(--stamp); border-radius: 10px; padding: 18px 30px; transform: rotate(-6deg); }
+      #s2stamp { position: absolute; left: 860px; top: 820px; white-space: nowrap; font-size: 54px; }
+
+      /* S4 logo */
+      .logo { display: flex; align-items: center; gap: 34px; font: 900 150px/1 var(--display); font-stretch: 125%; letter-spacing: 0.05em; }
+      .seal { width: 150px; height: 150px; border: 10px solid var(--stamp); border-radius: 50%; display: grid; place-items: center; color: var(--stamp); font: 900 76px var(--display); }
+
+      /* S5 method */
+      #s5 { padding: 80px 110px; }
+      .inputs { position: absolute; left: 110px; top: 210px; display: flex; flex-direction: column; gap: 22px; }
+      .file { width: 400px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px 26px; display: flex; gap: 20px; align-items: center; font: 600 24px var(--mono); }
+      .file i { width: 46px; height: 56px; border: 3px solid var(--muted); border-radius: 6px; display: grid; place-items: center; font: 700 13px var(--mono); font-style: normal; color: var(--muted); }
+      .file.vid i { border-color: var(--stamp); color: var(--stamp); }
+      .muse { position: absolute; left: 610px; top: 330px; width: 330px; height: 150px; border-radius: 16px; border: 2px solid var(--stamp); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: #1a1418; }
+      .muse b { font: 800 40px var(--display); font-stretch: 90%; }
+      .muse span { font: 18px var(--mono); color: var(--muted); }
+      #graph { position: absolute; left: 1000px; top: 150px; width: 820px; height: 560px; }
+      .counter { position: absolute; left: 1000px; top: 780px; display: flex; gap: 70px; }
+      .counter div { display: flex; flex-direction: column; gap: 4px; }
+      .counter strong { font: 800 72px/1 var(--display); font-stretch: 80%; }
+      .counter span { font: 18px var(--mono); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+      .s5title { position: absolute; left: 110px; top: 80px; }
+
+      /* S6 report */
+      #s6 { display: flex; align-items: center; justify-content: center; }
+      .report { width: 1360px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+      .report .top { display: flex; justify-content: space-between; padding: 26px 36px; border-bottom: 1px solid var(--line); font: 600 20px var(--mono); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+      .sum { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
+      .sum div { padding: 26px 36px; display: flex; flex-direction: column; gap: 6px; }
+      .sum div + div { border-left: 1px solid var(--line); }
+      .sum strong { font: 800 78px/1 var(--display); font-stretch: 80%; }
+      .sum span { font-size: 20px; color: var(--muted); }
+      .row { display: grid; grid-template-columns: 110px 1fr; gap: 6px 26px; padding: 22px 36px; border-bottom: 1px solid var(--line); align-items: start; }
+      .row:last-child { border-bottom: 0; }
+      .cls { font: 700 18px var(--mono); border: 2.5px solid currentColor; border-radius: 6px; padding: 7px 10px; text-align: center; }
+      .A { color: var(--stamp); } .B { color: var(--esc); }
+      .row b { font-size: 28px; font-weight: 600; }
+      .row small { grid-column: 2; font: 19px var(--mono); color: var(--muted); }
+
+      /* S7 amend */
+      #s7 { padding: 90px 110px; display: flex; flex-direction: column; justify-content: center; gap: 50px; }
+      .ams { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
+      .am { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 40px; display: flex; flex-direction: column; gap: 26px; position: relative; }
+      .am .v { font: 600 19px var(--mono); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+      .am q { min-height: 140px; font: 600 40px/1.3 var(--display); font-stretch: 90%; quotes: "“" "”"; }
+      .barrow { display: grid; grid-template-columns: 320px 1fr 90px; gap: 20px; align-items: center; font-size: 26px; }
+      .track { display: block; height: 18px; background: #0f1622; border-radius: 4px; overflow: hidden; }
+      .fill { display: block; height: 100%; width: 100%; transform-origin: left center; }
+      .fill.g { background: var(--allow); } .fill.r { background: var(--stamp); }
+      .barrow b { font: 700 24px var(--mono); text-align: right; }
+      .am .stamp { align-self: flex-end; margin-top: 6px; font-size: 40px; border-width: 5px; padding: 10px 18px; }
+      .am .stamp.ok2 { color: var(--allow); border-color: var(--allow); }
+
+      /* S8 feed */
+      #s8 { padding: 90px 110px; display: grid; grid-template-columns: 1fr 1.15fr; gap: 80px; align-items: center; }
+      .feed { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+      .feed .hdr { padding: 20px 28px; border-bottom: 1px solid var(--line); font: 600 18px var(--mono); color: var(--allow); letter-spacing: 0.1em; text-transform: uppercase; display: flex; justify-content: space-between; }
+      .frow { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 18px 28px; border-bottom: 1px solid var(--line); font: 21px var(--mono); align-items: center; }
+      .frow small { display: block; color: var(--muted); font-size: 16px; margin-top: 4px; }
+      .chip { font: 700 16px var(--mono); letter-spacing: 0.08em; padding: 7px 10px; border: 2.5px solid currentColor; border-radius: 5px; }
+      .c-allow { color: var(--allow); } .c-block { color: var(--stamp); } .c-esc { color: var(--esc); }
+
+      /* S9 */
+      .cta { font: 600 30px var(--mono); padding: 22px 40px; border: 2px solid var(--stamp); border-radius: 10px; color: var(--ink); }
+      .fine { position: absolute; bottom: 44px; left: 0; right: 0; text-align: center; font: 18px var(--mono); color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="69" data-width="1920" data-height="1080">
+      <div class="grain"></div>
+
+      <!-- S1 -->
+      <div id="s1" class="clip center" data-start="0" data-duration="5.6" data-track-index="0">
+        <p id="s1a" class="mid">You gave your AI agent a rulebook.</p>
+        <p id="s1b" class="mid muted">It follows every single rule.</p>
+      </div>
+
+      <!-- S2 -->
+      <div id="s2" class="clip" data-start="5.6" data-duration="13.3" data-track-index="0">
+        <div class="chat">
+          <div class="hdr"><span>τ² airline · support agent</span><span>live</span></div>
+          <div id="m1" class="msg user"><span class="who">Customer</span>Booked basic economy JFK → SFO two hours ago. Please cancel it.</div>
+          <div id="m2" class="msg agent"><span class="who">Agent</span>Within 24 hours of booking, full refund. Allowed. <span class="ok">✓ clause 4.2</span></div>
+          <div id="m3" class="tool">cancel_reservation(8XK2QF) <b>allowed</b></div>
+          <div id="m4" class="msg user"><span class="who">Customer</span>Now book me the same route, the day after.</div>
+          <div id="m5" class="msg agent"><span class="who">Agent</span>Booking for a verified user. Allowed. <span class="ok">✓ clause 2.1</span></div>
+          <div id="m6" class="tool">book_reservation(JFK→SFO, +1 day) <b>allowed</b></div>
+        </div>
+        <div class="clauses">
+          <div id="c1" class="clause"><span>Clause 4.2 · cancellation</span><p>Cancel with full refund within 24 hours of booking.</p></div>
+          <div id="c2" class="clause"><span>Clause 2.1 · booking</span><p>Book a new reservation for a verified user.</p></div>
+          <div id="c3" class="clause"><span>Clause 3.1 · modification</span><p>Basic economy flights cannot be modified.</p></div>
+        </div>
+        <div id="s2stamp" class="stamp">FORBIDDEN OUTCOME</div>
+      </div>
+
+      <!-- S3 -->
+      <div id="s3" class="clip center" data-start="18.9" data-duration="4.1" data-track-index="0">
+        <p id="s3a" class="big">The agent did nothing wrong.</p>
+        <p id="s3b" class="big red">The law was wrong.</p>
+      </div>
+
+      <!-- S4 -->
+      <div id="s4" class="clip center" data-start="23" data-duration="2.8" data-track-index="0">
+        <div id="logo" class="logo"><div class="seal">§</div>BYLAW</div>
+        <p id="tag" class="eyebrow">Audit the law your agents run on</p>
+      </div>
+
+      <!-- S5 -->
+      <div id="s5" class="clip" data-start="25.8" data-duration="14.5" data-track-index="0">
+        <p class="eyebrow s5title">Muse proposes · search confirms · engine verifies</p>
+        <div class="inputs">
+          <div id="f1" class="file"><i>PDF</i>airline-policy.pdf</div>
+          <div id="f2" class="file"><i>PDF</i>handbook-2026.pdf</div>
+          <div id="f3" class="file vid"><i>MP4</i>ops-walkthrough.mp4</div>
+        </div>
+        <div id="muse" class="muse"><b>Muse Spark</b><span>1M context · max reasoning</span></div>
+        <svg id="graph" viewBox="0 0 820 560">
+          <g stroke="#263145" stroke-width="3" fill="none">
+            <path class="e" d="M150 90 L380 90"/><path class="e" d="M150 90 L380 300"/><path class="e" d="M500 90 L640 300"/><path class="e" d="M500 300 L640 300"/><path class="e" d="M500 300 L380 480"/><path class="e" d="M150 90 L150 300"/><path class="e" d="M150 300 L380 480"/>
+          </g>
+          <path id="hot" d="M150 90 L380 90 L500 90 L640 300 L700 450" stroke="#ff6b4e" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="900" stroke-dashoffset="900"/>
+          <g font-family="JetBrains Mono, monospace" font-size="20" text-anchor="middle">
+            <g class="n"><rect x="40" y="62" width="220" height="56" rx="8" fill="#121927" stroke="#263145" stroke-width="2"/><text x="150" y="97" fill="#e7ebf1">get_reservation</text></g>
+            <g class="n"><rect x="330" y="62" width="170" height="56" rx="8" fill="#121927" stroke="#263145" stroke-width="2"/><text x="415" y="97" fill="#e7ebf1">cancel</text></g>
+            <g class="n"><rect x="40" y="272" width="220" height="56" rx="8" fill="#121927" stroke="#263145" stroke-width="2"/><text x="150" y="307" fill="#e7ebf1">search_flights</text></g>
+            <g class="n"><rect x="330" y="272" width="170" height="56" rx="8" fill="#121927" stroke="#263145" stroke-width="2"/><text x="415" y="307" fill="#e7ebf1">update</text></g>
+            <g class="n"><rect x="560" y="272" width="170" height="56" rx="8" fill="#121927" stroke="#263145" stroke-width="2"/><text x="645" y="307" fill="#e7ebf1">book</text></g>
+            <g class="n"><rect x="300" y="452" width="230" height="56" rx="8" fill="#121927" stroke="#263145" stroke-width="2"/><text x="415" y="487" fill="#e7ebf1">send_certificate</text></g>
+            <g id="goal"><rect x="600" y="430" width="200" height="60" rx="8" fill="#ff6b4e"/><text x="700" y="468" fill="#0b1019" font-weight="700">FORBIDDEN</text></g>
+          </g>
+        </svg>
+        <div class="counter">
+          <div><strong id="seq">0</strong><span>sequences explored</span></div>
+          <div><strong id="holes" class="red">0</strong><span>holes proven</span></div>
+        </div>
+      </div>
+
+      <!-- S6 -->
+      <div id="s6" class="clip" data-start="40.3" data-duration="7" data-track-index="0">
+        <div id="report" class="report">
+          <div class="top"><span>Hole report · τ² airline policy</span><span>executed · verified</span></div>
+          <div class="sum">
+            <div><strong class="red">4</strong><span>circumventions (class A)</span></div>
+            <div><strong style="color: var(--esc)">2</strong><span>contradictions</span></div>
+            <div><strong>≤ 4</strong><span>calls, exhaustively searched</span></div>
+          </div>
+          <div id="r1" class="row"><span class="cls A">A-01</span><b>Basic economy itinerary changed without a modification</b><small>cancel_reservation ✓ 4.2 → book_reservation ✓ 2.1 → violates 3.1</small></div>
+          <div id="r2" class="row"><span class="cls A">A-02</span><b>Delay compensation issued twice for one flight</b><small>send_certificate ✓ 6.3 → transfer → send_certificate ✓ 6.3 → violates 6.1</small></div>
+          <div id="r3" class="row"><span class="cls B">B-01</span><b>Insurance clause and cabin clause disagree on refunds</b><small>clause 5.4 vs clause 4.6 · same state, opposite verdicts</small></div>
+        </div>
+      </div>
+
+      <!-- S7 -->
+      <div id="s7" class="clip" data-start="47.3" data-duration="7.7" data-track-index="0">
+        <p class="eyebrow">Every fix is priced against real traffic</p>
+        <div class="ams">
+          <div id="a1" class="am">
+            <span class="v">Draft 1 · obvious</span>
+            <q>Basic economy reservations cannot be cancelled.</q>
+            <div class="barrow"><span>Hole A-01 closed</span><span class="track"><span id="a1f1" class="fill g"></span></span><b>yes</b></div>
+            <div class="barrow"><span>Honest customers blocked</span><span class="track"><span id="a1f2" class="fill r" style="width: 9%"></span></span><b class="red">9%</b></div>
+            <div id="a1s" class="stamp">REJECTED</div>
+          </div>
+          <div id="a2" class="am">
+            <span class="v">Draft 2 · narrow</span>
+            <q>No same-route rebooking within 24 h of a basic economy cancellation, without a human.</q>
+            <div class="barrow"><span>Hole A-01 closed</span><span class="track"><span id="a2f1" class="fill g"></span></span><b>yes</b></div>
+            <div class="barrow"><span>Honest customers blocked</span><span class="track"><span class="fill r" style="width: 0%"></span></span><b>0%</b></div>
+            <div id="a2s" class="stamp ok2">RATIFIED</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- S8 -->
+      <div id="s8" class="clip" data-start="55" data-duration="6" data-track-index="0">
+        <div>
+          <p class="eyebrow">Drop-in MCP proxy</p>
+          <p class="mid" style="margin-top: 26px">Then code enforces the amended law.</p>
+          <p class="mid red" style="margin-top: 18px">Every call. 0.4 ms.</p>
+        </div>
+        <div class="feed">
+          <div class="hdr"><span>● live decisions</span><span class="mono" style="color: var(--muted)">policy v8</span></div>
+          <div id="d1" class="frow"><span>get_reservation(8XK2QF)</span><span class="chip c-allow">ALLOW</span></div>
+          <div id="d2" class="frow"><span>cancel_reservation(8XK2QF)</span><span class="chip c-allow">ALLOW</span></div>
+          <div id="d3" class="frow"><span>book_reservation(JFK→SFO, +1d)<small>rule same-route-rebook · v8</small></span><span class="chip c-esc">ESCALATE</span></div>
+          <div id="d4" class="frow"><span>send_certificate(user_77, $200)<small>rule one-comp-per-delay · v8</small></span><span class="chip c-block">BLOCK</span></div>
+          <div id="d5" class="frow"><span>search_direct_flight(LAX→SEA)</span><span class="chip c-allow">ALLOW</span></div>
+        </div>
+      </div>
+
+      <!-- S9 -->
+      <div id="s9" class="clip center" data-start="61" data-duration="8" data-track-index="0">
+        <div id="logo2" class="logo"><div class="seal">§</div>BYLAW</div>
+        <p id="end1" class="mid">Your agents follow the law.<br /><span class="red">Make sure the law holds.</span></p>
+        <p id="end2" class="cta">Point it at your policy · get a hole report in 5 minutes</p>
+        <p id="end3" class="eyebrow">Built on Meta Muse Spark</p>
+        <p class="fine">Concept film · illustrative data</p>
+      </div>
+
+      <audio id="bed" data-start="0" data-duration="69" src="assets/bed.wav" data-volume="0.35"></audio>
+      <audio id="vo-s1" data-start="0.6" data-duration="4.5" src="assets/vo/s1.wav"></audio>
+      <audio id="vo-s2" data-start="5.8" data-duration="12.54" src="assets/vo/s2.wav"></audio>
+      <audio id="vo-s3" data-start="19.2" data-duration="2.97" src="assets/vo/s3.wav"></audio>
+      <audio id="vo-s4" data-start="23.4" data-duration="1.19" src="assets/vo/s4.wav"></audio>
+      <audio id="vo-s5" data-start="26" data-duration="13.8" src="assets/vo/s5.wav"></audio>
+      <audio id="vo-s6" data-start="40.6" data-duration="6.27" src="assets/vo/s6.wav"></audio>
+      <audio id="vo-s7" data-start="47.6" data-duration="6.98" src="assets/vo/s7.wav"></audio>
+      <audio id="vo-s8" data-start="55.3" data-duration="5.29" src="assets/vo/s8.wav"></audio>
+      <audio id="vo-s9" data-start="61.4" data-duration="3.75" src="assets/vo/s9.wav"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const up = (sel, t, d = 0.6) => tl.fromTo(sel, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: d, ease: "power3.out" }, t);
+      const stamp = (sel, t) => tl.fromTo(sel, { opacity: 0, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2.5)" }, t);
+
+      // S1
+      up("#s1a", 0.5, 0.8);
+      up("#s1b", 2.7, 0.8);
+
+      // S2
+      up("#c1", 5.8); up("#c2", 5.95); up("#c3", 6.1);
+      up("#m1", 6.0, 0.5);
+      up("#m2", 7.6, 0.5);
+      tl.to("#c1", { borderColor: "#39c99c", duration: 0.3 }, 8.6);
+      up("#m3", 9.2, 0.4);
+      up("#m4", 9.8, 0.5);
+      up("#m5", 10.4, 0.5);
+      tl.to("#c2", { borderColor: "#39c99c", duration: 0.3 }, 10.9);
+      up("#m6", 11.3, 0.4);
+      tl.to("#c3", { borderColor: "#ff6b4e", color: "#ff6b4e", duration: 0.4 }, 14.2);
+      tl.to("#c3", { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1 }, 14.2);
+      stamp("#s2stamp", 15.2);
+
+      // S3
+      up("#s3a", 19.1, 0.6);
+      up("#s3b", 20.7, 0.5);
+
+      // S4
+      tl.fromTo("#logo", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.7, ease: "power3.out" }, 23.15);
+      up("#tag", 23.9, 0.5);
+
+      // S5
+      tl.fromTo(".s5title", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 25.9);
+      up("#f1", 26.3); up("#f2", 27.1); up("#f3", 28.3);
+      tl.fromTo(["#f1", "#f2", "#f3"], { x: 0 }, { x: 60, duration: 0.6, ease: "power2.in", stagger: 0.1 }, 30.6);
+      tl.fromTo("#muse", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 29.6);
+      tl.fromTo("#graph .e", { opacity: 0 }, { opacity: 1, duration: 0.4, stagger: 0.08 }, 32.0);
+      tl.fromTo("#graph .n", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.4, stagger: 0.12, transformOrigin: "center" }, 32.0);
+      tl.fromTo("#goal", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 33.2);
+      tl.fromTo(".counter", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 33.2);
+      const seq = { v: 0 };
+      tl.to(seq, { v: 48212, duration: 5.2, ease: "power1.inOut", onUpdate: () => { document.getElementById("seq").textContent = Math.round(seq.v).toLocaleString("en-US"); } }, 33.4);
+      tl.to("#hot", { strokeDashoffset: 0, duration: 2.2, ease: "power2.inOut" }, 35.6);
+      tl.to("#goal", { scale: 1.12, duration: 0.25, yoyo: true, repeat: 3, transformOrigin: "center" }, 37.8);
+      const holes = { v: 0 };
+      tl.to(holes, { v: 4, duration: 1.4, ease: "steps(4)", onUpdate: () => { document.getElementById("holes").textContent = Math.round(holes.v); } }, 37.8);
+
+      // S6
+      tl.fromTo("#report", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 40.35);
+      up("#r1", 41.6, 0.5); up("#r2", 42.6, 0.5); up("#r3", 43.6, 0.5);
+
+      // S7
+      up("#a1", 47.4); up("#a2", 47.6);
+      tl.fromTo("#a1f1", { scaleX: 0 }, { scaleX: 1, duration: 0.8 }, 48.4);
+      tl.fromTo("#a1f2", { scaleX: 0 }, { scaleX: 1, duration: 0.6 }, 49.3);
+      stamp("#a1s", 50.3);
+      tl.fromTo("#a2f1", { scaleX: 0 }, { scaleX: 1, duration: 0.8 }, 51.2);
+      stamp("#a2s", 52.8);
+
+      // S8
+      up("#s8 > div:first-child", 55.1, 0.6);
+      up(".feed", 55.2, 0.6);
+      ["#d1", "#d2", "#d3", "#d4", "#d5"].forEach((s, i) => up(s, 55.8 + i * 0.7, 0.35));
+
+      // S9
+      tl.fromTo("#logo2", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.7, ease: "power3.out" }, 61.1);
+      up("#end1", 62.0, 0.6);
+      up("#end2", 64.6, 0.6);
+      up("#end3", 65.4, 0.6);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

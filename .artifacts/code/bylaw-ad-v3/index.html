@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=JetBrains+Mono:wght@500;700&display=block" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #07090e;
+        --panel: #111725;
+        --line: #232c40;
+        --ink: #f4f6f9;
+        --muted: #7d889b;
+        --red: #ff4d2e;
+        --green: #2be3a0;
+        --blue: #5b8cff;
+        --paper: #eef1f5;
+        --display: "Archivo", sans-serif;
+        --mono: "JetBrains Mono", monospace;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--display); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .clip { position: absolute; inset: 0; }
+      .center { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      .huge { font-weight: 900; font-stretch: 64%; text-transform: uppercase; line-height: 0.9; letter-spacing: -0.01em; }
+      .red { color: var(--red); } .green { color: var(--green); } .muted { color: var(--muted); }
+
+      /* boarding pass */
+      .pass { position: absolute; left: 310px; top: 300px; width: 1300px; height: 480px; background: var(--paper); color: #0b0f17; border-radius: 26px; display: grid; grid-template-columns: 1fr 300px; overflow: hidden; }
+      .pass .main { padding: 50px 60px; display: flex; flex-direction: column; justify-content: space-between; }
+      .pass .route { font: 900 170px/0.9 var(--display); font-stretch: 72%; }
+      .pass .meta { display: flex; gap: 60px; font: 700 30px var(--mono); }
+      .pass .meta span { display: flex; flex-direction: column; gap: 6px; }
+      .pass .meta small { font: 500 18px var(--mono); color: #5b6576; letter-spacing: 0.1em; }
+      .pass .badge { align-self: flex-start; font: 800 30px var(--display); letter-spacing: 0.08em; padding: 10px 20px; border: 4px solid var(--red); color: var(--red); border-radius: 8px; }
+      .pass .stub { border-left: 4px dashed #c4cbd6; display: flex; align-items: center; justify-content: center; }
+      .pass .bars { width: 120px; height: 360px; background: repeating-linear-gradient(0deg, #0b0f17 0 6px, transparent 6px 10px, #0b0f17 10px 13px, transparent 13px 20px); }
+      .hl { background: var(--red); color: #fff; padding: 0 10px; border-radius: 6px; }
+      .chip { position: absolute; font: 900 92px/1 var(--display); font-stretch: 80%; text-transform: uppercase; padding: 18px 34px; border-radius: 16px; background: var(--green); color: #04130d; }
+      #ok1 { left: 1060px; top: 170px; transform: rotate(-4deg); }
+      #ok2 { left: 1080px; top: 170px; transform: rotate(3deg); }
+      .flash { position: absolute; inset: 0; background: var(--red); }
+      .hole-o { display: inline-block; width: 0.78em; height: 0.78em; border-radius: 50%; background: #000; box-shadow: 0 0 0 0.09em var(--red), 0 0 60px 10px rgba(255,77,46,0.55); vertical-align: -0.02em; margin: 0 0.02em; }
+
+      /* logo */
+      .logo { display: flex; align-items: center; gap: 44px; }
+      .logo svg { overflow: visible; }
+      .word { font: 900 230px/0.8 var(--display); font-stretch: 112%; letter-spacing: -0.03em; }
+      .built { margin-top: 56px; font: 700 30px var(--mono); color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; }
+      .built b { color: var(--ink); }
+
+      /* capability layout */
+      .cap { position: absolute; left: 120px; top: 120px; display: flex; flex-direction: column; gap: 18px; width: 640px; }
+      .cap .k { font: 700 26px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--blue); display: flex; align-items: center; gap: 14px; }
+      .cap .k::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 20px 4px rgba(91,140,255,0.6); }
+      .cap .t { font: 900 150px/0.88 var(--display); font-stretch: 64%; text-transform: uppercase; }
+      .cap .d { font: 500 34px/1.3 var(--display); font-stretch: 90%; color: var(--muted); }
+      .stage { position: absolute; left: 860px; top: 120px; width: 940px; height: 840px; }
+
+      /* watch */
+      .player { position: absolute; inset: 0 0 260px 0; background: #0c111b; border: 2px solid var(--line); border-radius: 20px; overflow: hidden; }
+      .player .scr { position: absolute; inset: 26px 26px 70px; border-radius: 10px; background: #151c2b; padding: 30px; display: flex; flex-direction: column; gap: 16px; font: 500 24px var(--mono); color: var(--muted); }
+      .player .scr b { color: var(--ink); }
+      .player .row { display: flex; justify-content: space-between; padding: 14px 18px; background: #0f1522; border-radius: 8px; }
+      .player .row.hot { outline: 3px solid var(--red); color: var(--ink); }
+      .player .pb { position: absolute; left: 26px; right: 26px; bottom: 30px; height: 6px; background: var(--line); border-radius: 3px; }
+      .player .pb i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: var(--red); border-radius: 3px; transform-origin: left center; }
+      .player .tc { position: absolute; right: 30px; bottom: 44px; font: 700 22px var(--mono); color: var(--ink); }
+      .rulecard { position: absolute; left: 80px; right: 80px; bottom: 0; height: 220px; background: var(--paper); color: #0b0f17; border-radius: 18px; padding: 30px 36px; display: flex; flex-direction: column; gap: 10px; }
+      .rulecard .s { font: 700 22px var(--mono); color: var(--red); }
+      .rulecard p { font: 800 42px/1.15 var(--display); font-stretch: 85%; }
+
+      /* read */
+      .sheet { position: absolute; width: 220px; height: 280px; background: var(--paper); border-radius: 12px; padding: 22px; }
+      .sheet i { display: block; height: 10px; border-radius: 3px; background: #c9d0db; margin-bottom: 14px; }
+      .sheet.case { background: #1a2234; }
+      .sheet.case i { background: #2e3a52; }
+      .ctx { position: absolute; left: 120px; right: 120px; bottom: 30px; display: flex; flex-direction: column; gap: 14px; }
+      .ctx .bar { height: 26px; background: var(--line); border-radius: 13px; overflow: hidden; }
+      .ctx .bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transform-origin: left center; }
+      .ctx .num { font: 900 110px/1 var(--display); font-stretch: 70%; }
+      .ctx .num small { font: 700 28px var(--mono); color: var(--muted); letter-spacing: 0.1em; margin-left: 16px; }
+
+      /* doc holes */
+      .doc { position: absolute; left: 90px; top: 0; width: 640px; height: 820px; background: var(--paper); border-radius: 18px; padding: 54px 58px; overflow: hidden; }
+      .doc h4 { font: 800 36px var(--display); color: #0b0f17; }
+      .doc .sub { font: 500 17px var(--mono); color: #5b6576; margin: 8px 0 36px; }
+      .doc i { display: block; height: 15px; border-radius: 4px; background: #c9d0db; margin-bottom: 21px; }
+      .hole { position: absolute; width: 100px; height: 100px; border-radius: 50%; background: #000; box-shadow: 0 0 0 9px var(--red), 0 0 50px 14px rgba(255,77,46,0.6); }
+      .patch { position: absolute; width: 136px; height: 136px; border-radius: 16px; background: var(--green); display: grid; place-items: center; font: 900 28px var(--display); color: #04130d; transform: rotate(-6deg); }
+      .zero { position: absolute; left: 120px; top: 700px; width: 640px; display: flex; gap: 26px; align-items: center; }
+      .zero b { font: 900 160px/0.8 var(--display); font-stretch: 64%; color: var(--green); }
+      .zero span { font: 800 40px/1 var(--display); font-stretch: 80%; text-transform: uppercase; max-width: 300px; }
+
+      /* graph */
+      #graph { position: absolute; inset: 0; width: 940px; height: 840px; }
+
+      /* bench */
+      .bench { display: flex; flex-direction: column; align-items: center; gap: 40px; }
+      .bench .logo2 { font: 900 220px/0.9 var(--display); font-stretch: 70%; }
+      .bench .sub { font: 700 34px var(--mono); color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+      .trace { display: flex; align-items: center; gap: 26px; }
+      .step { font: 700 38px var(--mono); padding: 22px 30px; border-radius: 14px; background: var(--panel); border: 3px solid var(--green); display: flex; gap: 16px; align-items: center; }
+      .step b { color: var(--green); }
+      .step.bad { border-color: var(--red); }
+      .step.bad b { color: var(--red); }
+      .arrow { font: 900 60px var(--display); color: var(--muted); }
+
+      /* thesis */
+      .th { font: 900 140px/1 var(--display); font-stretch: 64%; text-transform: uppercase; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="48" data-width="1920" data-height="1080">
+      <!-- A tickets -->
+      <div id="sa" class="clip" data-start="0" data-duration="6" data-track-index="0">
+        <div id="pass1" class="pass">
+          <div class="main"><div class="route">JFK → SFO</div><div class="meta"><span><small>DATE</small>OCT 28</span><span><small>DEPARTS</small>09:40</span><span><small>RES</small>8XK2QF</span></div><div class="badge">BASIC ECONOMY · NO CHANGES</div></div>
+          <div class="stub"><div class="bars"></div></div>
+        </div>
+        <div id="pass2" class="pass">
+          <div class="main"><div class="route">JFK → SFO</div><div class="meta"><span><small>DATE</small><b class="hl">OCT 29</b></span><span><small>DEPARTS</small>09:40</span><span><small>RES</small>9MV7TA</span></div><div class="badge">BASIC ECONOMY · NO CHANGES</div></div>
+          <div class="stub"><div class="bars"></div></div>
+        </div>
+        <div id="ok1" class="chip">✓ Cancel</div>
+        <div id="ok2" class="chip">✓ Rebook</div>
+      </div>
+
+      <!-- B changed -->
+      <div id="sb" class="clip center" data-start="6" data-duration="1.8" data-track-index="0">
+        <div id="flash" class="flash"></div>
+        <p id="changed" class="huge" style="position: relative; font-size: 330px; color: #fff">Changed.</p>
+      </div>
+
+      <!-- C hole -->
+      <div id="sc" class="clip center" data-start="7.8" data-duration="4.6" data-track-index="0">
+        <p id="c1" class="huge" style="font-size: 132px">Your AI agent followed<br />every rule.</p>
+        <p id="c2" class="huge red" style="font-size: 165px; margin-top: 40px">The rules had a h<span id="holeO" class="hole-o"></span>le.</p>
+      </div>
+
+      <!-- D logo -->
+      <div id="sd" class="clip center" data-start="12.4" data-duration="3.2" data-track-index="0">
+        <div class="logo">
+          <svg id="mark" width="190" height="240" viewBox="0 0 100 126">
+            <path id="page" d="M8 0 H66 L100 34 V118 Q100 126 92 126 H8 Q0 126 0 118 V8 Q0 0 8 0 Z" fill="#eef1f5" />
+            <path d="M66 0 V26 Q66 34 74 34 H100" fill="#c4cbd6" />
+            <circle id="punch" cx="60" cy="80" r="20" fill="#07090e" stroke="#ff4d2e" stroke-width="6" />
+          </svg>
+          <div id="word" class="word">bylaw</div>
+        </div>
+        <p id="built" class="built">Built on <b>Muse Spark</b></p>
+      </div>
+
+      <!-- E watch -->
+      <div id="se" class="clip" data-start="15.6" data-duration="2.8" data-track-index="0">
+        <div class="cap"><span class="k">Muse Spark · video</span><span class="t">Watches</span><span class="d">Your ops lead's screen recording becomes rules, cited to the second.</span></div>
+        <div class="stage">
+          <div class="player">
+            <div class="scr"><b>Refund queue · ops console</b><div class="row"><span>#88412 espresso machine</span><span>€640</span></div><div id="hotrow" class="row"><span>#88415 laptop · linked acct</span><span>€1,240</span></div><div class="row"><span>#88419 headphones</span><span>€89</span></div></div>
+            <div class="pb"><i id="pbar"></i></div>
+            <span id="tc" class="tc">0:42</span>
+          </div>
+          <div id="rule" class="rulecard"><span class="s">rule · ops-walkthrough.mp4 @ 0:42</span><p>Linked account refunded this month → escalate to a human.</p></div>
+        </div>
+      </div>
+
+      <!-- F read -->
+      <div id="sf" class="clip" data-start="18.4" data-duration="4.8" data-track-index="0">
+        <div class="cap"><span class="k">Muse Spark · 1M context</span><span class="t">Reads it all</span><span class="d">The whole policy and every past case. One prompt.</span></div>
+        <div class="stage" id="pile">
+          <div class="sheet" style="left: 40px; top: 20px"><i></i><i style="width: 70%"></i><i></i><i style="width: 50%"></i></div>
+          <div class="sheet case" style="left: 270px; top: 60px"><i></i><i style="width: 60%"></i><i></i></div>
+          <div class="sheet" style="left: 500px; top: 10px"><i></i><i></i><i style="width: 80%"></i><i></i></div>
+          <div class="sheet case" style="left: 700px; top: 80px"><i style="width: 70%"></i><i></i><i></i></div>
+          <div class="sheet case" style="left: 120px; top: 260px"><i></i><i style="width: 40%"></i><i></i></div>
+          <div class="sheet" style="left: 360px; top: 300px"><i></i><i></i><i style="width: 65%"></i></div>
+          <div class="sheet case" style="left: 600px; top: 270px"><i></i><i style="width: 75%"></i><i></i><i></i></div>
+          <div class="ctx"><span class="num"><span id="tok">0</span><small>tokens in context</small></span><span class="bar"><i id="ctxbar"></i></span></div>
+        </div>
+      </div>
+
+      <!-- G reason -->
+      <div id="sg" class="clip" data-start="23.2" data-duration="2.6" data-track-index="0">
+        <div class="cap"><span class="k">Muse Spark · max reasoning</span><span class="t">Hunts holes</span><span class="d">Every chain of allowed actions that ends somewhere forbidden.</span></div>
+        <div class="stage">
+          <svg id="graph" viewBox="0 0 940 840">
+            <g stroke="#232c40" stroke-width="4" fill="none">
+              <path d="M160 140 L470 140"/><path d="M160 140 L160 420"/><path d="M160 420 L470 420"/><path d="M470 140 L780 420"/><path d="M470 420 L470 680"/><path d="M160 420 L470 680"/>
+            </g>
+            <path id="hot" d="M160 140 L470 140 L780 420 L780 650" stroke="#ff4d2e" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="1100" stroke-dashoffset="1100"/>
+            <g font-family="JetBrains Mono, monospace" font-size="28" text-anchor="middle" font-weight="700">
+              <g><rect x="40" y="100" width="240" height="80" rx="12" fill="#111725" stroke="#2be3a0" stroke-width="3"/><text x="160" y="150" fill="#f4f6f9">lookup</text></g>
+              <g><rect x="350" y="100" width="240" height="80" rx="12" fill="#111725" stroke="#2be3a0" stroke-width="3"/><text x="470" y="150" fill="#f4f6f9">cancel ✓</text></g>
+              <g><rect x="40" y="380" width="240" height="80" rx="12" fill="#111725" stroke="#232c40" stroke-width="3"/><text x="160" y="430" fill="#7d889b">search</text></g>
+              <g><rect x="350" y="380" width="240" height="80" rx="12" fill="#111725" stroke="#232c40" stroke-width="3"/><text x="470" y="430" fill="#7d889b">update</text></g>
+              <g><rect x="660" y="380" width="240" height="80" rx="12" fill="#111725" stroke="#2be3a0" stroke-width="3"/><text x="780" y="430" fill="#f4f6f9">book ✓</text></g>
+              <g><rect x="350" y="640" width="240" height="80" rx="12" fill="#111725" stroke="#232c40" stroke-width="3"/><text x="470" y="690" fill="#7d889b">certificate</text></g>
+              <g id="goal"><rect x="650" y="620" width="260" height="90" rx="12" fill="#ff4d2e"/><text x="780" y="676" fill="#07090e" font-weight="800">FORBIDDEN</text></g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- H prove + patch -->
+      <div id="sh" class="clip" data-start="25.8" data-duration="5.6" data-track-index="0">
+        <div class="cap"><span class="k">Executed · verified</span><span class="t">Proves.<br />Patches.</span><span class="d">Every hole replayed for real. Every fix priced before it ships.</span></div>
+        <div class="stage">
+          <div class="doc">
+            <h4>AIRLINE POLICY</h4><p class="sub">amendment v8 · drafted by Muse Spark</p>
+            <i style="width: 92%"></i><i style="width: 78%"></i><i style="width: 85%"></i><i style="width: 60%"></i><i style="width: 90%"></i><i style="width: 72%"></i><i style="width: 88%"></i><i style="width: 55%"></i><i style="width: 80%"></i><i style="width: 93%"></i><i style="width: 66%"></i><i style="width: 84%"></i><i style="width: 70%"></i><i style="width: 90%"></i><i style="width: 62%"></i>
+            <div class="hole" style="left: 380px; top: 190px"></div><div class="hole" style="left: 110px; top: 350px"></div><div class="hole" style="left: 430px; top: 500px"></div><div class="hole" style="left: 190px; top: 640px"></div>
+            <div class="patch" style="left: 362px; top: 172px">FIXED</div><div class="patch" style="left: 92px; top: 332px">FIXED</div><div class="patch" style="left: 412px; top: 482px">FIXED</div><div class="patch" style="left: 172px; top: 622px">FIXED</div>
+          </div>
+        </div>
+        <div id="zero" class="zero"><b>0</b><span>honest customers blocked</span></div>
+      </div>
+
+      <!-- I bench -->
+      <div id="si" class="clip center" data-start="31.4" data-duration="8.3" data-track-index="0">
+        <div id="bench" class="bench">
+          <span class="sub">tested on the benchmark frontier labs report</span>
+          <span class="logo2"><span style="font-family: Georgia, serif; font-weight: 700">τ</span>²-bench <span class="muted" style="font-size: 120px">airline</span></span>
+        </div>
+        <div id="trace" class="trace" style="position: absolute; top: 760px; left: 0; right: 0; justify-content: center">
+          <span class="step"><b>✓</b>cancel</span><span class="arrow">→</span><span class="step"><b>✓</b>rebook</span><span class="arrow">→</span><span class="step bad"><b>✗</b>forbidden outcome</span>
+        </div>
+        <p id="legal" class="huge" style="position: absolute; top: 120px; left: 0; right: 0; font-size: 120px">Every step legal. <span class="red">Every hole real.</span></p>
+      </div>
+
+      <!-- J thesis -->
+      <div id="sj" class="clip center" data-start="39.7" data-duration="4.4" data-track-index="0">
+        <p id="j1" class="th">Muse writes the law.</p>
+        <p id="j2" class="th red">Muse breaks the law.</p>
+        <p id="j3" class="th green">Code enforces it.</p>
+      </div>
+
+      <!-- K end -->
+      <div id="sk" class="clip center" data-start="44.1" data-duration="3.9" data-track-index="0">
+        <div class="logo" id="logo2">
+          <svg width="150" height="190" viewBox="0 0 100 126">
+            <path d="M8 0 H66 L100 34 V118 Q100 126 92 126 H8 Q0 126 0 118 V8 Q0 0 8 0 Z" fill="#eef1f5" />
+            <path d="M66 0 V26 Q66 34 74 34 H100" fill="#c4cbd6" />
+            <circle cx="60" cy="80" r="20" fill="#07090e" stroke="#ff4d2e" stroke-width="6" />
+          </svg>
+          <div class="word" style="font-size: 180px">bylaw</div>
+        </div>
+        <p id="k1" class="huge" style="font-size: 120px; margin-top: 50px">Find the h<span class="hole-o"></span>les <span class="red">first.</span></p>
+        <p id="k2" class="built">Built on <b>Muse Spark</b> · runs on <b>Muse Spark Open</b></p>
+      </div>
+
+      <audio id="pad" data-start="0" data-duration="48" src="assets/pad.wav" data-volume="0.45"></audio>
+      <audio id="thud1" data-start="0.15" data-duration="1" src="assets/thud.wav" data-volume="0.6"></audio>
+      <audio id="vo1" data-start="0.5" data-duration="1.81" src="assets/vo/v1.wav"></audio>
+      <audio id="vo2a" data-start="2.7" data-duration="1.39" src="assets/vo/v2a.wav"></audio>
+      <audio id="vo2b" data-start="4.3" data-duration="1.17" src="assets/vo/v2b.wav"></audio>
+      <audio id="thud2" data-start="6" data-duration="1" src="assets/thud.wav"></audio>
+      <audio id="vo3" data-start="6.1" data-duration="1.41" src="assets/vo/v3.wav"></audio>
+      <audio id="vo4" data-start="8.0" data-duration="4.12" src="assets/vo/v4.wav"></audio>
+      <audio id="whoosh1" data-start="11.6" data-duration="1.2" src="assets/whoosh.wav" data-volume="0.5"></audio>
+      <audio id="thud3" data-start="13.3" data-duration="1" src="assets/thud.wav" data-volume="0.7"></audio>
+      <audio id="vo-b1" data-start="12.9" data-duration="2.5" src="assets/vo/b1.wav"></audio>
+      <audio id="vo-b2" data-start="15.7" data-duration="2.33" src="assets/vo/b2.wav"></audio>
+      <audio id="vo-b3" data-start="18.5" data-duration="4.42" src="assets/vo/b3.wav"></audio>
+      <audio id="vo-b4" data-start="23.3" data-duration="2.24" src="assets/vo/b4.wav"></audio>
+      <audio id="vo-b5" data-start="25.95" data-duration="5.18" src="assets/vo/b5.wav"></audio>
+      <audio id="whoosh2" data-start="30.6" data-duration="1.2" src="assets/whoosh.wav" data-volume="0.5"></audio>
+      <audio id="vo-b6" data-start="31.6" data-duration="5.12" src="assets/vo/b6.wav"></audio>
+      <audio id="vo-b7" data-start="36.95" data-duration="2.6" src="assets/vo/b7.wav"></audio>
+      <audio id="vo-b8" data-start="39.85" data-duration="3.82" src="assets/vo/b8.wav"></audio>
+      <audio id="whoosh3" data-start="43.3" data-duration="1.2" src="assets/whoosh.wav" data-volume="0.5"></audio>
+      <audio id="vo-b9" data-start="44.6" data-duration="2.05" src="assets/vo/b9.wav"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const slam = (sel, t, from = 1.6) => tl.fromTo(sel, { opacity: 0, scale: from }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, t);
+      const rise = (sel, t, d = 0.5) => tl.fromTo(sel, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: d, ease: "power3.out" }, t);
+      const fade = (sel, t, d = 0.4) => tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: d }, t);
+
+      // A
+      tl.set(["#pass2", "#ok1", "#ok2"], { opacity: 0 }, 0);
+      tl.fromTo("#pass1", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.15);
+      slam("#ok1", 2.75, 2.2);
+      tl.to("#pass1", { y: 700, rotation: -8, opacity: 0, duration: 0.5, ease: "power3.in" }, 3.7);
+      tl.to("#ok1", { opacity: 0, duration: 0.2 }, 3.9);
+      tl.fromTo("#pass2", { opacity: 0, x: 1400 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 4.05);
+      slam("#ok2", 4.35, 2.2);
+      tl.fromTo(".hl", { scale: 1 }, { scale: 1.25, duration: 0.2, yoyo: true, repeat: 3 }, 5.0);
+
+      // B
+      tl.fromTo("#flash", { opacity: 1 }, { opacity: 0.85, duration: 1.8 }, 6.0);
+      slam("#changed", 6.0, 1.8);
+
+      // C
+      rise("#c1", 7.9, 0.45);
+      rise("#c2", 10.0, 0.45);
+      tl.fromTo("#holeO", { scale: 0 }, { scale: 1, duration: 0.35, ease: "back.out(3)" }, 10.6);
+      tl.to("#holeO", { scale: 1.25, duration: 0.6, ease: "power2.inOut", yoyo: true, repeat: 1 }, 11.0);
+
+      // D logo: page rises, hole punches, word slides
+      tl.fromTo("#page", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 12.4);
+      tl.fromTo("#mark", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 12.45);
+      tl.fromTo("#punch", { scale: 0, transformOrigin: "60px 80px" }, { scale: 1, duration: 0.35, ease: "back.out(3)" }, 13.3);
+      tl.fromTo("#word", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, 13.0);
+      fade("#built", 14.0, 0.5);
+
+      // E watch
+      rise("#se .cap", 15.65, 0.45);
+      fade("#se .player", 15.7, 0.3);
+      tl.fromTo("#pbar", { scaleX: 0.2 }, { scaleX: 0.7, duration: 1.4, ease: "none" }, 15.7);
+      tl.fromTo("#hotrow", { outlineColor: "rgba(255,77,46,0)" }, { outlineColor: "rgba(255,77,46,1)", duration: 0.2 }, 16.4);
+      tl.fromTo("#rule", { opacity: 0, y: 80 }, { opacity: 1, y: 0, duration: 0.45, ease: "back.out(1.6)" }, 16.8);
+
+      // F read
+      rise("#sf .cap", 18.45, 0.45);
+      tl.fromTo("#pile .sheet", { opacity: 0, y: -300, rotation: -10 }, { opacity: 1, y: 0, rotation: 0, duration: 0.45, stagger: 0.18, ease: "power3.out" }, 18.6);
+      tl.to("#pile .sheet", { x: 340, y: 120, scale: 0.4, opacity: 0, duration: 0.6, stagger: 0.05, ease: "power3.in" }, 21.0);
+      fade("#pile .ctx", 19.2, 0.3);
+      tl.fromTo("#ctxbar", { scaleX: 0 }, { scaleX: 0.92, duration: 3.0, ease: "power2.out" }, 19.4);
+      const tok = { v: 0 };
+      tl.fromTo(tok, { v: 0 }, { v: 964310, duration: 3.0, ease: "power2.out", onUpdate: () => { document.getElementById("tok").textContent = Math.round(tok.v).toLocaleString("en-US"); } }, 19.4);
+
+      // G reason
+      rise("#sg .cap", 23.25, 0.4);
+      fade("#graph", 23.25, 0.3);
+      tl.to("#hot", { strokeDashoffset: 0, duration: 1.6, ease: "power2.inOut" }, 23.6);
+      tl.fromTo("#goal", { scale: 1, transformOrigin: "780px 665px" }, { scale: 1.12, duration: 0.2, yoyo: true, repeat: 3 }, 25.0);
+
+      // H prove + patch
+      rise("#sh .cap", 25.85, 0.45);
+      fade("#sh .doc", 25.9, 0.3);
+      tl.set("#sh .patch", { opacity: 0 }, 25.8);
+      tl.set("#zero", { opacity: 0 }, 25.8);
+      tl.fromTo("#sh .hole", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.25, stagger: 0.25, ease: "back.out(3)" }, 26.1);
+      tl.fromTo("#sh .patch", { opacity: 0, scale: 2 }, { opacity: 1, scale: 1, duration: 0.25, stagger: 0.2, ease: "back.out(2)" }, 27.8);
+      rise("#zero", 29.2, 0.45);
+
+      // I bench
+      rise("#bench", 31.5, 0.6);
+      tl.to("#bench", { y: -40, scale: 0.85, opacity: 0.25, duration: 0.5, ease: "power2.inOut" }, 36.5);
+      tl.set(["#trace", "#legal"], { opacity: 0 }, 31.4);
+      tl.fromTo("#trace .step, #trace .arrow", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.15 }, 34.0);
+      tl.set("#trace", { opacity: 1 }, 34.0);
+      rise("#legal", 36.9, 0.45);
+
+      // J thesis
+      rise("#j1", 39.85, 0.4);
+      rise("#j2", 41.0, 0.4);
+      rise("#j3", 42.3, 0.4);
+
+      // K end
+      tl.fromTo("#logo2", { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" }, 44.15);
+      rise("#k1", 44.6, 0.5);
+      fade("#k2", 45.6, 0.5);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,522 @@
+<title>Bylaw</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: an audit report on a statute — ruled column, clauses cited in the margin, verdicts stamped. */
+:root {
+  --paper: #ECEFF3;
+  --surface: #F8F9FB;
+  --ink: #101828;
+  --muted: #5A6476;
+  --line: #CDD3DC;
+  --code: #E2E7ED;
+  --stamp: #C23A1F;
+  --allow: #0E7A5C;
+  --block: #B42318;
+  --esc: #A86400;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0B1019; --surface: #121927; --ink: #E7EBF1; --muted: #93A0B5; --line: #263145;
+    --code: #0F1622; --stamp: #FF6B4E; --allow: #39C99C; --block: #FF6B5B; --esc: #F2B44A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0B1019; --surface: #121927; --ink: #E7EBF1; --muted: #93A0B5; --line: #263145;
+  --code: #0F1622; --stamp: #FF6B4E; --allow: #39C99C; --block: #FF6B5B; --esc: #F2B44A;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 16px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+section { padding-block: 72px; border-top: 1px solid var(--line); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(30px, 4.4vw, 52px); font-weight: 800; font-stretch: 78%; line-height: 1.02; letter-spacing: -0.01em; text-transform: uppercase; }
+h3 { font-size: 20px; font-weight: 700; font-stretch: 90%; }
+p { margin: 0; }
+.lede { max-width: 64ch; color: var(--muted); font-size: 18px; }
+.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: flex; gap: 12px; align-items: center; }
+.eyebrow b { color: var(--stamp); font-weight: 600; }
+.head { display: grid; gap: 16px; margin-bottom: 40px; }
+code, .mono { font-family: var(--mono); font-size: 13px; }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+.fine { font-size: 12.5px; color: var(--muted); }
+.btn { background: var(--stamp); color: #fff; border: 0; border-radius: 4px; padding: 11px 18px; font-weight: 600; font-size: 15px; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.illus { display: inline-block; font: 600 10.5px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--esc); border: 1px dashed var(--esc); border-radius: 3px; padding: 4px 6px; }
+
+/* Hero */
+.hero { padding-block: 56px 72px; border-top: 0; display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; }
+.brand { font: 900 22px/1 var(--display); font-stretch: 125%; letter-spacing: 0.04em; display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
+.brand i { width: 22px; height: 22px; border: 2.5px solid var(--stamp); border-radius: 50%; display: inline-grid; place-items: center; font: 900 11px var(--display); color: var(--stamp); font-style: normal; }
+.hero h1 { font-size: clamp(40px, 6.2vw, 82px); font-weight: 900; font-stretch: 68%; line-height: 0.93; text-transform: uppercase; letter-spacing: -0.015em; }
+.hero h1 em { font-style: normal; color: var(--stamp); }
+.hero .lede { margin-top: 24px; font-size: 19px; color: var(--ink); }
+.hero .lede span { color: var(--muted); }
+.meta-line { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px 20px; font: 12px var(--mono); color: var(--muted); }
+
+.report { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; min-width: 0; }
+.report-top { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); flex-wrap: wrap; }
+.report-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+.report-sum div { padding: 14px 16px; display: grid; gap: 2px; }
+.report-sum div + div { border-left: 1px solid var(--line); }
+.report-sum strong { font: 800 34px/1 var(--display); font-stretch: 80%; font-variant-numeric: tabular-nums; }
+.report-sum span { font-size: 12px; color: var(--muted); }
+.report-sum .a strong { color: var(--block); } .report-sum .b strong { color: var(--esc); }
+.holes { list-style: none; margin: 0; padding: 0; }
+.holes li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.holes li:last-child { border-bottom: 0; }
+.holes .cls { font: 700 10px/1 var(--mono); padding: 5px 6px; border: 1.5px solid currentColor; border-radius: 3px; align-self: start; letter-spacing: 0.06em; }
+.holes .A { color: var(--block); } .holes .B { color: var(--esc); } .holes .C { color: var(--muted); }
+.holes b { font-size: 14px; font-weight: 600; }
+.holes small { grid-column: 2; font: 11.5px/1.45 var(--mono); color: var(--muted); }
+
+/* Shift */
+.shift { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.shift div { padding: 20px; display: grid; gap: 8px; align-content: start; background: var(--surface); }
+.shift div + div { border-left: 1px solid var(--line); }
+.shift .q { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.shift p { font-size: 14px; color: var(--muted); }
+.shift .us { background: var(--ink); color: var(--paper); }
+.shift .us .q, .shift .us p { color: var(--paper); opacity: 0.8; }
+.shift .us h3 { color: var(--paper); }
+.thesis { margin-top: 32px; font: 800 clamp(24px, 3.4vw, 38px)/1.08 var(--display); font-stretch: 78%; text-transform: uppercase; max-width: 30ch; }
+.thesis em { font-style: normal; color: var(--stamp); }
+
+/* Replay */
+.replay { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.chat { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 10px; min-height: 520px; align-content: start; }
+.msg { max-width: 92%; padding: 10px 13px; border-radius: 8px; font-size: 14.5px; line-height: 1.5; }
+.msg.user { background: var(--code); justify-self: start; }
+.msg.agent { border: 1px solid var(--line); justify-self: end; }
+.msg .who { display: block; font: 600 10.5px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.tool { justify-self: end; font: 12px/1.45 var(--mono); padding: 8px 11px; border-radius: 4px; background: var(--code); display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; max-width: 92%; overflow-wrap: anywhere; }
+.tool .ok { color: var(--allow); font-weight: 600; white-space: nowrap; }
+.cite { font: 11px var(--mono); color: var(--allow); }
+.reveal { animation: slide 0.35s ease-out; }
+@keyframes slide { from { opacity: 0; transform: translateY(-6px); } }
+.outcome { margin-top: 6px; border-top: 2px solid var(--block); padding-top: 14px; display: grid; gap: 8px; }
+.outcome .stamp { justify-self: start; }
+.stamp { font: 900 20px/1 var(--display); font-stretch: 110%; letter-spacing: 0.1em; padding: 8px 14px; border: 3px solid currentColor; border-radius: 4px; transform: rotate(-3deg); display: inline-block; color: var(--block); }
+.stamp.reveal { animation: thump 0.4s cubic-bezier(.2,1.6,.4,1); }
+@keyframes thump { from { transform: rotate(-3deg) scale(1.8); opacity: 0; } }
+.side { display: grid; gap: 16px; position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); }
+.clause { border-left: 3px solid var(--ink); padding-left: 14px; display: grid; gap: 4px; }
+.clause span { font: 600 11px var(--mono); color: var(--muted); letter-spacing: 0.06em; }
+.clause p { font: 500 17px/1.35 var(--display); font-stretch: 92%; }
+.caption { font: 800 clamp(22px, 2.6vw, 30px)/1.08 var(--display); font-stretch: 78%; text-transform: uppercase; }
+.caption em { font-style: normal; color: var(--stamp); }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* Method */
+.method { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-bottom: 40px; }
+.method div { border-top: 3px solid var(--ink); padding-top: 14px; display: grid; gap: 8px; align-content: start; }
+.method .who { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--stamp); }
+.method p { color: var(--muted); font-size: 15px; }
+.graph-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; overflow-x: auto; }
+.graph-wrap svg { width: 100%; min-width: 620px; height: auto; display: block; }
+.node rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; }
+.node text { fill: var(--ink); font: 12px var(--mono); }
+.node.hot rect { stroke: var(--block); stroke-width: 2.5; }
+.edge { stroke: var(--line); stroke-width: 1.5; fill: none; }
+.path { stroke: var(--block); stroke-width: 3; fill: none; stroke-dasharray: 600; stroke-dashoffset: 0; }
+.path.go { animation: draw 2.4s ease-in-out; }
+@keyframes draw { from { stroke-dashoffset: 600; } }
+.goal rect { fill: var(--block); } .goal text { fill: #fff; font: 700 12px var(--mono); }
+.classes { margin-top: 32px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.classes div { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 6px; align-content: start; }
+.classes .cls { font: 700 11px var(--mono); letter-spacing: 0.06em; }
+.classes .A { color: var(--block); } .classes .B { color: var(--esc); } .classes .C { color: var(--muted); }
+.classes p { font-size: 14px; color: var(--muted); }
+.rigor { margin-top: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 32px; }
+.rigor li { font-size: 15px; }
+.rigor { list-style: none; padding: 0; }
+.rigor li::before { content: "§ "; color: var(--stamp); font-weight: 700; }
+
+/* Amendment */
+.amend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.am { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: grid; gap: 12px; align-content: start; }
+.am[aria-current="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.am .v { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.am blockquote { margin: 0; font: 500 16.5px/1.4 var(--display); font-stretch: 92%; border-left: 3px solid var(--line); padding-left: 12px; }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 150px minmax(0, 1fr) 54px; gap: 10px; align-items: center; font-size: 13px; }
+.bar .track { height: 10px; background: var(--code); border-radius: 2px; overflow: hidden; }
+.bar .fill { height: 100%; transition: width 0.6s ease; }
+.bar b { font: 700 13px var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.fill.good { background: var(--allow); } .fill.bad { background: var(--block); }
+.am .verdict { font: 700 13px var(--mono); }
+.am .verdict.no { color: var(--block); } .am .verdict.yes { color: var(--allow); }
+
+/* Video authoring */
+.vid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.player { background: #0E131C; border-radius: 6px; aspect-ratio: 16 / 9; max-width: 100%; position: relative; overflow: hidden; display: grid; place-items: center; color: #DDE3EC; }
+.player .screen { position: absolute; inset: 14px 14px 46px; border: 1px solid #2A3446; border-radius: 4px; padding: 14px; font: 11.5px/1.6 var(--mono); color: #93A0B5; display: grid; align-content: start; gap: 4px; }
+.player .screen b { color: #DDE3EC; }
+.player .cursor { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: rgba(255,107,78,0.85); left: 62%; top: 44%; animation: wander 6s ease-in-out infinite; }
+@keyframes wander { 50% { left: 38%; top: 30%; } }
+.player .bar2 { position: absolute; left: 14px; right: 14px; bottom: 16px; height: 4px; background: #2A3446; border-radius: 2px; }
+.player .bar2 i { position: absolute; left: 0; top: 0; bottom: 0; width: 70%; background: #FF6B4E; border-radius: 2px; }
+.player .tc { position: absolute; right: 14px; bottom: 24px; font: 11px var(--mono); color: #93A0B5; }
+.transcript { display: grid; gap: 10px; }
+.line { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; font-size: 14.5px; }
+.line span:first-child { font: 12px var(--mono); color: var(--muted); padding-top: 2px; }
+.line.hit span:last-child { background: color-mix(in srgb, var(--esc) 18%, transparent); border-radius: 3px; padding: 0 4px; }
+pre.rule { margin: 0; background: var(--code); border-radius: 4px; padding: 14px; font: 12.5px/1.55 var(--mono); overflow-x: auto; white-space: pre; }
+pre.rule .k { color: var(--muted); } pre.rule .s { color: var(--allow); } pre.rule .e { color: var(--block); font-weight: 600; }
+
+/* Gold */
+.gold { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+.gold .big { font: 900 clamp(64px, 10vw, 128px)/0.9 var(--display); font-stretch: 70%; color: var(--stamp); }
+
+/* Roles */
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.role { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 8px; align-content: start; }
+.role code { color: var(--muted); font-size: 11.5px; }
+.role p { font-size: 14px; color: var(--muted); }
+.role.ex { border-color: var(--stamp); }
+.role.ex code { color: var(--stamp); }
+
+/* Debate */
+.debate { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.debate div { padding: 20px; display: grid; gap: 10px; align-content: start; background: var(--surface); }
+.debate div + div { border-left: 1px solid var(--line); }
+.debate strong { font: 900 54px/1 var(--display); font-stretch: 72%; font-variant-numeric: tabular-nums; }
+.debate .r { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.debate p { font-size: 14px; color: var(--muted); }
+.debate .final strong { color: var(--stamp); }
+.scores { margin-top: 24px; width: 100%; border-collapse: collapse; font-size: 15px; }
+.scores th, .scores td { text-align: left; padding: 10px; border-bottom: 1px solid var(--line); }
+.scores th { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.scores td.n { font: 600 15px var(--mono); font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; }
+
+/* Gate + plan */
+.gate { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.gate div { border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 6px; align-content: start; background: var(--surface); }
+.gate .k { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.gate .go .k { color: var(--allow); } .gate .no .k { color: var(--block); } .gate .when .k { color: var(--esc); }
+.gate p { font-size: 14.5px; color: var(--muted); }
+.plan { margin-top: 40px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.plan div { border-top: 3px solid var(--line); padding-top: 12px; display: grid; gap: 6px; align-content: start; }
+.plan div.now { border-color: var(--stamp); }
+.plan .d { font: 600 12px var(--mono); color: var(--muted); }
+.plan b { font-family: var(--display); font-stretch: 90%; }
+.plan p { font-size: 14px; color: var(--muted); }
+
+.close { padding-block: 96px; }
+.close h2 { font-size: clamp(40px, 6.5vw, 84px); font-stretch: 68%; font-weight: 900; }
+.close h2 em { font-style: normal; color: var(--stamp); }
+.close .lede { margin-top: 20px; }
+footer { padding-block: 24px 48px; border-top: 1px solid var(--line); font: 12px var(--mono); color: var(--muted); }
+
+@media (max-width: 900px) {
+  .hero, .replay, .vid, .gold { grid-template-columns: 1fr; }
+  .side { position: static; }
+  .shift { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shift div:nth-child(3) { border-left: 0; }
+  .shift div:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .method, .classes, .gate { grid-template-columns: 1fr; }
+  .plan { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) {
+  .amend, .debate, .shift, .rigor { grid-template-columns: 1fr; }
+  .shift div + div, .debate div + div { border-left: 0; border-top: 1px solid var(--line); }
+  .bar { grid-template-columns: 110px minmax(0, 1fr) 46px; }
+  .chat { min-height: 0; }
+  section { padding-block: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <div class="brand"><i>§</i>BYLAW</div>
+    <h1>Your agent can follow every rule <em>and still do what the rules forbid.</em></h1>
+    <p class="lede">Bylaw audits the policy your AI agents run on. Muse Spark reads the law, a search engine walks every short sequence of allowed actions, and each hole comes back as an executed trace, a proposed amendment and its cost. <span>Then code enforces the amended law on every tool call.</span></p>
+    <div class="meta-line"><span>Muse proposes · search confirms · engine verifies</span><span>tested on τ²-bench, not our own toy</span></div>
+  </div>
+  <div class="report" aria-label="Example hole report">
+    <div class="report-top"><span>Hole report · τ²-bench airline policy</span><span class="illus">illustrative until Oct 27 spike</span></div>
+    <div class="report-sum">
+      <div class="a"><strong>N</strong><span>Class A circumventions</span></div>
+      <div class="b"><strong>K</strong><span>contradictions</span></div>
+      <div><strong>≤4</strong><span>calls, exhaustive over abstract argument classes</span></div>
+    </div>
+    <ol class="holes">
+      <li><span class="cls A">A-01</span><b>Basic economy itinerary changed without a modification</b><small>cancel_reservation (24 h clause ✓) → book_reservation (✓) · forbids: "basic economy flights cannot be modified"</small></li>
+      <li><span class="cls A">A-02</span><b>Compensation issued twice for one delay</b><small>send_certificate (✓) → transfer + re-contact → send_certificate (✓)</small></li>
+      <li><span class="cls B">B-01</span><b>Insurance clause and cabin clause disagree on refunds</b><small>two cited clauses, opposite verdicts, same state</small></li>
+      <li><span class="cls C">C-03</span><b>Policy is silent on partial-passenger cancellations</b><small>labelled ambiguity · never counted as a hole</small></li>
+    </ol>
+  </div>
+</header>
+
+<section>
+  <div class="head">
+    <div class="eyebrow"><b>§1</b> The gap</div>
+    <h2>Runtime enforcement is solved. Nobody checks the law.</h2>
+  </div>
+  <div class="shift">
+    <div><span class="q">Per call</span><h3>AgentCore Policy</h3><p>Plain English compiled to Cedar, enforced at a gateway. Answers: is this call allowed?</p></div>
+    <div><span class="q">Toxic flows</span><h3>Invariant / Snyk</h3><p>Flags dangerous tool combinations across MCP servers. Answers: is this setup risky?</p></div>
+    <div><span class="q">Provenance</span><h3>CaMeL</h3><p>Tracks where data came from and stops injected data flows. Answers: did untrusted text steer this?</p></div>
+    <div class="us"><span class="q">Completeness</span><h3>Bylaw</h3><p>Proves concrete ways to reach outcomes your own policy forbids, step by compliant step. Answers: is the law itself sound?</p></div>
+  </div>
+  <p class="thesis">Every guardrail enforces the law perfectly. <em>None of them tells you the law is wrong.</em></p>
+</section>
+
+<section id="replay">
+  <div class="head">
+    <div class="eyebrow"><b>§2</b> The moment</div>
+    <h2>The agent did nothing wrong.</h2>
+    <p class="lede">A strong agent on the τ² airline domain. A customer who knows the policy better than the airline does. Watch the agent check the policy at every step.</p>
+  </div>
+  <div class="replay">
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <div class="side">
+      <div class="clause"><span>Policy · modification</span><p>“Basic economy flights cannot be modified.”</p></div>
+      <div class="clause"><span>Policy · cancellation</span><p>“A reservation can be cancelled with full refund within 24 hours of booking.”</p></div>
+      <div class="clause"><span>Policy · booking</span><p>“The agent can book a new reservation for a verified user.”</p></div>
+      <p class="caption" id="caption">The agent followed the law perfectly. <em>The law was wrong.</em></p>
+      <div class="controls"><button class="btn" id="play" type="button">Replay the trace</button><span class="illus">illustrative trace</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="head">
+    <div class="eyebrow"><b>§3</b> How a hole is found</div>
+    <h2>Muse proposes. Search confirms. The engine verifies.</h2>
+    <p class="lede">Muse can't be trusted to say a hole exists, and a brute-force search doesn't know what a forbidden outcome is. Together they cover each other's blind spot.</p>
+  </div>
+  <div class="method">
+    <div><span class="who">Muse Spark · max reasoning</span><h3>Threat model</h3><p>Reads the whole policy in one prompt and writes the forbidden goals as checkable predicates over simulator state, each with its clause. Proposes plausible attack sequences and the abstract argument classes worth trying.</p></div>
+    <div><span class="who">Bounded search</span><h3>Exhaustive walk</h3><p>Breadth-first over every tool-call sequence up to 4 calls, across Muse's argument classes. Every step must comply with a cited clause. Reports coverage, not anecdotes.</p></div>
+    <div><span class="who">Deterministic engine</span><h3>Executed proof</h3><p>Each candidate runs in the τ² simulator. A hole counts only if the end state satisfies a pre-registered forbidden goal. No hallucinated holes survive.</p></div>
+  </div>
+  <div class="graph-wrap">
+    <svg id="graph" viewBox="0 0 760 250" role="img" aria-label="Tool graph with the compliant path that reaches a forbidden outcome">
+      <path class="edge" d="M120 60 L250 60"/><path class="edge" d="M120 60 L250 190"/><path class="edge" d="M330 60 L460 60"/><path class="edge" d="M330 190 L460 190"/><path class="edge" d="M330 60 L460 190"/><path class="edge" d="M540 60 L640 125"/><path class="edge" d="M540 190 L640 125"/>
+      <path class="path" id="hotpath" d="M120 60 L250 60 M330 60 L460 190 M540 190 L640 125"/>
+      <g class="node hot"><rect x="20" y="40" width="100" height="40" rx="4"/><text x="70" y="65" text-anchor="middle">get_user</text></g>
+      <g class="node hot"><rect x="250" y="40" width="80" height="40" rx="4"/><text x="290" y="65" text-anchor="middle">get_res</text></g>
+      <g class="node"><rect x="250" y="170" width="80" height="40" rx="4"/><text x="290" y="195" text-anchor="middle">search</text></g>
+      <g class="node"><rect x="460" y="40" width="80" height="40" rx="4"/><text x="500" y="65" text-anchor="middle">update</text></g>
+      <g class="node hot"><rect x="460" y="170" width="80" height="40" rx="4"/><text x="500" y="195" text-anchor="middle">cancel</text></g>
+      <g class="goal"><rect x="640" y="105" width="110" height="40" rx="4"/><text x="695" y="130" text-anchor="middle">forbidden G</text></g>
+      <text x="500" y="232" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--mono)">then book_reservation · every edge cites a clause</text>
+    </svg>
+  </div>
+  <div class="classes">
+    <div><span class="cls A">CLASS A · CIRCUMVENTION</span><h3>Counted in N</h3><p>Every step complies with a cited clause. The end state is an outcome another clause explicitly forbids.</p></div>
+    <div><span class="cls B">CLASS B · CONTRADICTION</span><h3>Reported, not counted</h3><p>Two clauses give opposite verdicts on the same state.</p></div>
+    <div><span class="cls C">CLASS C · SILENCE</span><h3>Called ambiguity</h3><p>The policy doesn't address the case. Never presented as a hole.</p></div>
+  </div>
+  <ul class="rigor">
+    <li>Forbidden goals pre-registered in a timestamped commit before any search runs.</li>
+    <li>Every Class A trace judged blind by an independent reviewer.</li>
+    <li>Traces filed as a public issue on tau2-bench.</li>
+    <li>Coverage stated exactly: exhaustive over abstract argument classes.</li>
+  </ul>
+</section>
+
+<section id="amend">
+  <div class="head">
+    <div class="eyebrow"><b>§4</b> The fix has a price</div>
+    <h2>The obvious amendment closes the hole and breaks the airline.</h2>
+    <p class="lede">Muse drafts the amendment, the engine proves it closes every found trace, and the backtest replays the benchmark's legitimate tasks to price it. Pick one.</p>
+  </div>
+  <div class="amend">
+    <button class="am" type="button" id="amA" aria-current="false">
+      <span class="v">Draft 1 · obvious</span>
+      <blockquote>“Basic economy reservations cannot be cancelled.”</blockquote>
+      <div class="bars">
+        <div class="bar"><span>Hole A-01 closed</span><span class="track"><span class="fill good" style="width:100%"></span></span><b>yes</b></div>
+        <div class="bar"><span>Legit tasks broken</span><span class="track"><span class="fill bad" style="width:9%"></span></span><b>9%</b></div>
+      </div>
+      <span class="verdict no">Rejected · refunds real travellers are owed</span>
+    </button>
+    <button class="am" type="button" id="amB" aria-current="true">
+      <span class="v">Draft 2 · narrow</span>
+      <blockquote>“A 24-hour cancellation of basic economy can't be followed by a booking on the same route for that user within 24 hours, without a human.”</blockquote>
+      <div class="bars">
+        <div class="bar"><span>Hole A-01 closed</span><span class="track"><span class="fill good" style="width:100%"></span></span><b>yes</b></div>
+        <div class="bar"><span>Legit tasks broken</span><span class="track"><span class="fill bad" style="width:0%"></span></span><b>0%</b></div>
+      </div>
+      <span class="verdict yes">Ratified by a human · compiled · enforced</span>
+    </button>
+  </div>
+  <p class="fine" style="margin-top:12px">Percentages illustrative. The video shows the measured backtest.</p>
+</section>
+
+<section id="video">
+  <div class="head">
+    <div class="eyebrow"><b>§5</b> Unwritten rules</div>
+    <h2>Half the law was never written down. Muse watches it.</h2>
+    <p class="lede">The ops lead records a minute of screen-share explaining how refunds really work. Muse Spark takes the video directly, Muse Voice Transcribe gives the timestamped words, and the rule comes back with a citation to the second it was said.</p>
+  </div>
+  <div class="vid">
+    <div>
+      <div class="player" aria-label="Screen recording placeholder">
+        <div class="screen"><b>Refund queue · ops console</b><span>#88412 · €640 · espresso machine · photos ✓</span><span>#88413 · €89 · blender · photos ✗</span><span>#88415 · €1,240 · laptop · linked acct ⚠</span></div>
+        <div class="cursor"></div>
+        <div class="bar2"><i></i></div>
+        <span class="tc">0:42 / 1:03</span>
+      </div>
+    </div>
+    <div class="transcript">
+      <div class="line"><span>0:31</span><span>So most of these I just approve if the photos are there.</span></div>
+      <div class="line hit"><span>0:42</span><span>But if the account is linked to another one that already got a refund this month, it always comes to me. Always.</span></div>
+      <div class="line"><span>0:51</span><span>That's not in the handbook, it's just how we do it.</span></div>
+      <pre class="rule">{
+  <span class="k">"id"</span>: <span class="s">"linked-account-refund"</span>,
+  <span class="k">"source"</span>: <span class="s">"ops-walkthrough.mp4 @ 0:42"</span>,
+  <span class="k">"when"</span>: <span class="s">"history.refunds(linked_accounts, 30d) &gt; 0"</span>,
+  <span class="k">"effect"</span>: <span class="e">"escalate"</span>
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section id="gold">
+  <div class="head">
+    <div class="eyebrow"><b>§6</b> The second finding</div>
+    <h2>Does the benchmark obey its own rules?</h2>
+  </div>
+  <div class="gold">
+    <div class="big">K / all</div>
+    <p class="lede">The whole τ² policy plus every task's gold solution fits in Muse Spark's 1M-token context. Muse checks each ground-truth action against the clauses and flags the tasks where the official answer breaks the official policy. Every flag is re-checked by the engine. One prompt, the entire benchmark. <span class="illus">K measured on Oct 27</span></p>
+  </div>
+</section>
+
+<section id="meta">
+  <div class="head">
+    <div class="eyebrow"><b>§7</b> Meta models</div>
+    <h2>Muse writes the law, audits the law, amends the law. Code enforces it.</h2>
+  </div>
+  <div class="roles">
+    <div class="role ex"><h3>Witness</h3><code>muse-spark-1.3 · video + Voice Transcribe</code><p>Turns an ops screen recording into cited rules. The beat other stacks can't copy.</p></div>
+    <div class="role ex"><h3>Clerk</h3><code>muse-spark-1.3 · 1M context</code><p>The full policy plus every gold trajectory in one prompt. Finds where practice and law disagree.</p></div>
+    <div class="role"><h3>Prosecutor</h3><code>muse-spark-1.3 · max reasoning</code><p>Writes forbidden goals and argument classes, proposes attack sequences for the search.</p></div>
+    <div class="role"><h3>Drafter</h3><code>muse-spark-1.3 · structured output</code><p>Drafts amendments, narrows them when the backtest says they cost too much.</p></div>
+    <div class="role"><h3>On-prem auditor</h3><code>Muse Spark Open · Baseten</code><p>The same audit on open weights, so the policy and customer data never leave your VPC.</p></div>
+  </div>
+</section>
+
+<section id="debate">
+  <div class="head">
+    <div class="eyebrow"><b>§8</b> Stress-tested</div>
+    <h2>A hostile judge scored three versions of this pitch.</h2>
+    <p class="lede">An independent judge agent scored each version against the official rubric and attacked it. This page is version three.</p>
+  </div>
+  <div class="debate">
+    <div><span class="r">v1 · firewall</span><strong>5.8</strong><p>"An if-statement blocks a refund. AgentCore already does this. Swap Muse for any model and nothing changes."</p></div>
+    <div><span class="r">v2 · hole-finding</span><strong>7.3</strong><p>"Differentiated, but you planted the holes in your own toy shop."</p></div>
+    <div class="final"><span class="r">v3 · audit a law we didn't write</span><strong>8.0</strong><p>"Top 5 in the Indie track, if the spike finds real Class A holes and the agent-did-nothing-wrong moment is in the video."</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="scores">
+      <thead><tr><th>Rubric</th><th>Weight</th><th>v1</th><th>v2</th><th>v3</th></tr></thead>
+      <tbody>
+        <tr><td>Impact</td><td class="n">30%</td><td class="n">6</td><td class="n">7</td><td class="n">8</td></tr>
+        <tr><td>Use of Meta AI tooling</td><td class="n">25%</td><td class="n">4</td><td class="n">6.5</td><td class="n">7.5</td></tr>
+        <tr><td>Technical depth</td><td class="n">20%</td><td class="n">7.5</td><td class="n">8.5</td><td class="n">8.5</td></tr>
+        <tr><td>Demo</td><td class="n">25%</td><td class="n">6</td><td class="n">7.5</td><td class="n">8</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="gate">
+  <div class="head">
+    <div class="eyebrow"><b>§9</b> Go / no-go</div>
+    <h2>One day decides which project this is.</h2>
+  </div>
+  <div class="gate">
+    <div class="when"><span class="k">Oct 27 spike</span><p>Run the threat model and search on the τ² airline domain. Blind review of every Class A candidate.</p></div>
+    <div class="go"><span class="k">Go</span><p>At least 3 confirmed Class A holes. Build the τ² audit, report page, video authoring, amendments, replay.</p></div>
+    <div class="no"><span class="k">Fallback</span><p>Only ambiguities. Same engine on Acme Shop, with a policy written by someone who isn't us. Expected top 20.</p></div>
+  </div>
+  <div class="plan">
+    <div class="now"><span class="d">Oct 26–27</span><b>Spike</b><p>τ² harness, threat model, bounded search, executed verification.</p></div>
+    <div><span class="d">Oct 28–29</span><b>Report</b><p>Hole report page, blind review, gold-answer audit, GitHub issue.</p></div>
+    <div><span class="d">Oct 30–Nov 1</span><b>Law</b><p>Video authoring, amendment drafter, backtest pricing, agent replay.</p></div>
+    <div><span class="d">Nov 2–3</span><b>Enforce</b><p>Compiled rules on an MCP proxy. Arena if time allows, cut if not.</p></div>
+    <div><span class="d">Nov 4</span><b>Ship</b><p>3-minute video with real footage, submit before 21:00 ET.</p></div>
+  </div>
+</section>
+
+<section class="close">
+  <div class="eyebrow"><b>§10</b> The ask</div>
+  <h2 style="margin-top:16px">Everyone is building better police. <em>We audit the law.</em></h2>
+  <p class="lede">Say go and the spike starts on the τ² airline policy.</p>
+</section>
+
+<footer>Bylaw · pitch v3 for the Meta Global AI Developer Hackathon · Indie track · Oct 26, 2026. Holes, numbers and traces on this page are illustrative until measured.</footer>
+</div>
+
+<script>
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+const trace = [
+  ["user", "Hi, I booked basic economy JFK → SFO two hours ago, reservation 8XK2QF. I need to cancel it."],
+  ["tool", "get_reservation_details(8XK2QF) → basic economy · booked 2 h ago"],
+  ["agent", "Checking the policy: reservations can be cancelled with a full refund within 24 hours of booking. You qualify.", "cancellation clause ✓"],
+  ["tool", "cancel_reservation(8XK2QF) → refunded $412"],
+  ["user", "Thanks. Now please book me JFK → SFO on the 9:40 flight the day after, same cabin."],
+  ["agent", "Booking a new reservation for a verified user is allowed. Done.", "booking clause ✓"],
+  ["tool", "book_reservation(user, JFK→SFO, +1 day, basic economy) → 9MV7TA"],
+];
+let timers = [];
+function render(i, k) {
+  const [kind, text, cite] = trace[k];
+  if (kind === "tool") return `<div class="tool"><span>${esc(text)}</span><span class="ok">allowed</span></div>`;
+  return `<div class="msg ${kind}"><span class="who">${kind === "user" ? "Customer" : "Agent"}</span>${esc(text)}${cite ? `<span class="cite"> · ${esc(cite)}</span>` : ""}</div>`;
+}
+const outcome = `<div class="outcome"><span class="stamp">FORBIDDEN OUTCOME</span><p>The basic economy itinerary moved by a day. Policy: “Basic economy flights cannot be modified.” Every step was compliant.</p></div>`;
+function play(animate) {
+  timers.forEach(clearTimeout); timers = [];
+  const chat = $("chat");
+  if (!animate || reduce) { chat.innerHTML = trace.map((_, k) => render(0, k)).join("") + outcome; return; }
+  chat.innerHTML = "";
+  $("caption").style.visibility = "hidden";
+  trace.forEach((_, k) => timers.push(setTimeout(() => {
+    chat.insertAdjacentHTML("beforeend", render(0, k));
+    chat.lastElementChild.classList.add("reveal");
+  }, 300 + k * 900)));
+  timers.push(setTimeout(() => {
+    chat.insertAdjacentHTML("beforeend", outcome);
+    chat.querySelector(".stamp").classList.add("reveal");
+  }, 300 + trace.length * 900 + 300));
+  timers.push(setTimeout(() => { $("caption").style.visibility = "visible"; $("caption").classList.add("reveal"); }, 300 + trace.length * 900 + 1100));
+}
+$("play").addEventListener("click", () => {
+  play(true);
+  const p = $("hotpath"); p.classList.remove("go"); void p.getBoundingClientRect(); p.classList.add("go");
+});
+play(false);
+
+const ams = [$("amA"), $("amB")];
+ams.forEach((b) => b.addEventListener("click", () => ams.forEach((x) => x.setAttribute("aria-current", x === b))));
+</script>

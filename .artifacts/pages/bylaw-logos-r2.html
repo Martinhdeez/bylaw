@@ -1,0 +1,217 @@
+<title>Bylaw Logo Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a specimen sheet. One row per concept: big mark on the film's dark ground, light-paper lockup, app icon. */
+:root {
+  --ground: #07090E;
+  --card: #0F1420;
+  --line: #222B3D;
+  --ink: #F4F6F9;
+  --muted: #8A95A8;
+  --red: #FF4D2E;
+  --green: #2BE3A0;
+  --paper: #EEF1F5;
+  --paper-ink: #0B0F17;
+  --display: "Archivo", "Arial Narrow", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--ground); color: var(--ink); font: 15px/1.55 var(--display);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 48px 80px; }
+header { display: grid; gap: 10px; margin-bottom: 40px; }
+.eyebrow { font: 700 12px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font: 900 clamp(40px, 6vw, 72px)/0.95 var(--display); font-stretch: 66%; text-transform: uppercase; }
+h1 em { font-style: normal; color: var(--red); }
+header p { margin: 0; color: var(--muted); max-width: 62ch; font-size: 17px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.c { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; }
+.c:target, .c.pick { border-color: var(--red); }
+.hero { display: grid; place-items: center; padding: 40px 20px; min-height: 260px; }
+.hero svg { width: 150px; height: 150px; }
+.lock { display: flex; align-items: center; gap: 22px; padding: 22px 24px; background: var(--paper); color: var(--paper-ink); flex-wrap: wrap; }
+.lock svg { width: 52px; height: 52px; flex: none; }
+.word { font: 900 52px/0.8 var(--display); font-stretch: 112%; letter-spacing: -0.03em; }
+.icons { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+.icons span { width: 44px; height: 44px; border-radius: 11px; background: var(--paper-ink); display: grid; place-items: center; }
+.icons span svg { width: 30px; height: 30px; }
+.icons span.sm { width: 24px; height: 24px; border-radius: 6px; }
+.icons span.sm svg { width: 17px; height: 17px; }
+.meta { display: grid; gap: 4px; padding: 18px 24px 22px; border-top: 1px solid var(--line); }
+.meta b { font: 800 22px var(--display); font-stretch: 85%; display: flex; gap: 12px; align-items: baseline; }
+.meta b span { font: 700 13px var(--mono); color: var(--red); }
+.meta p { margin: 0; color: var(--muted); font-size: 14.5px; }
+footer { margin-top: 40px; color: var(--muted); font: 13px var(--mono); }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .icons { margin-left: 0; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">bylaw · logo lab · rounds 1–2</span>
+    <h1>Eighteen marks for <em>a hole in the law</em></h1>
+    <p>Each concept on the film's dark ground, as a lockup on paper, and as an app icon at 44 and 24 px. Pick one or two letters and say what to push.</p>
+  </header>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <!-- A Gap -->
+      <symbol id="A" viewBox="0 0 120 120">
+        <rect x="14" y="26" width="92" height="12" rx="6" fill="currentColor"/>
+        <rect x="14" y="54" width="30" height="12" rx="6" fill="currentColor"/>
+        <rect x="76" y="54" width="30" height="12" rx="6" fill="currentColor"/>
+        <circle cx="60" cy="60" r="9" fill="#FF4D2E"/>
+        <rect x="14" y="82" width="64" height="12" rx="6" fill="currentColor"/>
+      </symbol>
+      <!-- B Punched b -->
+      <symbol id="B" viewBox="0 0 120 120">
+        <rect x="18" y="8" width="22" height="104" rx="6" fill="currentColor"/>
+        <circle cx="66" cy="76" r="36" fill="currentColor"/>
+        <circle cx="66" cy="76" r="15" fill="#07090E" stroke="#FF4D2E" stroke-width="6"/>
+      </symbol>
+      <!-- C Broken seal -->
+      <symbol id="C" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="44" fill="none" stroke="currentColor" stroke-width="11" stroke-dasharray="236 40" stroke-dashoffset="-20" transform="rotate(-60 60 60)"/>
+        <circle cx="60" cy="60" r="24" fill="none" stroke="currentColor" stroke-width="5"/>
+        <circle cx="96" cy="32" r="9" fill="#FF4D2E"/>
+      </symbol>
+      <!-- D Keyhole page -->
+      <symbol id="D" viewBox="0 0 120 120">
+        <path d="M24 8 H76 L100 32 V104 Q100 112 92 112 H24 Q16 112 16 104 V16 Q16 8 24 8 Z" fill="currentColor"/>
+        <circle cx="58" cy="56" r="13" fill="#FF4D2E"/>
+        <path d="M51 62 H65 L70 90 H46 Z" fill="#FF4D2E"/>
+      </symbol>
+      <!-- E Clause brackets -->
+      <symbol id="E" viewBox="0 0 120 120">
+        <path d="M42 14 H22 V106 H42" fill="none" stroke="currentColor" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M78 14 H98 V106 H78" fill="none" stroke="currentColor" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="12" fill="#FF4D2E"/>
+      </symbol>
+      <!-- F Patch shield -->
+      <symbol id="F" viewBox="0 0 120 120">
+        <path d="M60 8 L104 22 V58 C104 86 84 104 60 114 C36 104 16 86 16 58 V22 Z" fill="currentColor"/>
+        <circle cx="60" cy="58" r="17" fill="#07090E" stroke="#FF4D2E" stroke-width="6"/>
+        <rect x="58" y="58" width="34" height="34" rx="6" fill="#2BE3A0" transform="rotate(-10 75 75)"/>
+      </symbol>
+      <!-- G Breach line -->
+      <symbol id="G" viewBox="0 0 120 120">
+        <path d="M62 14 H36 Q14 14 14 36 V84 Q14 106 36 106 H84 Q106 106 106 84 V60" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>
+        <path d="M32 82 L56 58 L72 70 L98 36" fill="none" stroke="#FF4D2E" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <!-- H Lens -->
+      <symbol id="H" viewBox="0 0 120 120">
+        <rect x="10" y="30" width="54" height="10" rx="5" fill="currentColor"/>
+        <rect x="10" y="55" width="28" height="10" rx="5" fill="currentColor"/>
+        <rect x="10" y="80" width="46" height="10" rx="5" fill="currentColor"/>
+        <circle cx="68" cy="58" r="28" fill="none" stroke="currentColor" stroke-width="10"/>
+        <circle cx="68" cy="58" r="8" fill="#FF4D2E"/>
+        <path d="M88 78 L108 98" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+      </symbol>
+      <!-- I Corner case -->
+      <symbol id="I" viewBox="0 0 120 120">
+        <path d="M22 10 H72 L110 48 V98 Q110 110 98 110 H22 Q10 110 10 98 V22 Q10 10 22 10 Z" fill="currentColor"/>
+        <path d="M72 10 V38 Q72 48 82 48 H110 Z" fill="#FF4D2E"/>
+      </symbol>
+      <!-- J Pierced tile -->
+      <symbol id="J" viewBox="0 0 120 120">
+        <rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor"/>
+        <circle cx="76" cy="44" r="16" fill="#07090E" stroke="#FF4D2E" stroke-width="6"/>
+        <rect x="24" y="74" width="58" height="10" rx="5" fill="#07090E"/>
+        <rect x="24" y="92" width="38" height="10" rx="5" fill="#07090E"/>
+      </symbol>
+      <!-- K Broken l -->
+      <symbol id="K" viewBox="0 0 120 120">
+        <rect x="46" y="6" width="28" height="44" rx="8" fill="currentColor"/>
+        <rect x="46" y="72" width="28" height="42" rx="8" fill="currentColor"/>
+        <circle cx="60" cy="61" r="7" fill="#FF4D2E"/>
+        <rect x="18" y="56" width="16" height="10" rx="5" fill="currentColor" opacity="0.35"/>
+        <rect x="86" y="56" width="16" height="10" rx="5" fill="currentColor" opacity="0.35"/>
+      </symbol>
+      <!-- L Maze -->
+      <symbol id="L" viewBox="0 0 120 120">
+        <path d="M14 14 H106 V106 H14 V40 M40 14 V66 H66 M92 14 V40 M40 92 H92 V66" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M27 92 V53 H53 V79 H79 V53 H106" fill="none" stroke="#FF4D2E" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <!-- M Ticket punch -->
+      <symbol id="M" viewBox="0 0 120 120">
+        <path d="M10 30 Q10 22 18 22 H102 Q110 22 110 30 V48 A12 12 0 0 0 110 72 V90 Q110 98 102 98 H18 Q10 98 10 90 V72 A12 12 0 0 0 10 48 Z" fill="currentColor"/>
+        <path d="M80 30 V90" stroke="#07090E" stroke-width="4" stroke-dasharray="6 6"/>
+        <circle cx="46" cy="60" r="13" fill="#07090E" stroke="#FF4D2E" stroke-width="5"/>
+      </symbol>
+      <!-- N Matrix -->
+      <symbol id="N" viewBox="0 0 120 120">
+        <g fill="currentColor">
+          <circle cx="24" cy="24" r="12"/><circle cx="60" cy="24" r="12"/><circle cx="96" cy="24" r="12"/>
+          <circle cx="24" cy="60" r="12"/><circle cx="96" cy="60" r="12"/>
+          <circle cx="24" cy="96" r="12"/><circle cx="60" cy="96" r="12"/><circle cx="96" cy="96" r="12"/>
+        </g>
+        <circle cx="60" cy="60" r="10" fill="none" stroke="#FF4D2E" stroke-width="5"/>
+      </symbol>
+      <!-- O Weak link -->
+      <symbol id="O" viewBox="0 0 120 120">
+        <rect x="8" y="38" width="62" height="44" rx="22" fill="none" stroke="currentColor" stroke-width="11"/>
+        <path d="M70 38 H90 Q112 38 112 60 Q112 82 90 82 H70 Q62 82 58 76" fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round"/>
+        <circle cx="62" cy="42" r="8" fill="#FF4D2E"/>
+      </symbol>
+      <!-- P Cracked stamp -->
+      <symbol id="P" viewBox="0 0 120 120">
+        <rect x="12" y="28" width="96" height="64" rx="10" fill="none" stroke="currentColor" stroke-width="10" transform="rotate(-8 60 60)"/>
+        <path d="M58 22 L66 46 L54 62 L64 80 L58 98" fill="none" stroke="#FF4D2E" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <!-- Q Pin -->
+      <symbol id="Q" viewBox="0 0 120 120">
+        <path d="M60 110 C60 110 18 70 18 44 A42 42 0 0 1 102 44 C102 70 60 110 60 110 Z" fill="currentColor"/>
+        <circle cx="60" cy="44" r="17" fill="#07090E" stroke="#FF4D2E" stroke-width="6"/>
+      </symbol>
+      <!-- R Fault line -->
+      <symbol id="R" viewBox="0 0 120 120">
+        <path d="M14 30 H106" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+        <path d="M14 60 H50 L58 50 L66 70 L74 60 H106" fill="none" stroke="#FF4D2E" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 90 H106" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="grid" id="grid"></div>
+  <footer>Round 1 · the red always marks the hole, green only ever means fixed.</footer>
+</div>
+
+<script>
+const concepts = [
+  ["A", "Gap", "Three lines of policy, one broken. The red dot sits where the rule is missing. Reads at any size."],
+  ["B", "Punched b", "A lowercase b whose counter is the hole. Monogram and metaphor in one shape."],
+  ["C", "Broken seal", "An official seal with a breach in its ring. Authority, and the crack in it."],
+  ["D", "Keyhole page", "A page with a red keyhole: the way in that nobody planned for."],
+  ["E", "Clause", "The brackets of a rule with the hole inside it. Code and law in one sign."],
+  ["F", "Patched shield", "Protection with a hole, and the green patch that closes it. The whole product in one mark."],
+  ["G", "Breach", "A rounded frame with its corner broken open and a path escaping through it."],
+  ["H", "Lens", "A magnifier on a page of rules, finding the gap. The audit, literally."],
+  ["I", "Corner case", "A page whose folded corner is red. In engineering a hole is called a corner case, so the pun is the logo."],
+  ["J", "Pierced tile", "An app-icon tile with lines of policy and one hole punched through. Built to sit on a home screen."],
+  ["K", "Broken l", "The l of bylaw split in two, the red dot in the break. Doubles as the wordmark's l."],
+  ["L", "Maze", "The rules as a maze, and the red route nobody designed that gets out."],
+  ["M", "Ticket punch", "The boarding pass from the film, punched. Ties the mark to the demo everyone remembers."],
+  ["N", "Matrix", "A grid of rules with one missing. Calm, systematic, and the gap is obvious."],
+  ["O", "Weak link", "A chain of rules with one link that doesn't close. The weak point is marked."],
+  ["P", "Cracked stamp", "An approval stamp split by a red crack. The rule looked approved; it wasn't sound."],
+  ["Q", "Pin", "A map pin with a hole: Bylaw points at exactly where the policy breaks."],
+  ["R", "Fault line", "Three rules, the middle one fractured. Reads like a seismograph spike."],
+];
+const grid = document.getElementById("grid");
+grid.innerHTML = concepts.map(([id, name, why]) => `
+  <article class="c" id="c${id}">
+    <div class="hero" style="color: var(--ink)"><svg><use href="#${id}"/></svg></div>
+    <div class="lock">
+      <svg style="color: var(--paper-ink)"><use href="#${id}"/></svg>
+      <span class="word">bylaw</span>
+      <span class="icons"><span style="color: var(--paper)"><svg><use href="#${id}"/></svg></span><span class="sm" style="color: var(--paper)"><svg><use href="#${id}"/></svg></span></span>
+    </div>
+    <div class="meta"><b><span>${id}</span>${name}</b><p>${why}</p></div>
+  </article>`).join("");
+</script>

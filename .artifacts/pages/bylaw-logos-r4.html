@@ -1,0 +1,149 @@
+<title>Bylaw Logo Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a specimen sheet. One row per concept: big mark on the film's dark ground, light-paper lockup, app icon. */
+:root {
+  --ground: #07090E;
+  --card: #0F1420;
+  --line: #222B3D;
+  --ink: #F4F6F9;
+  --muted: #8A95A8;
+  --red: #FF4D2E;
+  --green: #2BE3A0;
+  --paper: #EEF1F5;
+  --paper-ink: #0B0F17;
+  --display: "Archivo", "Arial Narrow", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--ground); color: var(--ink); font: 15px/1.55 var(--display);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 48px 80px; }
+header { display: grid; gap: 10px; margin-bottom: 40px; }
+.eyebrow { font: 700 12px var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font: 900 clamp(40px, 6vw, 72px)/0.95 var(--display); font-stretch: 66%; text-transform: uppercase; }
+h1 em { font-style: normal; color: var(--red); }
+header p { margin: 0; color: var(--muted); max-width: 62ch; font-size: 17px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.c { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; }
+.c:target, .c.pick { border-color: var(--red); }
+.hero { display: grid; place-items: center; padding: 40px 20px; min-height: 260px; }
+.hero svg { width: 150px; height: 150px; }
+.lock { display: flex; align-items: center; gap: 22px; padding: 22px 24px; background: var(--paper); color: var(--paper-ink); flex-wrap: wrap; }
+.lock svg { width: 52px; height: 52px; flex: none; }
+.word { font: 900 52px/0.8 var(--display); font-stretch: 112%; letter-spacing: -0.03em; }
+.icons { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+.icons span { width: 44px; height: 44px; border-radius: 11px; background: var(--paper-ink); display: grid; place-items: center; }
+.icons span svg { width: 30px; height: 30px; }
+.icons span.sm { width: 24px; height: 24px; border-radius: 6px; }
+.icons span.sm svg { width: 17px; height: 17px; }
+.meta { display: grid; gap: 4px; padding: 18px 24px 22px; border-top: 1px solid var(--line); }
+.meta b { font: 800 22px var(--display); font-stretch: 85%; display: flex; gap: 12px; align-items: baseline; }
+.meta b span { font: 700 13px var(--mono); color: var(--red); }
+.meta p { margin: 0; color: var(--muted); font-size: 14.5px; }
+footer { margin-top: 40px; color: var(--muted); font: 13px var(--mono); }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .icons { margin-left: 0; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">bylaw · logo lab · round 4</span>
+    <h1>J3, <em>with a b in it</em></h1>
+    <p>J3 first, then six ways to find a b inside it. Each one on the film's dark ground, as a lockup on paper, and as an app icon at 44 and 24 px. Pick one or two letters and say what to push.</p>
+  </header>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <mask id="mJ3" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+        <rect width="120" height="120" fill="#fff"/><circle cx="74" cy="46" r="17" fill="#000"/><path d="M62 58 L50 68 L58 76 L44 92 L50 98 L36 112" fill="none" stroke="#000" stroke-width="5" stroke-linejoin="round"/>
+      </mask>
+      <mask id="mK1" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+        <rect width="120" height="120" fill="#fff"/><circle cx="68" cy="76" r="14" fill="#000"/><path d="M78 86 L86 92 L84 98 L94 104 L96 112" fill="none" stroke="#000" stroke-width="5" stroke-linejoin="round"/>
+      </mask>
+      <mask id="mK2" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+        <rect width="120" height="120" fill="#fff"/><rect x="30" y="20" width="16" height="80" rx="8" fill="#000"/><circle cx="66" cy="74" r="22" fill="#000"/><path d="M82 90 L90 94 L88 102 L98 108 L102 120" fill="none" stroke="#000" stroke-width="5" stroke-linejoin="round"/>
+      </mask>
+      <mask id="mK3" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+        <rect width="120" height="120" fill="#fff"/><circle cx="76" cy="76" r="17" fill="#000"/><path d="M68 91 L60 100 L66 106 L58 120" fill="none" stroke="#000" stroke-width="5" stroke-linejoin="round"/>
+      </mask>
+      <mask id="mK4" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+        <rect width="120" height="120" fill="#fff"/><circle cx="70" cy="74" r="19" fill="#000"/><path d="M53 66 L47 56 L52 44 L44 32 L49 20 L44 0" fill="none" stroke="#000" stroke-width="7" stroke-linejoin="round"/>
+      </mask>
+      <mask id="mK5" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+        <rect width="120" height="120" fill="#fff"/><circle cx="70" cy="74" r="19" fill="#000"/>
+      </mask>
+      <mask id="mK6" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+        <rect width="120" height="120" fill="#fff"/><rect x="42" y="0" width="12" height="46" rx="0" fill="#000"/><path d="M48 44 L52 52 L46 58 L53 66" fill="none" stroke="#000" stroke-width="8" stroke-linejoin="round"/><circle cx="70" cy="74" r="19" fill="#000"/>
+      </mask>
+
+      <symbol id="J3" viewBox="0 0 120 120">
+        <rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor" mask="url(#mJ3)"/>
+        <circle cx="74" cy="46" r="17" fill="none" stroke="#FF4D2E" stroke-width="5"/>
+      </symbol>
+      <!-- K1 solid b, punched and cracked -->
+      <symbol id="K1" viewBox="0 0 120 120">
+        <g fill="currentColor" mask="url(#mK1)"><rect x="16" y="6" width="26" height="108" rx="9"/><circle cx="68" cy="76" r="38"/></g>
+        <circle cx="68" cy="76" r="14" fill="none" stroke="#FF4D2E" stroke-width="5"/>
+      </symbol>
+      <!-- K2 b punched through the tile -->
+      <symbol id="K2" viewBox="0 0 120 120">
+        <rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor" mask="url(#mK2)"/>
+        <path d="M66 52 A22 22 0 1 1 46 83" fill="none" stroke="#FF4D2E" stroke-width="5" stroke-linecap="round"/>
+      </symbol>
+      <!-- K3 tile shaped like a b -->
+      <symbol id="K3" viewBox="0 0 120 120">
+        <path d="M10 14 Q10 4 20 4 H36 Q46 4 46 14 V36 H84 Q114 36 114 66 V86 Q114 116 84 116 H20 Q10 116 10 106 Z" fill="currentColor" mask="url(#mK3)"/>
+        <circle cx="76" cy="76" r="17" fill="none" stroke="#FF4D2E" stroke-width="5"/>
+      </symbol>
+      <!-- K4 the crack is the stem -->
+      <symbol id="K4" viewBox="0 0 120 120">
+        <rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor" mask="url(#mK4)"/>
+        <circle cx="70" cy="74" r="19" fill="none" stroke="#FF4D2E" stroke-width="5"/>
+      </symbol>
+      <!-- K5 red crack stem -->
+      <symbol id="K5" viewBox="0 0 120 120">
+        <rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor" mask="url(#mK5)"/>
+        <path d="M53 62 L47 52 L52 40 L44 28 L49 16 L46 8" fill="none" stroke="#FF4D2E" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="70" cy="74" r="19" fill="none" stroke="#FF4D2E" stroke-width="5"/>
+      </symbol>
+      <!-- K6 clean stem that breaks into a crack -->
+      <symbol id="K6" viewBox="0 0 120 120">
+        <rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor" mask="url(#mK6)"/>
+        <circle cx="70" cy="74" r="19" fill="none" stroke="#FF4D2E" stroke-width="5"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="grid" id="grid"></div>
+  <footer>Round 4 · the red always marks the hole, green only ever means fixed.</footer>
+</div>
+
+<script>
+const concepts = [
+  ["J3", "Cracked tile · your pick", "The reference: a tile, one punched hole, a crack running to the edge."],
+  ["K4", "The crack is the stem", "Same tile, same hole. The crack now runs straight up from the hole, so crack plus hole read as a b. The letter appears only because the tile broke."],
+  ["K5", "Red stem", "K4 with the crack drawn in red instead of cut. The whole b glows: the flaw is the brand."],
+  ["K6", "Clean break", "A precise slot from the top that splinters into a crack as it reaches the hole. Engineered, then broken."],
+  ["K3", "b-shaped tile", "The tile itself grows an ascender and becomes a b. Hole for the counter, crack out of the bottom."],
+  ["K2", "Punched b", "A whole b punched out of the tile, its bowl ringed in red, a crack running to the corner."],
+  ["K1", "Solid b", "No tile: a heavy b, its counter a punched hole, a crack splitting the bowl to the outside."],
+];
+const grid = document.getElementById("grid");
+grid.innerHTML = concepts.map(([id, name, why]) => `
+  <article class="c" id="c${id}">
+    <div class="hero" style="color: var(--ink)"><svg><use href="#${id}"/></svg></div>
+    <div class="lock">
+      <svg style="color: var(--paper-ink)"><use href="#${id}"/></svg>
+      <span class="word">bylaw</span>
+      <span class="icons"><span style="color: var(--paper)"><svg><use href="#${id}"/></svg></span><span class="sm" style="color: var(--paper)"><svg><use href="#${id}"/></svg></span></span>
+    </div>
+    <div class="meta"><b><span>${id}</span>${name}</b><p>${why}</p></div>
+  </article>`).join("");
+</script>

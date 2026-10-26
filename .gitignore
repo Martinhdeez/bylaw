@@ -1,0 +1,29 @@
+
+# project-init managed
+.notes/
+.scratch/
+.archived/
+.playwright-mcp/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# references (cloned, not ours)
+.context/tau2-bench/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.cache/
+
+# web
+node_modules/
+dist/
+
+# heavy media (videos + audio stay local)
+.artifacts/code/*/assets/
+.artifacts/pages/*.mp4
