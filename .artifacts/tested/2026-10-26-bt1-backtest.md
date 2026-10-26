@@ -55,3 +55,10 @@ C2 v1.1 gives the reason values as "change of plan" | "airline cancelled flight"
 - Retail backtest numbers. `load_gold("retail")` works (112 tasks), but no retail RuleSet or domain is on `bylaw/build` yet (RT1). Retail `cancel_pending_order` already carries its own `reason` arg.
 - `send_certificate` facts (`reservation_id`, `complaint`): no gold task uses that tool.
 - Rule changes for tasks 15/16 and the reason enum: these belong to EN1/the contracts.
+
+## Review (PR #7)
+
+- Conforms to 01 contracts v1.4: only `change of plan`, `airline cancelled flight`, `health`, `weather` are emitted; an uninferable reason gives `unknown`, never `other`.
+- Acceptance `tests/acceptance/test_iter02_backtest.py` (origin/test/02-amend): 11 passed on the combined code, no test changed. The `REQ-BT1-3` tests in `test_iter02_amend.py` need the AM1 `amend` subcommand and stay with AM1.
+- Baseline reproduced: airline 43 tasks, 2 blocked (15, 16 on `R-flights-not-both` step 0), 1 unknown (39). These two break the v1.4 rule that the hand RuleSet blocks 0 gold tasks. The rule is wrong, not the tests: the policy allows changing cabin without changing flights, but it does not forbid doing both. The fix is EN2's.
+- After RT1 (#5): retail 112 tasks, 2 blocked (64 on `R-exch-1` step 6, 105 on `R-exch-5` step 0), 0 unknown. These are hand-rule findings for EN2/RT1.
