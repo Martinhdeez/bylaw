@@ -55,6 +55,7 @@ MAX_NUMBER = 10**15  # money/hours scale; any number a rule computes stays withi
 _NUM = (int, float)
 _SEQ = (str, list, tuple)
 _CONTAINERS = (list, tuple, dict, set, frozenset)
+MAX_DEPTH = 8  # nesting depth of any value a rule builds (round 3 of the PR #8 review)
 
 
 class _OverBudget(Exception):
@@ -73,29 +74,55 @@ class _Budget:
 
     def __init__(self):
         self.left = BUDGET
+        # Containers this evaluation built (displays, comprehensions, `+`, slices, zip tuples), by id, with their
+        # nesting depth. Pinning them keeps an id from being reused while the evaluation runs. Containers not in
+        # it come from the snapshot or args: their size is bounded by the input, and they are not charged.
+        self._built, self._size = {}, {}
 
     def charge(self, n):
         self.left -= n
         if self.left < 0:
             raise _OverBudget(f"rule over the evaluation budget of {BUDGET} iterations and elements")
 
+    @staticmethod
+    def _kids(y):
+        return [*y.keys(), *y.values()] if isinstance(y, dict) else y
+
+    def size(self, y):
+        """Elements reachable from a built value, counting a shared part each time it is reached (what a deep ==,
+        `in`, a hash or min/max can cost). Memoised, so computing it visits each distinct container once."""
+        if id(y) not in self._built:
+            return 0
+        if id(y) not in self._size:
+            n = len(y) + sum(self.size(k) for k in self._kids(y))
+            if n > BUDGET:
+                raise _OverBudget(f"rule over the evaluation budget of {BUDGET} iterations and elements")
+            self._size[id(y)] = n
+        return self._size[id(y)]
+
+    def built(self, x):
+        """Registers a value the rule built and refuses nesting deeper than MAX_DEPTH (children are registered
+        before their parents, so one level is enough)."""
+        if isinstance(x, _CONTAINERS) and id(x) not in self._built:
+            depth = 1 + max((self._built[id(k)][1] for k in self._kids(x) if id(k) in self._built), default=0)
+            if depth > MAX_DEPTH:
+                raise _OverBudget(f"value nested deeper than {MAX_DEPTH}")
+            self._built[id(x)] = (x, depth)
+        return x
+
+    def zip(self, *iterables):
+        for t in zip(*iterables):
+            yield self.built(t)
+
     def it(self, iterable):
+        """Charges every reachable element of each item, so a chain of single-item comprehensions that doubles
+        a shared value (v_k = (v_{k-1}, v_{k-1})) costs 2^k."""
         for x in iterable:
-            self.charge(1)
+            self.charge(1 + self.size(x))
             yield x
 
     def deep(self, x):
-        """Charge every element reachable from x, counting shared sub-lists each time they are reached,
-        which is what a deep ==, `in` or min/max over x can cost."""
-        stack = [x]
-        while stack:
-            y = stack.pop()
-            if isinstance(y, dict):
-                self.charge(len(y))
-                stack.extend(y.values())
-            elif isinstance(y, _CONTAINERS):
-                self.charge(len(y))
-                stack.extend(y)
+        self.charge(self.size(x))
         return x
 
     def cmp(self, x):
@@ -114,6 +141,7 @@ class _Budget:
     def add(self, a, b):
         if isinstance(a, _SEQ) and isinstance(b, _SEQ):
             self.charge(len(a) + len(b))
+            return self.built(a + b)
         return _num(a + b)
 
     @staticmethod
@@ -164,6 +192,16 @@ class _Guard(ast.NodeTransformer):
         fn = {ast.Mult: "_mul", ast.Add: "_add", ast.Mod: "_mod"}.get(type(node.op))
         return _call(fn, node.left, node.right) if fn else _call("_arith", node)
 
+    def _built(self, node):
+        self.generic_visit(node)
+        return _call("_built", node) if isinstance(getattr(node, "ctx", ast.Load()), ast.Load) else node
+
+    visit_List = visit_Tuple = visit_Set = visit_Dict = _built
+    visit_ListComp = visit_SetComp = visit_DictComp = _built
+
+    def visit_Subscript(self, node):  # a slice is a new container
+        return self._built(node) if isinstance(node.slice, ast.Slice) else self.generic_visit(node)
+
     def visit_UnaryOp(self, node):
         self.generic_visit(node)
         return _call("_arith", node) if isinstance(node.op, (ast.USub, ast.UAdd)) else node
@@ -181,7 +219,7 @@ class _Guard(ast.NodeTransformer):
 def _run(code, scope):
     b = _Budget()
     return eval(code, {**scope, "_it": b.it, "_mul": b.mul, "_add": b.add, "_mod": b.mod, "_arith": b.arith,
-                       "_cmp": b.cmp, "_key": b.key, "min": b.min, "max": b.max})
+                       "_cmp": b.cmp, "_key": b.key, "_built": b.built, "zip": b.zip, "min": b.min, "max": b.max})
 
 
 FUNCS = {f.__name__: f for f in (len, any, all, min, max, abs, zip, hours_between)} | {"sum": _sum}
@@ -206,6 +244,10 @@ def _compile(expr: str):
         raise RuleError(f"syntax error in {expr!r}: {e.msg}") from None
     nodes = list(ast.walk(tree))
     bound = {n.id for c in nodes if isinstance(c, ast.comprehension) for n in ast.walk(c.target) if isinstance(n, ast.Name)}
+    for c in nodes:  # `for db['users'] in ...` would write into the snapshot
+        if isinstance(c, ast.comprehension) and not all(
+                isinstance(t, (ast.Name, ast.Tuple, ast.List, ast.Store)) for t in ast.walk(c.target)):
+            raise RuleError(f"comprehension targets must be plain names in {expr!r}")
     for n in nodes:
         if not isinstance(n, _NODES):
             raise RuleError(f"{type(n).__name__} not allowed in {expr!r}")

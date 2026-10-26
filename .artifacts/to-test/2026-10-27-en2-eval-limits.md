@@ -7,6 +7,16 @@
 2. The spike determinism test ran twice in one process. Both runs share one hash seed, so the test cannot see set-ordering bugs.
 3. Contracts 01 v1.4 (baseline): the hand RuleSet must block 0 of the 43 airline gold tasks. It blocked tasks 15 and 16 at step 0 through `R-flights-not-both`.
 
+## Threat model
+
+Rules are authored by Muse (the compiler) and ratified by a human before they are enforced. They are not written by an adversary. The budget exists to bound accidental blow-ups, such as a model writing a triple-nested comprehension over the DB or repeating a list, so that a bad rule gives a failing verdict instead of a hung or crashed audit. It does not make `check` a sandbox for hostile code. Three review rounds closed every amplifier found, but the following paths are known and stay unbounded:
+- `any` and `all` over a container, and `in` on a string, run in C uncharged, at a cost linear in the sizes involved.
+- Slices are not charged. A slice copies at most the length of a value that already exists.
+- The items of a `zip` object consumed directly by `min`, `max`, `sum`, `any` or `all` are not deep-charged. Inside a comprehension they are.
+- Hashing in a set display or a `.get` key walks the key uncharged. The key is either input or a value the rule built, which is at most `MAX_DEPTH` deep and was charged when it was iterated.
+- Containers that come from the snapshot or `args` are not charged by comparisons, `min`/`max` or iteration; only containers the rule built are. Comparing two distinct input values costs up to their size each time, so a rule that repeats such a comparison in a comprehension pays (iterations × input size), and only the iterations are charged.
+- There is no wall-clock limit (v1.5).
+
 ## Root cause
 
 - `bylaw/rules.py:125` (5e2dd54): `eval(...)` runs the compiled rule with no size or time bound.
@@ -26,6 +36,11 @@
     - The results of `* + - / // %`, unary `-`/`+` and `sum` must stay within `MAX_NUMBER = 10**15`, and so must number literals (checked at `validate`).
     - Comparison operands and `min`/`max` arguments charge every element they can reach, counting shared sub-lists each time they are reached. Sharing built through comprehensions then cannot amplify a deep compare. Probe: on 2000 reservations, three levels of shared rows compared with `==` ran 3.7 s and returned True before; it now stops at 0.07 s.
     - `in` against a dict or set charges only the left operand, because that is a hash lookup. `is` and `is not` are not charged.
+  - Round 3:
+    - `_Budget.it` charges every reachable element of each item it yields, so the doubling chain `v_k = (v_{k-1}, v_{k-1})` built by single-item comprehensions costs 2^k.
+    - Every container the rule builds is registered with its nesting depth: displays, comprehension results, `+` on sequences, slices and the tuples from `zip`. One nested deeper than `MAX_DEPTH = 8` is refused.
+    - The size charge only walks registered containers and is memoised by id. A first version walked snapshot data on every evaluation and made the compiler's match-rate test 7x slower (2.51 s → 17.19 s). Now it is 2.51 s → 3.69 s (`.scratch/after/en2-review3/compiler-test-timing.txt`).
+    - Comprehension targets must be plain names. Before, `for db['users'] in [0]` overwrote the snapshot during `check` (found while testing round 3).
   - Going over the budget gives `Verdict(ok=False, error=...)`.
   - The first PR #8 revision used a `sys.settrace` 50 ms hook. It segfaulted Python 3.12 when the limit fired with several threads running the rule (review), so it is removed.
 - `tests/test_spike.py`: the spike runs in three subprocesses with `PYTHONHASHSEED` 1, 4 and 6, and the test asserts one identical output.
@@ -48,7 +63,11 @@
 | Comparison charge removed (mutation) | n/a | `shared_deep_eq` fails in 0.09 s (`.scratch/after/en2-review2/compare-guard-removed.txt`) |
 | Hand RuleSets under numeric-only `*` | n/a | airline 27 and retail 24 rules validate (`.scratch/after/en2-review2/rulesets-validate.txt`) |
 | Retail gold tasks blocked | 2 of 112, tasks 64 and 105, with the `bylaw/build` rules.py (`.scratch/after/en2-review2/backtest-retail-before.txt`) | the same 2 of 112 (`.scratch/after/en2-review2/backtest-retail-after.txt`) |
-| Gold tasks blocked by the hand RuleSet (backtest from PR #7) | 2 of 43 (tasks 15, 16; `.scratch/after/en2-gold-baseline/backtest-before.txt`) | 0 of 43 (`.scratch/after/en2-gold-baseline/backtest-after.txt`; with merged `bylaw/backtest.py`: `.scratch/after/en2-review/backtest-after.txt`; after round 2: `.scratch/after/en2-review2/backtest-after.txt`) |
+| Reviewer `amplify3.py` (set_hash, get_hash, max_gen, eq_control; k = 30 and 33) | uncharged: 3 of the 4 round-3 tests at k=30 return ok=True, and the 9-deep display is accepted (`.scratch/after/en2-review3/red.txt`) | all 8 ok=False in 0.0 s, max RSS 19 MB (`.scratch/after/en2-review3/amplify3-after.txt`) |
+| Depth cap removed (mutation) | n/a | the per-item size charge alone still fails all 4 doubling tests (`.scratch/after/en2-review3/depth-cap-removed.txt`) |
+| Comprehension target writing into the snapshot or args | accepted, snapshot overwritten (4 failed, `.scratch/after/en2-review3/red-targets.txt`) | `RuleError` at validate, failing verdict and untouched snapshot in check (gate) |
+| Earlier repros on the final code (`amplify.py`, 2000-row shared `==`) | — | all ok=False in 0.0 s (`.scratch/after/en2-review3/amplify-after.txt`, `.scratch/after/en2-review3/shared-eq-2000-after.txt`) |
+| Gold tasks blocked by the hand RuleSet (backtest from PR #7) | 2 of 43 (tasks 15, 16; `.scratch/after/en2-gold-baseline/backtest-before.txt`) | 0 of 43 (`.scratch/after/en2-gold-baseline/backtest-after.txt`; with merged `bylaw/backtest.py`: `.scratch/after/en2-review/backtest-after.txt`; after round 2: `.scratch/after/en2-review2/backtest-after.txt`; after round 3: `.scratch/after/en2-review3/backtest-after.txt`, where retail is still 2 of 112, the same tasks 64 and 105) |
 | New gold-baseline tests on the old rules | 2 failed (`.scratch/after/en2-gold-baseline/red.txt`) | pass (`.scratch/after/en2-eval-limits/make-check.txt`) |
 | Spike Class A | H1–H3 (`.scratch/after/en1-rules/spike-output.txt`) | H1–H3, H1 cabin hop still a hole (`.scratch/after/en2-gold-baseline/spike-output.txt`) |
 
@@ -62,10 +81,15 @@
 - `tests/test_rules.py::test_basic_economy_may_change_cabin_but_never_flights` and `test_other_cabins_may_change_cabin_and_flights_in_one_call` (gold task 15/16 arguments). The latter replaces `test_cabin_and_flights_in_one_call_is_denied_but_each_alone_is_not`.
 - `tests/test_spike.py::test_spike_output_is_deterministic_and_leaves_the_tracked_file_alone`, rewritten to use subprocesses.
 
+- Round 3:
+  - Budget cases `set_hash`, `get_hash`, `max_gen` and `eq_doubling` (the `amplify3.py` chains at k = 30), and `depth_9`.
+  - `test_rules_within_the_budget_still_evaluate` now also covers an 8-deep display and a 3-step doubling chain.
+  - `test_comprehension_targets_cannot_write_into_the_snapshot_or_args` (4 cases).
+
 ## Out of scope
 
 - Gold task 39 counts as "unknown" in the backtest, because `bylaw/backtest.py` (PR #7) infers no cancel reason for it. That belongs to PR #7.
-- There is no wall-clock limit (v1.5). `any` and `all` over a container walk it in C uncharged, at a cost linear in its length.
+- The residual unbounded paths are listed under Threat model.
 - Retail gold tasks 64 and 105 are blocked by `R-exch-1` and `R-exch-5`. That was already so before this change, and it belongs to the retail RuleSet (RT1).
 - Slices are not charged. A slice copies at most the length of a value that already exists.
 - Big-integer growth: without `**`, an expression can only multiply as many times as it has `*` operators.

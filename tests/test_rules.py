@@ -227,6 +227,11 @@ def test_domain_call_strips_conversation_facts_and_keeps_them_in_the_result(airl
 # 200 reservations: a triple-nested comprehension is 8 * 10^6 iterations, over the budget, yet an unguarded
 # evaluation still finishes in seconds, so removing the guard makes these tests fail instead of hang.
 BIG = {"users": {}, "flights": {}, "reservations": {f"R{i}": {} for i in range(200)}}
+def _doubling(var, k, open_, close):
+    """for v0 in [0] for v1 in [(v0, v0)] ... : v_k is a shared structure with 2^k leaves."""
+    return " ".join([f"for {var}0 in [0]"] + [f"for {var}{i} in [{open_}{var}{i-1}, {var}{i-1}{close}]" for i in range(1, k + 1)])
+
+
 ROWS = "db['reservations']"
 SHARED2 = f"[[y for b in {ROWS}] for y in [[0 for c in {ROWS}]]][0]"  # 200 refs to one 200-row
 SHARED3 = f"[[y for a in {ROWS}] for y in [{SHARED2}]][0]"  # 200 refs to that
@@ -250,6 +255,12 @@ OVER_BOUND = {
     "shared_deep_eq": f"({SHARED3}) == ({SHARED3})",
     "shared_deep_max": f"max([{SHARED3}, {SHARED3}]) == 0",
     "sum_over_cap": "sum([999999999999999, 999999999999999]) > 0",
+    # review round 3 (agent-abb217651162f51b6/.scratch/review-en2/amplify3.py, k=30): doubling, then hashing or max
+    "set_hash": f"len([1 {_doubling('x', 30, '(', ')')} if len({{x30}}) == 1]) == 1",
+    "get_hash": f"len([1 {_doubling('x', 30, '(', ')')} if db.get(x30) is None]) == 1",
+    "max_gen": f"len([1 {_doubling('x', 30, '[', ']')} {_doubling('y', 30, '[', ']')} if max(a for a in [x30, y30]) is not None]) == 1",
+    "eq_doubling": f"len([1 {_doubling('x', 30, '[', ']')} {_doubling('y', 30, '[', ']')} if x30 == y30]) == 1",
+    "depth_9": "len([[[[[[[[[1]]]]]]]]]) == 1",
 }
 
 
@@ -264,7 +275,8 @@ def test_rule_over_the_evaluation_budget_gives_a_failing_verdict(expr):
 def test_rules_within_the_budget_still_evaluate():
     within = ("len([0, 0] + [1]) + sum([1, 2]) + len([1 for a in db['reservations']]) + 7 % 4 + 12 * 2 - 10 // 3"
               " + max([[1, 2], [1, 3]])[1] + (999999999999999 - 1) * 1 // 999999999999999 == 233"
-              " and [{'a': [1]}] == [{'a': [1]}] and 3 in [1, 2, 3] and 'R5' in db['reservations']")
+              " and [{'a': [1]}] == [{'a': [1]}] and 3 in [1, 2, 3] and 'R5' in db['reservations']"
+              " and len([[[[[[[[1]]]]]]]]) == 1 and len([x3 " + _doubling("x", 3, "(", ")") + "]) == 1")
     [v] = check(rs(("A", "t", within)), BIG, "t", {}, NOW)
     assert v.ok and v.error is None
 
@@ -299,3 +311,13 @@ def test_repetition_and_oversized_literals_are_rejected_by_validate(expr):
 def test_numbers_over_ten_to_the_fifteen_fail(expr):
     [v] = check(rs(("A", "t", expr.replace("x", "999999999999999"))), BIG, "t", {}, NOW)
     assert not v.ok and v.error
+
+
+@pytest.mark.parametrize("expr", ["len([1 for db['users'] in [0]]) == 1", "len([1 for args['k'] in [0]]) == 1",
+                                  "len([1 for a, res['cabin'] in [(0, 0)]]) == 1", "len([1 for x[0:1] in [[0]]]) == 1"])
+def test_comprehension_targets_cannot_write_into_the_snapshot_or_args(expr):
+    snap = {"users": {"u": {}}, "reservations": {}}
+    with pytest.raises(RuleError):
+        validate(rs(("A", "t", expr)))
+    [v] = check(rs(("A", "t", expr)), snap, "t", {"k": 1}, NOW)
+    assert not v.ok and snap == {"users": {"u": {}}, "reservations": {}}
