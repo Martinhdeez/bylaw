@@ -3,81 +3,17 @@
 Every step is checked against bylaw/rulesets/retail.json *before* it runs, on the DB state at that point.
 uv run python spike/retail_holes_by_hand.py  -> prints each chain and writes spike/retail_holes_by_hand.json
 """
-import ast
 import json
-from datetime import datetime
+from dataclasses import asdict
 from pathlib import Path
 
+from bylaw import rules
 from bylaw.env.tau2_retail import make_domain
 from bylaw.goals_retail import GOALS
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(__file__).with_suffix(".json")
 RULESET = json.loads((ROOT / "bylaw/rulesets/retail.json").read_text())
-
-
-# ---- C2 expression checker. TODO: replace with bylaw.rules.validate/check once EN1 is merged ----
-
-class RuleError(Exception):
-    pass
-
-
-NAMES = {"args", "db", "now", "res", "user"}
-FUNCS = {
-    "len": len, "any": any, "all": all, "sum": sum, "min": min, "max": max, "abs": abs,
-    "hours_between": lambda a, b: (datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds() / 3600,
-}
-NODES = (
-    ast.Expression, ast.BoolOp, ast.And, ast.Or, ast.UnaryOp, ast.Not, ast.USub, ast.BinOp, ast.Add, ast.Sub,
-    ast.Mult, ast.Div, ast.Compare, ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn,
-    ast.IfExp, ast.Constant, ast.Name, ast.Load, ast.Store, ast.Subscript, ast.List, ast.Tuple, ast.Dict,
-    ast.ListComp, ast.GeneratorExp, ast.SetComp, ast.comprehension, ast.Call, ast.Attribute,
-)
-
-
-def validate_expr(expr: str) -> ast.Expression:
-    try:
-        tree = ast.parse(expr, mode="eval")
-    except SyntaxError as e:
-        raise RuleError(f"syntax: {e}") from e
-    bound = {n.id for c in ast.walk(tree) if isinstance(c, ast.comprehension) for n in ast.walk(c.target) if isinstance(n, ast.Name)}
-    for n in ast.walk(tree):
-        if not isinstance(n, NODES):
-            raise RuleError(f"{type(n).__name__} not allowed")
-        if isinstance(n, ast.Name) and n.id not in NAMES | FUNCS.keys() | bound:
-            raise RuleError(f"name {n.id!r} not allowed")
-        if isinstance(n, ast.Attribute) and n.attr != "get":
-            raise RuleError(f"attribute {n.attr!r} not allowed")
-        if isinstance(n, ast.Call) and not (
-            (isinstance(n.func, ast.Name) and n.func.id in FUNCS) or isinstance(n.func, ast.Attribute)
-        ):
-            raise RuleError("call not allowed")
-    for n in ast.walk(tree):  # .get only as a call, never read as a value
-        if isinstance(n, ast.Attribute) and not any(isinstance(c, ast.Call) and c.func is n for c in ast.walk(tree)):
-            raise RuleError("attribute access outside a .get() call")
-    return tree
-
-
-def check(ruleset, snap, tool, args, now):
-    res = snap["orders"].get(args.get("order_id"))
-    user = snap["users"].get(args.get("user_id") or (res or {}).get("user_id"))
-    scope = {"__builtins__": {}, **FUNCS, "args": args, "db": snap, "now": now, "res": res, "user": user}
-    out = []
-    for r in ruleset["tool_rules"]:
-        if r["tool"] != tool:
-            continue
-        try:
-            ok, err = bool(eval(compile(validate_expr(r["allow_if"]), r["id"], "eval"), scope)), None
-        except RuleError:
-            raise
-        except Exception as e:  # a rule that cannot be evaluated on this state does not allow the call
-            ok, err = False, f"{type(e).__name__}: {e}"
-        out.append({"rule_id": r["id"], "ok": ok, "policy_ref": r["policy_ref"], "error": err})
-    return out
-
-
-def allowed(ruleset, snap, tool, args, now):
-    return all(v["ok"] for v in check(ruleset, snap, tool, args, now))
 
 
 # ---- target selection (real orders from the DB) ----
@@ -228,7 +164,7 @@ def run(dom, hid, finder, goal):
     before = dom.snapshot(env)
     steps, results = [], []
     for s in chain:
-        verdicts = check(RULESET, dom.snapshot(env), s["tool"], s["args"], dom.now)
+        verdicts = [asdict(v) for v in rules.check(RULESET, dom.snapshot(env), s["tool"], s["args"], dom.now)]
         r = dom.call(env, s["tool"], **s["args"])
         results.append(r)
         steps.append({**s, "allowed": all(v["ok"] for v in verdicts), "verdicts": verdicts, "ok": r.ok, "error": r.error})

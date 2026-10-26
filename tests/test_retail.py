@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from bylaw.env.tau2_retail import StepResult, make_domain
+from bylaw import rules
+from bylaw.domain import StepResult, get_domain
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spike"))
 import retail_holes_by_hand as spike  # noqa: E402
@@ -16,7 +17,7 @@ PENDING = "#W5918442"  # pending order in the tau2 retail DB
 
 @pytest.fixture(scope="module")
 def retail():
-    return make_domain()
+    return get_domain("retail")
 
 
 def test_fresh_envs_are_independent(retail):
@@ -124,7 +125,7 @@ def test_R6_refunds_exceed_payments(retail, snap):
     assert retail.goals["R6"].check(snap, after, []) is True
 
 
-# ---------- retail.json against C2 (structural: bylaw.rules.validate is EN1's, not on bylaw/build yet) ----------
+# ---------- retail.json against C2 ----------
 
 RULESET = json.loads((Path(__file__).resolve().parents[1] / "bylaw/rulesets/retail.json").read_text())
 
@@ -138,14 +139,21 @@ def test_ruleset_c2_shape_and_tools(retail):
         assert all(isinstance(r[k], str) and r[k] for k in ("id", "tool", "allow_if", "policy_ref")), r
         assert r["tool"] in retail.write_tools, r["tool"]
         assert " ".join(r["policy_ref"].split()) in policy, r["id"]
-        spike.validate_expr(r["allow_if"])
     assert [(g["id"], g["policy_ref"]) for g in RULESET["forbidden_goals"]] == [(g.id, g.policy_ref) for g in retail.goals.values()]
+    rules.validate(RULESET)
 
 
-@pytest.mark.parametrize("expr", ["__import__('os')", "args.__class__", "open('x')", "args.keys()", "lambda: 1", "x"])
-def test_expression_whitelist_rejects(expr):
-    with pytest.raises(spike.RuleError):
-        spike.validate_expr(expr)
+def test_item_rules_pair_old_and_new_items_by_position(retail, snap):
+    """A swap that is valid as a set but pairs an item with another product's variant is rejected."""
+    o = next(o for o in snap["orders"].values() if o["status"] == "pending" and len({i["product_id"] for i in o["items"]}) > 1)
+    a, b = o["items"][0], next(i for i in o["items"] if i["product_id"] != o["items"][0]["product_id"])
+    va = spike.other_variant(snap, a)
+    vb = spike.other_variant(snap, b)
+    args = {"order_id": o["order_id"], "item_ids": [a["item_id"], b["item_id"]], "payment_method_id": spike.original(o)}
+    good = rules.check(RULESET, snap, "modify_pending_order_items", {**args, "new_item_ids": [va, vb]}, retail.now)
+    crossed = rules.check(RULESET, snap, "modify_pending_order_items", {**args, "new_item_ids": [vb, va]}, retail.now)
+    assert {v.rule_id: v.ok for v in good}["R-items-4"] is True
+    assert {v.rule_id: v.ok for v in crossed}["R-items-4"] is False
 
 
 def test_rules_block_the_direct_routes(retail, snap):
@@ -159,9 +167,9 @@ def test_rules_block_the_direct_routes(retail, snap):
         ("return_delivered_order_items", {"order_id": PENDING, "item_ids": [], "payment_method_id": "x"}),
     ]
     for tool, args in blocked:
-        assert not spike.allowed(RULESET, snap, tool, args, retail.now), (tool, args)
-    ok = ("cancel_pending_order", {"order_id": PENDING, "reason": "no longer needed"})
-    assert spike.allowed(RULESET, snap, *ok, retail.now)
+        assert not rules.allowed(rules.check(RULESET, snap, tool, args, retail.now)), (tool, args)
+    ok = rules.check(RULESET, snap, "cancel_pending_order", {"order_id": PENDING, "reason": "no longer needed"}, retail.now)
+    assert ok and rules.allowed(ok)
 
 
 # ---------- spike ----------

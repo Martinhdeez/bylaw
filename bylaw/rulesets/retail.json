@@ -81,9 +81,9 @@
     {
       "id": "R-items-4",
       "tool": "modify_pending_order_items",
-      "allow_if": "all(any(b != i['item_id'] and db['products'][i['product_id']]['variants'].get(b, {}).get('available') == True for i in res['items'] if i['item_id'] in args['item_ids']) for b in args['new_item_ids'])",
+      "allow_if": "all(b != a and any(i['item_id'] == a and db['products'][i['product_id']]['variants'].get(b, {}).get('available') == True for i in res['items']) for a, b in zip(args['item_ids'], args['new_item_ids']))",
       "policy_ref": "each item can be modified to an available new item of the same product but of different product option",
-      "note": "positional pairing of item_ids/new_item_ids is not expressible without zip; checked per new item against the items being changed"
+      "note": ""
     },
     {
       "id": "R-items-5",
@@ -144,9 +144,9 @@
     {
       "id": "R-exch-3",
       "tool": "exchange_delivered_order_items",
-      "allow_if": "all(any(b != i['item_id'] and db['products'][i['product_id']]['variants'].get(b, {}).get('available') == True for i in res['items'] if i['item_id'] in args['item_ids']) for b in args['new_item_ids'])",
+      "allow_if": "all(b != a and any(i['item_id'] == a and db['products'][i['product_id']]['variants'].get(b, {}).get('available') == True for i in res['items']) for a, b in zip(args['item_ids'], args['new_item_ids']))",
       "policy_ref": "each item can be exchanged to an available new item of the same product but of different product option",
-      "note": "positional pairing of item_ids/new_item_ids is not expressible without zip; checked per new item against the items being changed"
+      "note": ""
     },
     {
       "id": "R-exch-4",

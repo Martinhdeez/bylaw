@@ -4,19 +4,7 @@ Each check is a predicate over (db_before, db_after, chain) -> bool, where the D
 ({"users", "orders", "products"}, keyed by id) and chain is a list of StepResult (C1).
 Goals look only at records the chain changed: an untouched order never fires.
 """
-from dataclasses import dataclass
-from typing import Callable
-
-try:
-    from bylaw.domain import Goal
-except ImportError:  # TODO: import from bylaw.domain once EN1 is merged
-    @dataclass
-    class Goal:
-        id: str
-        name: str
-        policy_ref: str
-        cls: str
-        check: Callable
+from bylaw.domain import Goal
 
 
 MODIFY_TOOLS = {"modify_pending_order_address", "modify_pending_order_items", "modify_pending_order_payment"}

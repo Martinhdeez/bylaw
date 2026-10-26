@@ -3,7 +3,6 @@ import inspect
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 # tau2 reads TAU2_DATA_DIR at import time, so set the default before importing it.
 os.environ.setdefault("TAU2_DATA_DIR", str(Path(__file__).resolve().parents[2] / ".context/tau2-bench/data"))
@@ -14,20 +13,10 @@ from tau2.domains.retail.environment import get_environment  # noqa: E402
 from tau2.domains.retail.utils import RETAIL_DB_PATH, RETAIL_POLICY_PATH  # noqa: E402
 from tau2.environment.toolkit import ToolType  # noqa: E402
 
-from bylaw.goals_retail import GOALS, Goal  # noqa: E402
+from bylaw.domain import Goal, StepResult  # noqa: E402
+from bylaw.goals_retail import GOALS  # noqa: E402
 
 logger.disable("tau2")
-
-try:
-    from bylaw.domain import StepResult
-except ImportError:  # TODO: import from bylaw.domain once EN1 is merged
-    @dataclass
-    class StepResult:
-        tool: str
-        args: dict
-        ok: bool
-        output: Any
-        error: str | None
 
 # Order statuses each goal starts from (argument seeds for the search).
 _SEED_STATUS = {
