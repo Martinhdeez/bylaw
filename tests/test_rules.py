@@ -227,6 +227,9 @@ def test_domain_call_strips_conversation_facts_and_keeps_them_in_the_result(airl
 # 200 reservations: a triple-nested comprehension is 8 * 10^6 iterations, over the budget, yet an unguarded
 # evaluation still finishes in seconds, so removing the guard makes these tests fail instead of hang.
 BIG = {"users": {}, "flights": {}, "reservations": {f"R{i}": {} for i in range(200)}}
+ROWS = "db['reservations']"
+SHARED2 = f"[[y for b in {ROWS}] for y in [[0 for c in {ROWS}]]][0]"  # 200 refs to one 200-row
+SHARED3 = f"[[y for a in {ROWS}] for y in [{SHARED2}]][0]"  # 200 refs to that
 NESTED = "len([1 for a in db['reservations'] for b in db['reservations'] for c in db['reservations']]) >= 0"
 OVER_BOUND = {
     "str_repeat": "len('a' * 1000000000) > 0",
@@ -238,6 +241,15 @@ OVER_BOUND = {
     "per_value_sum": "len([[0] * 10000 for a in db['reservations']]) > 0",  # 200 values of 10^4 each
     "nested_comprehension": NESTED,
     "nested_generator": "sum(1 for a in db['reservations'] for b in db['reservations'] for c in db['reservations']) >= 0",
+    # review round 2 (agent-abb217651162f51b6/.scratch/review-en2/amplify.py)
+    "deep_eq_repeat": "([[[[[0]*100]*100]*100]*100]*100) == ([[[[[0]*100]*100]*100]*100]*100)",
+    "int_squaring": "len([1 for x0 in [99999999999] " + " ".join(f"for x{i} in [x{i-1}*x{i-1}]" for i in range(1, 27)) + "]) == 1",
+    # repetition hidden from validate, refused at runtime
+    "runtime_repeat": "len([s * 1000000000 for s in ['ab']]) > 0",
+    # sharing built by comprehensions, then a deep compare: 200^3 leaf compares, ~600 iterations charged
+    "shared_deep_eq": f"({SHARED3}) == ({SHARED3})",
+    "shared_deep_max": f"max([{SHARED3}, {SHARED3}]) == 0",
+    "sum_over_cap": "sum([999999999999999, 999999999999999]) > 0",
 }
 
 
@@ -250,7 +262,9 @@ def test_rule_over_the_evaluation_budget_gives_a_failing_verdict(expr):
 
 
 def test_rules_within_the_budget_still_evaluate():
-    within = "len('a' * 1000) + len([0] * 1000 + [1]) + sum([1, 2]) + len([1 for a in db['reservations']]) + 7 % 4 == 2207"
+    within = ("len([0, 0] + [1]) + sum([1, 2]) + len([1 for a in db['reservations']]) + 7 % 4 + 12 * 2 - 10 // 3"
+              " + max([[1, 2], [1, 3]])[1] + (999999999999999 - 1) * 1 // 999999999999999 == 233"
+              " and [{'a': [1]}] == [{'a': [1]}] and 3 in [1, 2, 3] and 'R5' in db['reservations']")
     [v] = check(rs(("A", "t", within)), BIG, "t", {}, NOW)
     assert v.ok and v.error is None
 
@@ -272,3 +286,16 @@ def test_concurrent_checks_over_the_budget_all_fail_cleanly():
 def test_bytes_constants_are_rejected(expr):
     with pytest.raises(RuleError):
         validate(rs(("A", "t", expr)))
+
+
+@pytest.mark.parametrize("expr", ["[0] * 3 == [0, 0, 0]", "'ab' * 2 == 'abab'", "2 * (1, 2) == (1, 2, 1, 2)",
+                                  "[x for x in [1]] * 2 == [1, 1]", "1000000000000001 > 0", "1e16 > 0"])
+def test_repetition_and_oversized_literals_are_rejected_by_validate(expr):
+    with pytest.raises(RuleError):
+        validate(rs(("A", "t", expr)))
+
+
+@pytest.mark.parametrize("expr", ["x * 2 > 0", "x + x > 0", "x - -x > 0", "x * x // 1 > 0", "-x * 10 < 0", "x * 10.0 > 0"])
+def test_numbers_over_ten_to_the_fifteen_fail(expr):
+    [v] = check(rs(("A", "t", expr.replace("x", "999999999999999"))), BIG, "t", {}, NOW)
+    assert not v.ok and v.error

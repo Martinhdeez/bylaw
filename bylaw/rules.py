@@ -3,8 +3,9 @@
 Expressions are Python expression syntax, accepted only if every AST node is on a whitelist, then
 evaluated with no builtins. Names: args db now res user, plus comprehension variables.
 Functions: len any all sum min max abs hours_between zip (zip: C2 v1.3). Methods: `.get` only.
-Evaluation is bounded by work (C2 v1.5): comprehension iterations plus the elements that `*` and `+` build
-count against BUDGET per evaluation; `%` is numeric only, `sum` takes a numeric start only, bytes are rejected.
+Evaluation is bounded by work (C2 v1.5): comprehension iterations, elements built by `+` and elements reached
+by comparisons and min/max count against BUDGET per evaluation. `*` is numeric only, numbers stay within
+MAX_NUMBER, `%` is numeric only, `sum` takes a numeric start only, bytes are rejected.
 """
 import ast
 from dataclasses import dataclass
@@ -49,16 +50,26 @@ def hours_between(a: str, b: str) -> float:
     return abs((datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds()) / 3600
 
 
-BUDGET = 10**6  # comprehension iterations plus elements/characters built, per rule evaluation (C2 v1.5)
+BUDGET = 10**6  # comprehension iterations plus elements built or compared, per rule evaluation (C2 v1.5)
+MAX_NUMBER = 10**15  # money/hours scale; any number a rule computes stays within +-MAX_NUMBER (C2 v1.5 addendum)
+_NUM = (int, float)
 _SEQ = (str, list, tuple)
+_CONTAINERS = (list, tuple, dict, set, frozenset)
 
 
 class _OverBudget(Exception):
     pass
 
 
+def _num(x):
+    if isinstance(x, _NUM) and abs(x) > MAX_NUMBER:
+        raise _OverBudget(f"number over {MAX_NUMBER}")
+    return x
+
+
 class _Budget:
-    """Work counter for one rule evaluation. Comprehension iterables and `*` `+` `%` are routed here by _Guard."""
+    """Work counter for one rule evaluation; _Guard routes comprehension iterables, arithmetic and comparison
+    operands here. One instance per evaluation, so concurrent checks never share it."""
 
     def __init__(self):
         self.left = BUDGET
@@ -73,48 +84,104 @@ class _Budget:
             self.charge(1)
             yield x
 
-    def mul(self, a, b):
-        for seq, n in ((a, b), (b, a)):
-            if isinstance(seq, _SEQ) and isinstance(n, int):
-                self.charge(len(seq) * max(n, 0))  # charged before the value is built
-        return a * b
+    def deep(self, x):
+        """Charge every element reachable from x, counting shared sub-lists each time they are reached,
+        which is what a deep ==, `in` or min/max over x can cost."""
+        stack = [x]
+        while stack:
+            y = stack.pop()
+            if isinstance(y, dict):
+                self.charge(len(y))
+                stack.extend(y.values())
+            elif isinstance(y, _CONTAINERS):
+                self.charge(len(y))
+                stack.extend(y)
+        return x
+
+    def cmp(self, x):
+        return self.deep(x) if isinstance(x, _CONTAINERS) else x
+
+    def key(self, x):
+        """Right side of `in`: dict and set lookups hash the left side only."""
+        return x if isinstance(x, (dict, set, frozenset)) else self.cmp(x)
+
+    @staticmethod
+    def mul(a, b):
+        if not (isinstance(a, _NUM) and isinstance(b, _NUM)):
+            raise _OverBudget("* applies to numbers only")
+        return _num(a * b)
 
     def add(self, a, b):
         if isinstance(a, _SEQ) and isinstance(b, _SEQ):
             self.charge(len(a) + len(b))
-        return a + b
+        return _num(a + b)
 
     @staticmethod
     def mod(a, b):
         if isinstance(a, str):  # '%0999999999d' % 1 builds the string in C
             raise _OverBudget("string formatting is not allowed")
-        return a % b
+        return _num(a % b)
+
+    @staticmethod
+    def arith(x):
+        return _num(x)
+
+    def min(self, *args, **kw):
+        return min(*(self.deep(a) for a in args), **kw)
+
+    def max(self, *args, **kw):
+        return max(*(self.deep(a) for a in args), **kw)
 
 
 def _sum(items, start=0):
-    if not isinstance(start, (int, float)):  # sum(lists, []) concatenates in C, out of reach of the budget
+    if not isinstance(start, _NUM):  # sum(lists, []) concatenates in C, out of reach of the budget
         raise _OverBudget("sum start must be a number")
-    return sum(items, start)
+    return _num(sum(items, start))
+
+
+def _static_repeat(node):
+    """`*` with a sequence or string display on either side (the runtime check catches the rest)."""
+    seq = (ast.List, ast.Tuple, ast.Set, ast.Dict, ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
+    return isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mult) and any(
+        isinstance(x, seq) or (isinstance(x, ast.Constant) and isinstance(x.value, (str, bytes))) for x in (node.left, node.right))
+
+
+def _call(name, *args):
+    return ast.Call(ast.Name(name, ast.Load()), list(args), [])
 
 
 class _Guard(ast.NodeTransformer):
-    """Routes comprehension iterables and `*`, `+`, `%` through the budget. Runs after validation, so rules
-    cannot name the helpers."""
+    """Routes comprehension iterables, arithmetic and comparison operands through the budget. Runs after
+    validation, so rules cannot name the helpers."""
 
     def visit_comprehension(self, node):
         self.generic_visit(node)
-        node.iter = ast.Call(ast.Name("_it", ast.Load()), [node.iter], [])
+        node.iter = _call("_it", node.iter)
         return node
 
     def visit_BinOp(self, node):
         self.generic_visit(node)
         fn = {ast.Mult: "_mul", ast.Add: "_add", ast.Mod: "_mod"}.get(type(node.op))
-        return ast.Call(ast.Name(fn, ast.Load()), [node.left, node.right], []) if fn else node
+        return _call(fn, node.left, node.right) if fn else _call("_arith", node)
+
+    def visit_UnaryOp(self, node):
+        self.generic_visit(node)
+        return _call("_arith", node) if isinstance(node.op, (ast.USub, ast.UAdd)) else node
+
+    def visit_Compare(self, node):
+        self.generic_visit(node)
+        if all(isinstance(op, (ast.Is, ast.IsNot)) for op in node.ops):
+            return node  # identity, no element is compared
+        node.left = _call("_cmp", node.left)
+        node.comparators = [_call("_key" if isinstance(op, (ast.In, ast.NotIn)) else "_cmp", c)
+                            for op, c in zip(node.ops, node.comparators)]
+        return node
 
 
 def _run(code, scope):
     b = _Budget()
-    return eval(code, {**scope, "_it": b.it, "_mul": b.mul, "_add": b.add, "_mod": b.mod})
+    return eval(code, {**scope, "_it": b.it, "_mul": b.mul, "_add": b.add, "_mod": b.mod, "_arith": b.arith,
+                       "_cmp": b.cmp, "_key": b.key, "min": b.min, "max": b.max})
 
 
 FUNCS = {f.__name__: f for f in (len, any, all, min, max, abs, zip, hours_between)} | {"sum": _sum}
@@ -146,6 +213,10 @@ def _compile(expr: str):
             raise RuleError(f"name {n.id!r} not allowed in {expr!r}")
         if isinstance(n, ast.Constant) and isinstance(n.value, bytes):
             raise RuleError(f"bytes constant not allowed in {expr!r}")
+        if isinstance(n, ast.Constant) and isinstance(n.value, _NUM) and abs(n.value) > MAX_NUMBER:
+            raise RuleError(f"number over {MAX_NUMBER} in {expr!r}")
+        if _static_repeat(n):
+            raise RuleError(f"* applies to numbers only, in {expr!r}")
         if isinstance(n, ast.Attribute) and n.attr != "get":
             raise RuleError(f"attribute .{n.attr} not allowed in {expr!r}")
         if isinstance(n, ast.keyword) and n.arg is None:
