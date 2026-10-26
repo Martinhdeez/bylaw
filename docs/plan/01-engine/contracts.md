@@ -82,3 +82,11 @@ def get_domain(name: str) -> Domain
 - **C1 snapshot shape:** `Domain.snapshot(env)` returns the τ² DB dump as a dict whose top-level collections are keyed by id. Airline: `{"users": {id: {...}}, "reservations": {id: {...}}, "flights": {...}}`. Retail: `{"users": {...}, "orders": {...}, "products": {...}}`.
 - **C2 conversation facts in `args`:** facts the policy needs but the τ² tool signature lacks are passed as extra keys in the call's `args`, and rules read them from `args`. Examples: the cancellation reason as `args["reason"]` ("change of plan" | "airline cancelled flight" | "other"), and the certificate's reservation as `args["reservation_id"]` on `send_certificate`. `Domain.call` strips the keys the τ² tool does not accept before calling it.
 - **C3 offline injection:** the signature is `compile_policy(domain, model=None, llm=None)`. `llm`, if given, is a callable with the signature of `bylaw.llm.structured(messages, schema, name, effort=None, **opts) -> dict`, used instead of the real client. Tests use it to script the model.
+
+## v1.2 (2026-10-26, from TA2 findings), binding on EX1 and PR1
+
+- **C4 `diff` format:** `{collection: {record_id: {"before": dict|null, "after": dict|null}}}`. Only changed records appear; `null` means the record was created or deleted.
+- **C4 hole identity:** `key = goal + ":" + target_id`, where target_id is the primary record the goal fired on (e.g. `G1:T1QOBS`). Every hole and ambiguity carries `"key"`.
+- **EX1 replay:** `bylaw.executor.replay(domain, chain: list[dict]) -> {"steps": [StepResult-as-dict], "diff": C4 diff}`, where `chain` is the C4 chain shape (`tool`, `args`). Replaying a report hole's chain gives a diff equal to the report's `diff`.
+- **C5 bench:** `bench --domain D --budget N [--modes bfs,muse] [-o PATH]`. `--modes bfs` runs offline. The bench JSON is `{"domain", "budget", "rows": [{"mode", "holes", "hole_keys": [...], "tool_calls", "llm_calls", "tokens", "seconds"}]}`.
+- **C6 budget:** the budget counts executed write steps across all chains, summed over the run. Reads are free.
