@@ -1,33 +1,27 @@
 # TA3: acceptance tests, iteration 02 (C7, C8)
 
-- Branch: `test/02-amend` (from `bylaw/build` 5b13538)
-- Files: `tests/acceptance/test_iter02_backtest.py`, `tests/acceptance/test_iter02_amend.py` (self-contained, no conftest)
-- Written blind from `docs/plan/02-amend/requirements.md`, `contracts.md` and the 01 contracts (C1, C2, C4, v1.1). Domain facts come from `.context/tau2-bench` (airline `tasks.json`, `db.json`).
+- Branch: `test/02-amend` (rebased on `bylaw/build` 5e2dd54, contracts 02 v1.1)
+- Files: `tests/acceptance/test_iter02_backtest.py`, `tests/acceptance/test_iter02_amend.py` (self-contained)
+- Written blind from `docs/plan/02-amend/requirements.md`, `contracts.md` v1.1 and the 01 contracts (C1, C2, C4). Domain facts come from `.context/tau2-bench` (airline `tasks.json`, `db.json`) and `bylaw/rulesets/airline.json`.
 
 ## Tests per requirement
 
 | Req | Tests | Notes |
 |---|---|---|
-| REQ-BT1-1 | 3 | 43 gold tasks (counted: 50 tasks, ids 0, 10, 26, 28, 31, 34 and 46 have none); tool order per task equals tasks.json; τ² args are a subset of the returned args; task 44 keeps all 19 actions |
-| REQ-BT1-2 | 6 | empty RuleSet blocks 0 of 43; reads are checked; first blocking rule (tasks 4 and 44 by a read rule, the rest by a flight rule); in-order execution with the snapshot taken before each call (only task 32 blocked by a cabin rule); fresh env per task (15/16, 17/22 not blocked); step index |
-| REQ-BT1-3 | 3 | through the CLI: `baseline_blocked` equals `backtest(hand)["blocked"]`; a no-op amendment costs 0; an "all flight updates forbidden" amendment adds the 12 non-cancel flight-update tasks to the baseline |
-| REQ-AM1-1 | 5 (1 live) | `draft(..., llm=scripted)`: C7 shape, valid C2 patch, 1 or 2 sentences, `hole_id` from the hole; an invalid patch or a 4-sentence policy text from the model is never returned |
-| REQ-AM1-2 | 5 | precondition (the chain runs under the base RuleSet); `apply` is pure and appends; the patched RuleSet blocks the 3rd step; draft then apply blocks; colliding ids never reach the RuleSet |
-| REQ-AM1-3 | 3 | `python -m bylaw amend` with the model scripted by a runner that replaces `bylaw.llm.structured`: amendment, `closes` true for "no flight updates", false for an always-true rule, `backtest` with 43 tasks |
+| REQ-BT1-1 | 3 | 43 gold tasks (I counted: tasks 0, 10, 26, 28, 31, 34 and 46 have none). Tool order per task matches tasks.json. Every τ² argument is present. Task 44 keeps all 19 actions. |
+| REQ-BT1-2 | 8 | An empty RuleSet blocks 0 of 43. Reads are checked. The first blocking rule is reported. Actions run in order and are checked on the snapshot before each call: a cabin rule blocks only task 32, at step 4. Each task gets a fresh env. `step` is 0-based, null when not blocked. `unknown` is an int plus a bool per task, and unknown tasks are not blocked. |
+| REQ-BT1-3 | 4 | Through the CLI: `baseline_blocked` equals `backtest(hand)["blocked"]`. A no-op amendment costs 0. "No flight updates" blocks exactly the baseline plus the 13 flight-update tasks, minus unknown ones. `blocked_tasks` lists every blocked task. |
+| REQ-AM1-1 | 8 (1 live) | Scripted model answers `{policy_text, rule_patch, rationale}`. Checks: the C7 shape, `effort="high"`, `hole_id` from the hole, and one retry, then `ValueError`, for an invalid patch or a 4-sentence text. A valid second answer is returned. `bylaw.llm.structured` is used when `llm=` is absent. |
+| REQ-AM1-2 | 5 | `apply` is pure, appends the patch, and raises `ValueError` on an id collision. The patched base RuleSet and the patched hand RuleSet both block step 3 of the hole. Draft then apply also blocks it. |
+| REQ-AM1-3 | 3 | `python -m bylaw amend` with `bylaw.llm.structured` replaced: the amendment, `closes` true for "no flight updates" and false for an always-true rule, and a backtest of 43 tasks. |
 
-The hole is G1 on reservation Q79V9W (ivan_kim_3844, basic_economy): cabin to economy, flight HAT265 to HAT073, cabin back to basic_economy. All three calls succeed in τ².
+The hole is G1 (`key` G1:Q79V9W) on reservation Q79V9W (ivan_kim_3844, basic_economy). Its chain: cabin to economy, flight HAT265 to HAT073, cabin back to basic_economy. All three calls succeed in τ², and the hand RuleSet allows all three. The expected backtest values were worked out from a throwaway τ²-only simulation, not from an implementation.
 
-## State on `bylaw/build` (5b13538)
+## State on `bylaw/build` (5e2dd54)
 
-25 offline tests error at setup: `bylaw.backtest`, `bylaw.amend`, `bylaw.domain` and `bylaw.rules` do not exist yet. The live test is deselected by default. `harness-trace`: 6 requirements, all named by a test.
+All 30 offline tests error at setup: `bylaw.backtest` and `bylaw.amend` do not exist yet. The live test is deselected by default. `harness-trace`: 6 requirements, all named by a test.
 
-## Contract gaps (assumptions the tests make)
+## Remaining assumptions
 
-- C8 does not type `domain`. The tests pass the C1 Domain object, as in C3 and C6.
-- C8 `step` has no base. The tests take the 0-based index into the `load_gold` action list.
-- C8 `unknown`: no key for the total, and no per-result flag. Exact blocked sets are asserted only on tasks without `cancel_reservation` (7, 14, 19, 23, 29, 39, 42 may be unknown).
-- C7 does not define what the model returns to `draft`. The scripted model answers with the amendment fields, nested under one property only if the request schema nests them.
-- C7 `apply` on colliding ids: the tests accept either an error or unique ids.
-- C7 CLI offers no offline seam. The CLI tests replace `bylaw.llm.structured` before `python -m bylaw` starts. This fails if `draft` builds its own client.
-- REQ-AM1-3 `closes: false` depends on the hand RuleSet leaving G1 open, i.e. on EX1's audit finding it again.
-- `blocked_tasks` could list all blocked tasks or only the new ones. The tests accept both.
+- Among the airline gold tools, only `cancel_reservation` needs a conversation fact. So only the 7 cancel tasks may be `unknown`.
+- `closes: false` depends on the re-audit finding the G1 hole again under the hand RuleSet. That depends on EX1. The precondition, that the hand RuleSet allows the chain, is asserted in `test_REQ_AM1_2_patched_hand_ruleset_blocks_the_hole`.

@@ -5,10 +5,10 @@ The hole is pre-registered goal G1 (basic economy flights changed), built by han
 reservation Q79V9W (ivan_kim_3844, basic_economy, one passenger, HAT265 PHX-DTW on 2024-05-28):
 cabin to economy, flight to HAT073, cabin back to basic_economy.
 
-Offline, the model is scripted: `draft(..., llm=fake)` in process, and for the CLI a runner that
-replaces `bylaw.llm.structured` (the C3 v1.1 signature) before `python -m bylaw` starts.
-The scripted model answers with the amendment fields; if the request schema nests them under one
-property, the answer is nested the same way.
+Offline, the model is scripted (C7 v1.1): `draft(..., llm=fake)` or a replaced
+`bylaw.llm.structured` in process, and for the CLI a runner that replaces `bylaw.llm.structured`
+before `python -m bylaw` starts. The model answers `{policy_text, rule_patch, rationale}`;
+`draft` adds `id` and `hole_id`, validates, retries once, then raises ValueError.
 """
 import copy
 import importlib
@@ -41,7 +41,7 @@ HOLE = {
     "id": "H1", "class": "A", "goal": "G1", "title": "Basic economy flights changed through a cabin round trip",
     "money_delta": 0.0,
     "chain": [{"tool": t, "args": a, "ok": True, "verdicts": []} for t, a in CHAIN],
-    "diff": {}, "goal_true": True, "replays": "5/5",
+    "diff": {}, "goal_true": True, "replays": "5/5", "key": f"G1:{RES}",
 }
 
 REPORT = {
@@ -75,29 +75,28 @@ NOOP = {"id": "R-TA3-noop", "tool": "update_reservation_flights", "allow_if": "T
         "policy_ref": "Flights can be modified.", "note": ""}
 
 
-def answer(patch, policy_text="A reservation cannot be moved back to basic economy after a cabin change.",
+POLICY = "A reservation cannot be moved back to basic economy after a cabin change."
+
+
+def answer(patch, policy_text=POLICY,
            rationale="The hole upgrades, changes flights, then downgrades; the downgrade is the step to refuse."):
-    return {"id": "A1", "hole_id": "H1", "policy_text": policy_text, "rule_patch": [patch], "rationale": rationale}
+    """What the model returns to draft (C7 v1.1)."""
+    return {"policy_text": policy_text, "rule_patch": [patch], "rationale": rationale}
 
 
-def shape_for(schema, payload):
-    """Answer flat, or nested under the one property whose schema holds `rule_patch`."""
-    props = (schema or {}).get("properties") or {}
-    if not props or "rule_patch" in props:
-        return payload
-    for key, sub in props.items():
-        if "rule_patch" in ((sub or {}).get("properties") or {}):
-            return {key: payload}
-    return payload
+def amendment(patch):
+    """A full C7 amendment, as apply receives it."""
+    return {"id": "A1", "hole_id": "H1", **answer(patch)}
 
 
 class Scripted:
-    def __init__(self, payload):
-        self.payload, self.calls = payload, []
+    """Answers each call with the next payload; the last one repeats."""
+    def __init__(self, *payloads):
+        self.payloads, self.calls = list(payloads), []
 
     def __call__(self, messages, schema, name, effort=None, **opts):
-        self.calls.append({"messages": messages, "schema": schema, "name": name})
-        return copy.deepcopy(shape_for(schema, self.payload))
+        self.calls.append({"messages": messages, "schema": schema, "name": name, "effort": effort})
+        return copy.deepcopy(self.payloads[min(len(self.calls), len(self.payloads)) - 1])
 
 
 def sentences(text):
@@ -161,20 +160,16 @@ def assert_amendment_shape(am, rules, domain, hole_id="H1"):
     rules.validate({"domain": "airline", "tool_rules": patch, "forbidden_goals": []})
 
 
-# ---------- fixture precondition ----------
-
-def test_REQ_AM1_2_hand_built_hole_runs_under_the_base_ruleset(rules, airline):
-    assert run_chain(airline, rules, BASE) == [True, True, True]
-
-
 # ---------- REQ-AM1-1 ----------
 
 def test_REQ_AM1_1_draft_returns_the_C7_amendment(amend, rules, airline, no_real_llm):
     llm = Scripted(answer(FIX_RULE))
     am = amend.draft(airline, copy.deepcopy(BASE), copy.deepcopy(HOLE), llm=llm)
-    assert llm.calls, "draft must ask the injected llm"
+    assert len(llm.calls) == 1, "a valid first answer needs no retry"
     assert isinstance(llm.calls[0]["schema"], dict) and isinstance(llm.calls[0]["name"], str)
+    assert llm.calls[0]["effort"] == "high"
     assert_amendment_shape(am, rules, airline)
+    assert am["policy_text"] == POLICY
     assert [(r["tool"], r["allow_if"]) for r in am["rule_patch"]] == [(FIX_RULE["tool"], FIX_RULE["allow_if"])]
     json.dumps(am)
 
@@ -185,23 +180,41 @@ def test_REQ_AM1_1_hole_id_comes_from_the_hole(amend, rules, airline, no_real_ll
     assert am["hole_id"] == "H7"
 
 
-def test_REQ_AM1_1_draft_does_not_return_an_invalid_rule_patch(amend, rules, airline, no_real_llm):
-    bad = dict(FIX_RULE, allow_if="__import__('os').system('true')")
-    try:
-        am = amend.draft(airline, copy.deepcopy(BASE), copy.deepcopy(HOLE), llm=Scripted(answer(bad)))
-    except Exception:
-        return
-    rules.validate({"domain": "airline", "tool_rules": am["rule_patch"], "forbidden_goals": []})
+BAD_RULE = dict(FIX_RULE, allow_if="__import__('os').system('true')")
+LONG_TEXT = "One. Two sentences here. Three of them now. And a fourth one."
 
 
-def test_REQ_AM1_1_draft_does_not_return_a_long_policy_text(amend, rules, airline, no_real_llm):
-    long_text = "One. Two sentences here. Three of them now. And a fourth one."
-    try:
-        am = amend.draft(airline, copy.deepcopy(BASE), copy.deepcopy(HOLE),
-                         llm=Scripted(answer(FIX_RULE, policy_text=long_text)))
-    except Exception:
-        return
-    assert 1 <= len(sentences(am["policy_text"])) <= 2, am["policy_text"]
+def test_REQ_AM1_1_draft_raises_after_two_invalid_rule_patches(amend, airline, no_real_llm):
+    llm = Scripted(answer(BAD_RULE))
+    with pytest.raises(ValueError):
+        amend.draft(airline, copy.deepcopy(BASE), copy.deepcopy(HOLE), llm=llm)
+    assert len(llm.calls) == 2
+
+
+def test_REQ_AM1_1_draft_raises_after_two_long_policy_texts(amend, airline, no_real_llm):
+    llm = Scripted(answer(FIX_RULE, policy_text=LONG_TEXT))
+    with pytest.raises(ValueError):
+        amend.draft(airline, copy.deepcopy(BASE), copy.deepcopy(HOLE), llm=llm)
+    assert len(llm.calls) == 2
+
+
+@pytest.mark.parametrize("first", [answer(BAD_RULE), answer(FIX_RULE, policy_text=LONG_TEXT)],
+                         ids=["invalid_patch", "long_text"])
+def test_REQ_AM1_1_draft_retries_once_and_returns_the_valid_answer(amend, rules, airline, no_real_llm, first):
+    llm = Scripted(first, answer(FIX_RULE))
+    am = amend.draft(airline, copy.deepcopy(BASE), copy.deepcopy(HOLE), llm=llm)
+    assert len(llm.calls) == 2
+    assert_amendment_shape(am, rules, airline)
+    assert am["policy_text"] == POLICY
+    assert [r["allow_if"] for r in am["rule_patch"]] == [FIX_RULE["allow_if"]]
+
+
+def test_REQ_AM1_1_draft_uses_bylaw_llm_structured_when_no_llm_is_given(amend, rules, airline, monkeypatch):
+    llm = Scripted(answer(FIX_RULE))
+    monkeypatch.setattr(importlib.import_module("bylaw.llm"), "structured", llm)
+    am = amend.draft(airline, copy.deepcopy(BASE), copy.deepcopy(HOLE))
+    assert len(llm.calls) == 1
+    assert_amendment_shape(am, rules, airline)
 
 
 @pytest.mark.live
@@ -215,20 +228,21 @@ def test_REQ_AM1_1_live_draft_returns_a_valid_amendment(amend, rules, airline):
 
 def test_REQ_AM1_2_apply_appends_the_patch_and_is_pure(amend, rules):
     base = copy.deepcopy(BASE)
-    am = answer(FIX_RULE)
+    am = amendment(FIX_RULE)
     out = amend.apply(base, am)
     assert base == BASE, "apply must not modify its input"
-    assert am == answer(FIX_RULE)
+    assert am == amendment(FIX_RULE)
     assert out is not base
     assert out["tool_rules"] == BASE["tool_rules"] + [FIX_RULE]
     assert out["domain"] == "airline"
     assert out["forbidden_goals"] == BASE["forbidden_goals"]
     rules.validate(out)
-    assert amend.apply(copy.deepcopy(BASE), answer(FIX_RULE)) == out
+    assert amend.apply(copy.deepcopy(BASE), amendment(FIX_RULE)) == out
 
 
 def test_REQ_AM1_2_patched_ruleset_blocks_a_step_of_the_hole(amend, rules, airline):
-    allowed = run_chain(airline, rules, amend.apply(copy.deepcopy(BASE), answer(FIX_RULE)))
+    assert run_chain(airline, rules, BASE) == [True, True, True], "fixture: the hole runs under BASE"
+    allowed = run_chain(airline, rules, amend.apply(copy.deepcopy(BASE), amendment(FIX_RULE)))
     assert False in allowed
     assert allowed == [True, True, False]  # the downgrade back to basic_economy
 
@@ -238,14 +252,19 @@ def test_REQ_AM1_2_drafted_amendment_applied_blocks_the_hole(amend, rules, airli
     assert False in run_chain(airline, rules, amend.apply(copy.deepcopy(BASE), am))
 
 
-def test_REQ_AM1_2_colliding_rule_ids_never_reach_the_ruleset(amend):
-    clash = dict(FIX_RULE, id="R-base-be")
-    try:
-        out = amend.apply(copy.deepcopy(BASE), answer(clash))
-    except Exception:
-        return
-    ids = [r["id"] for r in out["tool_rules"]]
-    assert len(ids) == len(set(ids)), ids
+def test_REQ_AM1_2_apply_refuses_a_colliding_rule_id(amend):
+    base = copy.deepcopy(BASE)
+    with pytest.raises(ValueError):
+        amend.apply(base, amendment(dict(FIX_RULE, id="R-base-be")))
+    assert base == BASE
+
+
+def test_REQ_AM1_2_patched_hand_ruleset_blocks_the_hole(amend, rules, airline):
+    # Also the precondition of the CLI tests: the hand RuleSet leaves this G1 hole open.
+    hand = json.loads(HAND.read_text())
+    assert run_chain(airline, rules, hand) == [True, True, True], "fixture: the hole runs under the hand RuleSet"
+    patched = amend.apply(json.loads(HAND.read_text()), amendment(FIX_RULE))
+    assert run_chain(airline, rules, patched) == [True, True, False]
 
 
 # ---------- REQ-AM1-3 and REQ-BT1-3: the amend CLI ----------
@@ -257,19 +276,10 @@ import bylaw.llm
 payload = json.load(open(sys.argv[1]))
 log = sys.argv[2]
 
-def shape_for(schema, payload):
-    props = (schema or {}).get("properties") or {}
-    if not props or "rule_patch" in props:
-        return payload
-    for key, sub in props.items():
-        if "rule_patch" in ((sub or {}).get("properties") or {}):
-            return {key: payload}
-    return payload
-
 def fake(messages, schema, name, effort=None, **opts):
     with open(log, "a") as f:
         f.write(json.dumps({"name": name}) + "\\n")
-    return copy.deepcopy(shape_for(schema, payload))
+    return copy.deepcopy(payload)
 
 bylaw.llm.structured = fake
 sys.argv = ["bylaw"] + sys.argv[3:]
@@ -353,12 +363,19 @@ def test_REQ_BT1_3_a_no_op_amendment_costs_nothing(amended_noop, baseline):
 
 
 def test_REQ_BT1_3_cost_is_counted_against_the_baseline(amended_closing, baseline):
-    # Blocking every flight update also blocks the 12 non-cancel gold tasks that update flights,
-    # on top of what the hand RuleSet already blocks. Task 7 (a cancel task) may count as unknown.
-    flight_tasks = {"11", "15", "16", "17", "18", "21", "22", "30", "32", "33", "37", "44"}
+    # Blocking every flight update blocks the 13 gold tasks that update flights, on top of what the
+    # hand RuleSet already blocks; unknown tasks (no inferable reason) stay unblocked.
+    flight_tasks = {"7", "11", "15", "16", "17", "18", "21", "22", "30", "32", "33", "37", "44"}
     base_ids = {r["id"] for r in baseline["results"] if r["blocked"]}
+    unknown = {r["id"] for r in baseline["results"] if r["unknown"]}
     b = only_hole(amended_closing)["backtest"]
-    expected = len(base_ids | flight_tasks)
-    assert b["blocked"] in (expected, len(base_ids | flight_tasks | {"7"}))
-    assert b["blocked"] - b["baseline_blocked"] >= len(flight_tasks - base_ids)
-    assert flight_tasks - base_ids <= set(b["blocked_tasks"])
+    expected = (base_ids | flight_tasks) - unknown
+    assert set(b["blocked_tasks"]) == expected
+    assert len(b["blocked_tasks"]) == b["blocked"] == len(expected)
+    assert b["blocked"] - b["baseline_blocked"] == len(flight_tasks - base_ids - unknown)
+
+
+def test_REQ_BT1_3_blocked_tasks_lists_every_blocked_task(amended_noop, baseline):
+    b = only_hole(amended_noop)["backtest"]
+    assert set(b["blocked_tasks"]) == {r["id"] for r in baseline["results"] if r["blocked"]}
+    assert len(b["blocked_tasks"]) == b["blocked"]

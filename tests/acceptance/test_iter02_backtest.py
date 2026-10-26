@@ -4,11 +4,10 @@ Written blind from docs/plan/02-amend/requirements.md and contracts.md.
 Domain facts come from the τ² airline task file and DB in .context/tau2-bench.
 REQ-BT1-3 (baseline in the amended report) is checked in test_iter02_amend.py, through the CLI.
 
-Assumptions taken from the contracts, flagged in the TA3 change note:
-- `domain` is the C1 Domain object (as in C3 and C6), not its name.
-- `step` is the 0-based index of the blocking action in the task's `load_gold` action list.
-- Tasks with a cancel_reservation gold action need a conversation fact (the reason) and may be
-  counted `unknown` (C8), so exact blocked sets below are asserted on the other tasks only.
+C8 v1.1: `domain` is the C1 Domain object; `step` is the 0-based index into the task's `load_gold`
+actions (null when not blocked); `unknown` is a top-level int plus a per-result bool, and an unknown
+task is not blocked. Only cancel_reservation needs a conversation fact among the airline gold tools
+(the reason), so only the 7 cancel tasks may be unknown.
 """
 import importlib
 import json
@@ -64,15 +63,27 @@ def by_id(result):
     return {r["id"]: r for r in result["results"]}
 
 
+def unknown_ids(result):
+    return {r["id"] for r in result["results"] if r["unknown"] is True}
+
+
 def assert_totals(result):
     assert result["tasks"] == 43
     assert len(result["results"]) == 43
     assert {r["id"] for r in result["results"]} == GOLD_IDS
     assert result["blocked"] == sum(1 for r in result["results"] if r["blocked"] is True)
+    assert all(isinstance(r["unknown"], bool) for r in result["results"])
+    assert isinstance(result["unknown"], int) and result["unknown"] == len(unknown_ids(result))
+    assert unknown_ids(result) <= CANCEL_TASKS
+    for r in result["results"]:
+        if r["unknown"]:
+            assert r["blocked"] is False, r
+        if not r["blocked"]:
+            assert r["step"] is None, r
 
 
-def blocked_ids(result, exclude=CANCEL_TASKS):
-    return {r["id"] for r in result["results"] if r["blocked"] is True} - exclude
+def blocked_ids(result):
+    return {r["id"] for r in result["results"] if r["blocked"] is True}
 
 
 # ---------- REQ-BT1-1 ----------
@@ -122,9 +133,9 @@ def test_REQ_BT1_2_no_rules_blocks_nothing(bt, airline):
 def test_REQ_BT1_2_read_actions_are_checked_too(bt, airline):
     result = bt.backtest(airline, ruleset(("T-no-read", "get_reservation_details", "False")))
     assert_totals(result)
-    assert blocked_ids(result) == READ_RES_TASKS - CANCEL_TASKS
+    assert blocked_ids(result) == READ_RES_TASKS - unknown_ids(result)
     rows = by_id(result)
-    for tid in READ_RES_TASKS - CANCEL_TASKS:
+    for tid in READ_RES_TASKS - unknown_ids(result):
         assert rows[tid]["rule_id"] == "T-no-read", tid
     for tid in GOLD_IDS - READ_RES_TASKS:
         assert rows[tid]["blocked"] is False, tid
@@ -135,12 +146,12 @@ def test_REQ_BT1_2_first_blocking_rule_is_reported(bt, airline):
                  ("T-kc", "get_reservation_details", "args['reservation_id'] != 'KC18K6'"))
     result = bt.backtest(airline, rs)
     assert_totals(result)
-    assert blocked_ids(result) == (FLIGHT_UPDATE_TASKS | {"4", "44"}) - CANCEL_TASKS
+    assert blocked_ids(result) == (FLIGHT_UPDATE_TASKS | {"4", "44"}) - unknown_ids(result)
     rows = by_id(result)
     # 4 and 44 read KC18K6 at action 2; 44 updates flights only at action 16.
     assert rows["4"]["rule_id"] == "T-kc"
     assert rows["44"]["rule_id"] == "T-kc"
-    for tid in FLIGHT_UPDATE_TASKS - CANCEL_TASKS - {"44"}:
+    for tid in FLIGHT_UPDATE_TASKS - unknown_ids(result) - {"44"}:
         assert rows[tid]["rule_id"] == "T-flights", tid
 
 
@@ -176,9 +187,24 @@ def test_REQ_BT1_2_backtest_leaves_a_fresh_env_untouched(bt, airline):
 
 
 def test_REQ_BT1_2_step_is_the_index_of_the_blocking_action(bt, airline):
-    rows = by_id(bt.backtest(airline, ruleset(CABIN_RULE)))
+    result = bt.backtest(airline, ruleset(CABIN_RULE))
+    rows = by_id(result)
     assert rows["32"]["step"] == 4
-    rows = by_id(bt.backtest(airline, ruleset(("T-flights", "update_reservation_flights", "False"))))
+    assert rows["17"]["step"] is None
+    result = bt.backtest(airline, ruleset(("T-flights", "update_reservation_flights", "False")))
+    assert_totals(result)
+    rows = by_id(result)
     assert rows["44"]["step"] == 16
     assert rows["11"]["step"] == 0
     assert rows["30"]["step"] == 2
+    assert rows["32"]["step"] == 3
+    if not rows["7"]["unknown"]:
+        assert rows["7"]["step"] == 2
+
+
+def test_REQ_BT1_2_unknown_tasks_are_counted_not_blocked(bt, airline):
+    # Every cancel task is blocked by this rule unless its reason could not be inferred.
+    result = bt.backtest(airline, ruleset(("T-no-cancel", "cancel_reservation", "False")))
+    assert_totals(result)
+    assert blocked_ids(result) == CANCEL_TASKS - unknown_ids(result)
+    assert result["blocked"] + result["unknown"] == 7
