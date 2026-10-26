@@ -4,6 +4,8 @@ import os
 import re
 from pathlib import Path
 
+from bylaw import rules
+
 DATA_DIR = Path(os.environ.get("TAU2_DATA_DIR", Path(__file__).resolve().parents[1] / ".context/tau2-bench/data"))
 
 # Airline cancel reason (C2 v1.1 args["reason"]), first match wins. Health/weather are "other reasons" in the policy.
@@ -34,3 +36,29 @@ def load_gold(domain) -> list[dict]:
             gold.append({"id": t["id"], "actions": [{"tool": a["name"], "args": a["arguments"]} for a in actions],
                          "facts": {"reason": infer_reason(_scenario_text(t))}})
     return gold
+
+
+def _replay(domain, ruleset, task) -> dict:
+    out = {"id": task["id"], "blocked": False, "rule_id": None, "step": None, "unknown": False}
+    env = domain.fresh_env()
+    for i, a in enumerate(task["actions"]):
+        args = dict(a["args"])
+        if a["tool"] == "cancel_reservation" and "reason" not in args:  # C2 v1.1 conversation fact
+            if task["facts"].get("reason") is None:
+                return out | {"unknown": True, "step": i}
+            args["reason"] = task["facts"]["reason"]
+        verdicts = rules.check(ruleset, domain.snapshot(env), a["tool"], args, domain.now)
+        if not rules.allowed(verdicts):
+            return out | {"blocked": True, "rule_id": next(v.rule_id for v in verdicts if not v.ok), "step": i}
+        domain.call(env, a["tool"], **args)
+    return out
+
+
+def backtest(domain, ruleset: dict) -> dict:
+    if isinstance(domain, str):
+        from bylaw.domain import get_domain
+
+        domain = get_domain(domain)
+    results = [_replay(domain, ruleset, t) for t in load_gold(domain)]
+    return {"tasks": len(results), "blocked": sum(r["blocked"] for r in results),
+            "unknown": sum(r["unknown"] for r in results), "results": results}
