@@ -104,3 +104,4 @@ def get_domain(name: str) -> Domain
 ## v1.5 (2026-10-27, from review of PR #8), binding on all items
 
 - **C2 evaluation limits (replaces the v1.3 wording):** `check` bounds each rule evaluation by work, not wall-clock: at most 10^6 comprehension iterations plus elements or characters built, summed over the evaluation. Over the budget gives `Verdict(ok=False, error=...)`. `check` is safe to call from several threads at once. `bytes` constants are rejected by `validate`.
+- **C2 operators (v1.5 addendum):** `*` applies to numbers only (sequence or string repetition is refused). Numeric values a rule computes must stay within `abs(x) <= 10**15`; beyond that the verdict is `ok=False` with an error.
