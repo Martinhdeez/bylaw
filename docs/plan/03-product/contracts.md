@@ -30,3 +30,9 @@ Run: `uv run uvicorn bylaw.api:app`. All JSON. Domain is `airline` | `retail`.
 
 - `bylaw.ratified.load(domain) -> dict` (empty amendments if the file is missing), `bylaw.ratified.ratify(domain, hole) -> dict`, `bylaw.ratified.effective_ruleset(domain) -> C2` = the domain's hand RuleSet with every ratified `rule_patch` applied via `bylaw.amend.apply` in order.
 - The path can be overridden by env `BYLAW_RATIFIED_DIR` (tests use a tmp dir).
+
+## v1.1 (2026-10-27, from TA4 findings), binding on AP1 and UI2
+
+- **Store locations, overridable, read on every request:** reports dir = env `BYLAW_REPORTS_DIR` (default `reports/` at the repo root); API-run audits dir = env `BYLAW_CACHE_DIR` (default `.cache/reports/`); ratified dir = env `BYLAW_RATIFIED_DIR` (default `ratified/` at the repo root — not `bylaw/ratified/`, which would clash with the module `bylaw/ratified.py`). "Latest" for a domain = the newest file by mtime among `<reports>/<domain>.json` and `<cache>/<domain>-*.json`; no in-memory latest.
+- **Ratify an unknown hole key:** 404. No amendment: 409 (as before).
+- Relative default paths resolve from the repo root (the parent of the `bylaw/` package), not the working directory.
