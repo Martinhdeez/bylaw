@@ -1,0 +1,21 @@
+[project]
+name = "bylaw"
+version = "0.1.0"
+description = "Audits the policy AI agents run on: finds chains of allowed actions that reach forbidden outcomes, proves them, patches them."
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "openai>=1.50",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: calls the real Meta Model API (needs MODEL_API_KEY)"]
+addopts = "-m 'not live'"
