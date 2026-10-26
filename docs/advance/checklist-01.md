@@ -3,6 +3,7 @@
 Plan: `docs/plan/01-engine/00-plan.md`. Progress: 1 / 8.
 
 - [x] **Fix** Spike output determinism (tree clean after gate) — builder — PR #3
+- [x] **OP1** Reproducible tau2 setup (`make setup`, README Quickstart) — devops, light — PR #6
 - [ ] **CP1** Policy compiler — builder — PR #
 - [ ] **RT1** Retail domain plug-in — builder — PR #
 - [x] **EN1** Rule checker + airline RuleSet — builder — PR #4
