@@ -1,0 +1,1309 @@
+{
+  "class_a_count": 3,
+  "holes": [
+    {
+      "id": "H1",
+      "target": "T1QOBS",
+      "user": "harper_lopez_1489",
+      "goal": "G1",
+      "all_steps_allowed": true,
+      "failing_step": null,
+      "goal_true": true,
+      "goals_hit": {
+        "G1": [
+          "T1QOBS"
+        ]
+      },
+      "reproduced": true,
+      "class": "A",
+      "note": "",
+      "money": {
+        "original_paid": 280,
+        "chain_charged": 196,
+        "chain_refunded": 80
+      },
+      "leak_usd": 0,
+      "chain": [
+        {
+          "tool": "update_reservation_flights",
+          "args": {
+            "reservation_id": "T1QOBS",
+            "cabin": "economy",
+            "flights": [
+              {
+                "flight_number": "HAT060",
+                "date": "2024-05-26"
+              }
+            ],
+            "payment_id": "credit_card_9875103"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cabin and flights not changed in the same call",
+            "PASS cabin change: no flight in the reservation has been flown",
+            "PASS payment method is in the user profile",
+            "PASS single gift card or credit card for change/refund"
+          ],
+          "error": null
+        },
+        {
+          "tool": "update_reservation_flights",
+          "args": {
+            "reservation_id": "T1QOBS",
+            "cabin": "economy",
+            "flights": [
+              {
+                "flight_number": "HAT060",
+                "date": "2024-05-18"
+              }
+            ],
+            "payment_id": "credit_card_9875103"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cabin and flights not changed in the same call",
+            "PASS flight change: reservation is not basic economy",
+            "PASS flight change: same origin, destination and trip type",
+            "PASS payment method is in the user profile",
+            "PASS single gift card or credit card for change/refund"
+          ],
+          "error": null
+        },
+        {
+          "tool": "update_reservation_flights",
+          "args": {
+            "reservation_id": "T1QOBS",
+            "cabin": "basic_economy",
+            "flights": [
+              {
+                "flight_number": "HAT060",
+                "date": "2024-05-18"
+              }
+            ],
+            "payment_id": "credit_card_9875103"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cabin and flights not changed in the same call",
+            "PASS cabin change: no flight in the reservation has been flown",
+            "PASS payment method is in the user profile",
+            "PASS single gift card or credit card for change/refund"
+          ],
+          "error": null
+        }
+      ],
+      "diff": {
+        "reservations": {
+          "T1QOBS": {
+            "before": {
+              "reservation_id": "T1QOBS",
+              "user_id": "harper_lopez_1489",
+              "origin": "JFK",
+              "destination": "MIA",
+              "flight_type": "one_way",
+              "cabin": "basic_economy",
+              "flights": [
+                {
+                  "flight_number": "HAT060",
+                  "origin": "JFK",
+                  "destination": "MIA",
+                  "date": "2024-05-26",
+                  "price": 70
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Harper",
+                  "last_name": "Lopez",
+                  "dob": "1978-10-24"
+                },
+                {
+                  "first_name": "Ivan",
+                  "last_name": "Sanchez",
+                  "dob": "1997-04-20"
+                },
+                {
+                  "first_name": "Sophia",
+                  "last_name": "Taylor",
+                  "dob": "1987-06-15"
+                },
+                {
+                  "first_name": "Harper",
+                  "last_name": "Anderson",
+                  "dob": "2000-08-26"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_9875103",
+                  "amount": 280
+                }
+              ],
+              "created_at": "2024-05-09T19:59:01",
+              "total_baggages": 0,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            },
+            "after": {
+              "reservation_id": "T1QOBS",
+              "user_id": "harper_lopez_1489",
+              "origin": "JFK",
+              "destination": "MIA",
+              "flight_type": "one_way",
+              "cabin": "basic_economy",
+              "flights": [
+                {
+                  "flight_number": "HAT060",
+                  "origin": "JFK",
+                  "destination": "MIA",
+                  "date": "2024-05-18",
+                  "price": 99
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Harper",
+                  "last_name": "Lopez",
+                  "dob": "1978-10-24"
+                },
+                {
+                  "first_name": "Ivan",
+                  "last_name": "Sanchez",
+                  "dob": "1997-04-20"
+                },
+                {
+                  "first_name": "Sophia",
+                  "last_name": "Taylor",
+                  "dob": "1987-06-15"
+                },
+                {
+                  "first_name": "Harper",
+                  "last_name": "Anderson",
+                  "dob": "2000-08-26"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_9875103",
+                  "amount": 280
+                },
+                {
+                  "payment_id": "credit_card_9875103",
+                  "amount": 196
+                },
+                {
+                  "payment_id": "credit_card_9875103",
+                  "amount": -72
+                },
+                {
+                  "payment_id": "credit_card_9875103",
+                  "amount": -8
+                }
+              ],
+              "created_at": "2024-05-09T19:59:01",
+              "total_baggages": 0,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "H2",
+      "target": "1ERWZ8",
+      "user": "raj_johnson_6495",
+      "goal": "G2",
+      "all_steps_allowed": true,
+      "failing_step": null,
+      "goal_true": true,
+      "goals_hit": {
+        "G2": [
+          "1ERWZ8"
+        ]
+      },
+      "reproduced": true,
+      "class": "A",
+      "note": "",
+      "money": {
+        "original_paid": 117,
+        "chain_charged": 455,
+        "chain_refunded": 572
+      },
+      "leak_usd": 117,
+      "chain": [
+        {
+          "tool": "update_reservation_flights",
+          "args": {
+            "reservation_id": "1ERWZ8",
+            "cabin": "business",
+            "flights": [
+              {
+                "flight_number": "HAT208",
+                "date": "2024-05-24"
+              },
+              {
+                "flight_number": "HAT300",
+                "date": "2024-05-29"
+              }
+            ],
+            "payment_id": "credit_card_5296290"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cabin and flights not changed in the same call",
+            "PASS cabin change: no flight in the reservation has been flown",
+            "PASS payment method is in the user profile",
+            "PASS single gift card or credit card for change/refund"
+          ],
+          "error": null
+        },
+        {
+          "tool": "cancel_reservation",
+          "args": {
+            "reservation_id": "1ERWZ8"
+          },
+          "meta": {
+            "reason": "change of plan"
+          },
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cancellation reason obtained",
+            "PASS no portion of the trip has been flown",
+            "PASS cancel ground: business flight"
+          ],
+          "error": null
+        }
+      ],
+      "diff": {
+        "reservations": {
+          "1ERWZ8": {
+            "before": {
+              "reservation_id": "1ERWZ8",
+              "user_id": "raj_johnson_6495",
+              "origin": "EWR",
+              "destination": "MSP",
+              "flight_type": "round_trip",
+              "cabin": "basic_economy",
+              "flights": [
+                {
+                  "flight_number": "HAT208",
+                  "origin": "EWR",
+                  "destination": "MSP",
+                  "date": "2024-05-24",
+                  "price": 66
+                },
+                {
+                  "flight_number": "HAT300",
+                  "origin": "MSP",
+                  "destination": "EWR",
+                  "date": "2024-05-29",
+                  "price": 51
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Raj",
+                  "last_name": "Johnson",
+                  "dob": "1991-06-17"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "gift_card_3613186",
+                  "amount": 117
+                }
+              ],
+              "created_at": "2024-05-10T14:35:44",
+              "total_baggages": 0,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            },
+            "after": {
+              "reservation_id": "1ERWZ8",
+              "user_id": "raj_johnson_6495",
+              "origin": "EWR",
+              "destination": "MSP",
+              "flight_type": "round_trip",
+              "cabin": "business",
+              "flights": [
+                {
+                  "flight_number": "HAT208",
+                  "origin": "EWR",
+                  "destination": "MSP",
+                  "date": "2024-05-24",
+                  "price": 258
+                },
+                {
+                  "flight_number": "HAT300",
+                  "origin": "MSP",
+                  "destination": "EWR",
+                  "date": "2024-05-29",
+                  "price": 314
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Raj",
+                  "last_name": "Johnson",
+                  "dob": "1991-06-17"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "gift_card_3613186",
+                  "amount": 117
+                },
+                {
+                  "payment_id": "credit_card_5296290",
+                  "amount": 455
+                },
+                {
+                  "payment_id": "gift_card_3613186",
+                  "amount": -117
+                },
+                {
+                  "payment_id": "credit_card_5296290",
+                  "amount": -455
+                }
+              ],
+              "created_at": "2024-05-10T14:35:44",
+              "total_baggages": 0,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": "cancelled"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "H3",
+      "target": "018BE2",
+      "user": "juan_taylor_8806",
+      "goal": "G5",
+      "all_steps_allowed": true,
+      "failing_step": null,
+      "goal_true": true,
+      "goals_hit": {
+        "G5": [
+          "018BE2"
+        ]
+      },
+      "reproduced": true,
+      "class": "A",
+      "note": "",
+      "money": {
+        "original_paid": 5228,
+        "chain_charged": 0,
+        "chain_refunded": 4894
+      },
+      "leak_usd": 100,
+      "chain": [
+        {
+          "tool": "update_reservation_baggages",
+          "args": {
+            "reservation_id": "018BE2",
+            "total_baggages": 3,
+            "nonfree_baggages": 0,
+            "payment_id": "credit_card_2217221"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS bags: can add but not remove (total)",
+            "PASS bags: paid bags are not turned into free ones",
+            "PASS bags: free bags within allowance (3)",
+            "PASS payment method is in the user profile"
+          ],
+          "error": null
+        },
+        {
+          "tool": "update_reservation_flights",
+          "args": {
+            "reservation_id": "018BE2",
+            "cabin": "basic_economy",
+            "flights": [
+              {
+                "flight_number": "HAT176",
+                "date": "2024-05-27"
+              },
+              {
+                "flight_number": "HAT263",
+                "date": "2024-05-27"
+              },
+              {
+                "flight_number": "HAT212",
+                "date": "2024-05-28"
+              },
+              {
+                "flight_number": "HAT053",
+                "date": "2024-05-28"
+              }
+            ],
+            "payment_id": "credit_card_2217221"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cabin and flights not changed in the same call",
+            "PASS cabin change: no flight in the reservation has been flown",
+            "PASS payment method is in the user profile",
+            "PASS single gift card or credit card for change/refund"
+          ],
+          "error": null
+        }
+      ],
+      "diff": {
+        "reservations": {
+          "018BE2": {
+            "before": {
+              "reservation_id": "018BE2",
+              "user_id": "juan_taylor_8806",
+              "origin": "CLT",
+              "destination": "JFK",
+              "flight_type": "round_trip",
+              "cabin": "business",
+              "flights": [
+                {
+                  "flight_number": "HAT176",
+                  "origin": "CLT",
+                  "destination": "DTW",
+                  "date": "2024-05-27",
+                  "price": 1756
+                },
+                {
+                  "flight_number": "HAT263",
+                  "origin": "DTW",
+                  "destination": "JFK",
+                  "date": "2024-05-27",
+                  "price": 1823
+                },
+                {
+                  "flight_number": "HAT212",
+                  "origin": "JFK",
+                  "destination": "DTW",
+                  "date": "2024-05-28",
+                  "price": 935
+                },
+                {
+                  "flight_number": "HAT053",
+                  "origin": "DTW",
+                  "destination": "CLT",
+                  "date": "2024-05-28",
+                  "price": 714
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Chen",
+                  "last_name": "Lee",
+                  "dob": "1959-04-10"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_2217221",
+                  "amount": 5228
+                }
+              ],
+              "created_at": "2024-05-13T17:59:06",
+              "total_baggages": 2,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            },
+            "after": {
+              "reservation_id": "018BE2",
+              "user_id": "juan_taylor_8806",
+              "origin": "CLT",
+              "destination": "JFK",
+              "flight_type": "round_trip",
+              "cabin": "basic_economy",
+              "flights": [
+                {
+                  "flight_number": "HAT176",
+                  "origin": "CLT",
+                  "destination": "DTW",
+                  "date": "2024-05-27",
+                  "price": 93
+                },
+                {
+                  "flight_number": "HAT263",
+                  "origin": "DTW",
+                  "destination": "JFK",
+                  "date": "2024-05-27",
+                  "price": 78
+                },
+                {
+                  "flight_number": "HAT212",
+                  "origin": "JFK",
+                  "destination": "DTW",
+                  "date": "2024-05-28",
+                  "price": 86
+                },
+                {
+                  "flight_number": "HAT053",
+                  "origin": "DTW",
+                  "destination": "CLT",
+                  "date": "2024-05-28",
+                  "price": 77
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Chen",
+                  "last_name": "Lee",
+                  "dob": "1959-04-10"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_2217221",
+                  "amount": 5228
+                },
+                {
+                  "payment_id": "credit_card_2217221",
+                  "amount": -4894
+                }
+              ],
+              "created_at": "2024-05-13T17:59:06",
+              "total_baggages": 3,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "H4",
+      "target": "00GMVN",
+      "user": "aarav_brown_5556",
+      "goal": "G3",
+      "all_steps_allowed": true,
+      "failing_step": null,
+      "goal_true": true,
+      "goals_hit": {
+        "G3": [
+          "00GMVN->HATHAT"
+        ]
+      },
+      "reproduced": true,
+      "class": "C",
+      "note": "cancel+rebook inside a permitted cancel ground is the permitted method (ambiguity, not counted)",
+      "money": {
+        "original_paid": 900,
+        "chain_charged": 0,
+        "chain_refunded": 900
+      },
+      "leak_usd": 0,
+      "chain": [
+        {
+          "tool": "cancel_reservation",
+          "args": {
+            "reservation_id": "00GMVN"
+          },
+          "meta": {
+            "reason": "change of plan"
+          },
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cancellation reason obtained",
+            "PASS no portion of the trip has been flown",
+            "PASS cancel ground: booked within 24h, business flight"
+          ],
+          "error": null
+        },
+        {
+          "tool": "book_reservation",
+          "args": {
+            "user_id": "aarav_brown_5556",
+            "origin": "SFO",
+            "destination": "SEA",
+            "flight_type": "one_way",
+            "cabin": "business",
+            "flights": [
+              {
+                "flight_number": "HAT204",
+                "date": "2024-05-21"
+              }
+            ],
+            "passengers": [
+              {
+                "first_name": "Aarav",
+                "last_name": "Brown",
+                "dob": "1981-04-19"
+              }
+            ],
+            "payment_methods": [
+              {
+                "payment_id": "credit_card_3029145",
+                "amount": 530
+              }
+            ],
+            "total_baggages": 2,
+            "nonfree_baggages": 0,
+            "insurance": "yes"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS user exists",
+            "PASS at most five passengers",
+            "PASS flights match origin, destination and trip type",
+            "PASS all payment methods are in the user profile",
+            "PASS at most 1 certificate, 1 credit card, 3 gift cards",
+            "PASS bags: free allowance 2 applied"
+          ],
+          "error": null
+        }
+      ],
+      "diff": {
+        "reservations": {
+          "00GMVN": {
+            "before": {
+              "reservation_id": "00GMVN",
+              "user_id": "aarav_brown_5556",
+              "origin": "SFO",
+              "destination": "SEA",
+              "flight_type": "one_way",
+              "cabin": "business",
+              "flights": [
+                {
+                  "flight_number": "HAT204",
+                  "origin": "SFO",
+                  "destination": "SEA",
+                  "date": "2024-05-21",
+                  "price": 900
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Aarav",
+                  "last_name": "Brown",
+                  "dob": "1981-04-19"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "gift_card_7654035",
+                  "amount": 900
+                }
+              ],
+              "created_at": "2024-05-14T22:33:39",
+              "total_baggages": 2,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            },
+            "after": {
+              "reservation_id": "00GMVN",
+              "user_id": "aarav_brown_5556",
+              "origin": "SFO",
+              "destination": "SEA",
+              "flight_type": "one_way",
+              "cabin": "business",
+              "flights": [
+                {
+                  "flight_number": "HAT204",
+                  "origin": "SFO",
+                  "destination": "SEA",
+                  "date": "2024-05-21",
+                  "price": 900
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Aarav",
+                  "last_name": "Brown",
+                  "dob": "1981-04-19"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "gift_card_7654035",
+                  "amount": 900
+                },
+                {
+                  "payment_id": "gift_card_7654035",
+                  "amount": -900
+                }
+              ],
+              "created_at": "2024-05-14T22:33:39",
+              "total_baggages": 2,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": "cancelled"
+            }
+          },
+          "HATHAT": {
+            "before": null,
+            "after": {
+              "reservation_id": "HATHAT",
+              "user_id": "aarav_brown_5556",
+              "origin": "SFO",
+              "destination": "SEA",
+              "flight_type": "one_way",
+              "cabin": "business",
+              "flights": [
+                {
+                  "flight_number": "HAT204",
+                  "origin": "SFO",
+                  "destination": "SEA",
+                  "date": "2024-05-21",
+                  "price": 500
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Aarav",
+                  "last_name": "Brown",
+                  "dob": "1981-04-19"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_3029145",
+                  "amount": 530
+                }
+              ],
+              "created_at": "2024-05-15T15:00:00",
+              "total_baggages": 2,
+              "nonfree_baggages": 0,
+              "insurance": "yes",
+              "status": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "H5",
+      "target": "00Y36Z",
+      "user": "sofia_anderson_8718",
+      "goal": "G4",
+      "all_steps_allowed": true,
+      "failing_step": null,
+      "goal_true": true,
+      "goals_hit": {
+        "G4": [
+          "00Y36Z->HATHAT"
+        ]
+      },
+      "reproduced": true,
+      "class": "C",
+      "note": "cancel+rebook inside a permitted cancel ground is the permitted method (ambiguity, not counted)",
+      "money": {
+        "original_paid": 13200,
+        "chain_charged": 0,
+        "chain_refunded": 13200
+      },
+      "leak_usd": 0,
+      "chain": [
+        {
+          "tool": "cancel_reservation",
+          "args": {
+            "reservation_id": "00Y36Z"
+          },
+          "meta": {
+            "reason": "change of plan"
+          },
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cancellation reason obtained",
+            "PASS no portion of the trip has been flown",
+            "PASS cancel ground: booked within 24h, business flight"
+          ],
+          "error": null
+        },
+        {
+          "tool": "book_reservation",
+          "args": {
+            "user_id": "sofia_anderson_8718",
+            "origin": "ATL",
+            "destination": "PHX",
+            "flight_type": "round_trip",
+            "cabin": "business",
+            "flights": [
+              {
+                "flight_number": "HAT146",
+                "date": "2024-05-18"
+              },
+              {
+                "flight_number": "HAT048",
+                "date": "2024-05-18"
+              },
+              {
+                "flight_number": "HAT045",
+                "date": "2024-05-23"
+              },
+              {
+                "flight_number": "HAT220",
+                "date": "2024-05-24"
+              }
+            ],
+            "passengers": [
+              {
+                "first_name": "Sofia",
+                "last_name": "Anderson",
+                "dob": "1998-11-26"
+              },
+              {
+                "first_name": "Raj",
+                "last_name": "Martin",
+                "dob": "1996-04-17"
+              },
+              {
+                "first_name": "Extra",
+                "last_name": "Passenger",
+                "dob": "1990-01-01"
+              }
+            ],
+            "payment_methods": [
+              {
+                "payment_id": "credit_card_7385026",
+                "amount": 4203
+              }
+            ],
+            "total_baggages": 4,
+            "nonfree_baggages": 0,
+            "insurance": "no"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS user exists",
+            "PASS at most five passengers",
+            "PASS flights match origin, destination and trip type",
+            "PASS all payment methods are in the user profile",
+            "PASS at most 1 certificate, 1 credit card, 3 gift cards",
+            "PASS bags: free allowance 12 applied"
+          ],
+          "error": null
+        }
+      ],
+      "diff": {
+        "reservations": {
+          "HATHAT": {
+            "before": null,
+            "after": {
+              "reservation_id": "HATHAT",
+              "user_id": "sofia_anderson_8718",
+              "origin": "ATL",
+              "destination": "PHX",
+              "flight_type": "round_trip",
+              "cabin": "business",
+              "flights": [
+                {
+                  "flight_number": "HAT146",
+                  "origin": "ATL",
+                  "destination": "MCO",
+                  "date": "2024-05-18",
+                  "price": 336
+                },
+                {
+                  "flight_number": "HAT048",
+                  "origin": "MCO",
+                  "destination": "PHX",
+                  "date": "2024-05-18",
+                  "price": 322
+                },
+                {
+                  "flight_number": "HAT045",
+                  "origin": "PHX",
+                  "destination": "SEA",
+                  "date": "2024-05-23",
+                  "price": 281
+                },
+                {
+                  "flight_number": "HAT220",
+                  "origin": "SEA",
+                  "destination": "ATL",
+                  "date": "2024-05-24",
+                  "price": 462
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Sofia",
+                  "last_name": "Anderson",
+                  "dob": "1998-11-26"
+                },
+                {
+                  "first_name": "Raj",
+                  "last_name": "Martin",
+                  "dob": "1996-04-17"
+                },
+                {
+                  "first_name": "Extra",
+                  "last_name": "Passenger",
+                  "dob": "1990-01-01"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_7385026",
+                  "amount": 4203
+                }
+              ],
+              "created_at": "2024-05-15T15:00:00",
+              "total_baggages": 4,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            }
+          },
+          "00Y36Z": {
+            "before": {
+              "reservation_id": "00Y36Z",
+              "user_id": "sofia_anderson_8718",
+              "origin": "ATL",
+              "destination": "PHX",
+              "flight_type": "round_trip",
+              "cabin": "business",
+              "flights": [
+                {
+                  "flight_number": "HAT146",
+                  "origin": "ATL",
+                  "destination": "MCO",
+                  "date": "2024-05-18",
+                  "price": 1897
+                },
+                {
+                  "flight_number": "HAT048",
+                  "origin": "MCO",
+                  "destination": "PHX",
+                  "date": "2024-05-18",
+                  "price": 1566
+                },
+                {
+                  "flight_number": "HAT045",
+                  "origin": "PHX",
+                  "destination": "SEA",
+                  "date": "2024-05-23",
+                  "price": 1786
+                },
+                {
+                  "flight_number": "HAT220",
+                  "origin": "SEA",
+                  "destination": "ATL",
+                  "date": "2024-05-24",
+                  "price": 1351
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Sofia",
+                  "last_name": "Anderson",
+                  "dob": "1998-11-26"
+                },
+                {
+                  "first_name": "Raj",
+                  "last_name": "Martin",
+                  "dob": "1996-04-17"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "gift_card_9530220",
+                  "amount": 13200
+                }
+              ],
+              "created_at": "2024-05-14T19:21:38",
+              "total_baggages": 4,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            },
+            "after": {
+              "reservation_id": "00Y36Z",
+              "user_id": "sofia_anderson_8718",
+              "origin": "ATL",
+              "destination": "PHX",
+              "flight_type": "round_trip",
+              "cabin": "business",
+              "flights": [
+                {
+                  "flight_number": "HAT146",
+                  "origin": "ATL",
+                  "destination": "MCO",
+                  "date": "2024-05-18",
+                  "price": 1897
+                },
+                {
+                  "flight_number": "HAT048",
+                  "origin": "MCO",
+                  "destination": "PHX",
+                  "date": "2024-05-18",
+                  "price": 1566
+                },
+                {
+                  "flight_number": "HAT045",
+                  "origin": "PHX",
+                  "destination": "SEA",
+                  "date": "2024-05-23",
+                  "price": 1786
+                },
+                {
+                  "flight_number": "HAT220",
+                  "origin": "SEA",
+                  "destination": "ATL",
+                  "date": "2024-05-24",
+                  "price": 1351
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Sofia",
+                  "last_name": "Anderson",
+                  "dob": "1998-11-26"
+                },
+                {
+                  "first_name": "Raj",
+                  "last_name": "Martin",
+                  "dob": "1996-04-17"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "gift_card_9530220",
+                  "amount": 13200
+                },
+                {
+                  "payment_id": "gift_card_9530220",
+                  "amount": -13200
+                }
+              ],
+              "created_at": "2024-05-14T19:21:38",
+              "total_baggages": 4,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": "cancelled"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "H6",
+      "target": "1KUOX2",
+      "user": "anya_khan_1074",
+      "goal": "G1",
+      "all_steps_allowed": true,
+      "failing_step": null,
+      "goal_true": true,
+      "goals_hit": {
+        "G1": [
+          "1KUOX2->HATHAT"
+        ]
+      },
+      "reproduced": true,
+      "class": "C",
+      "note": "cancel+rebook inside a permitted cancel ground is the permitted method (ambiguity, not counted)",
+      "money": {
+        "original_paid": 91,
+        "chain_charged": 0,
+        "chain_refunded": 91
+      },
+      "leak_usd": 0,
+      "chain": [
+        {
+          "tool": "cancel_reservation",
+          "args": {
+            "reservation_id": "1KUOX2"
+          },
+          "meta": {
+            "reason": "change of plan"
+          },
+          "allowed": true,
+          "rules": [
+            "PASS reservation exists and is active",
+            "PASS cancellation reason obtained",
+            "PASS no portion of the trip has been flown",
+            "PASS cancel ground: booked within 24h"
+          ],
+          "error": null
+        },
+        {
+          "tool": "book_reservation",
+          "args": {
+            "user_id": "anya_khan_1074",
+            "origin": "MSP",
+            "destination": "MCO",
+            "flight_type": "one_way",
+            "cabin": "basic_economy",
+            "flights": [
+              {
+                "flight_number": "HAT036",
+                "date": "2024-05-16"
+              }
+            ],
+            "passengers": [
+              {
+                "first_name": "Mohamed",
+                "last_name": "Taylor",
+                "dob": "1984-03-14"
+              }
+            ],
+            "payment_methods": [
+              {
+                "payment_id": "credit_card_1697462",
+                "amount": 54
+              }
+            ],
+            "total_baggages": 0,
+            "nonfree_baggages": 0,
+            "insurance": "no"
+          },
+          "meta": {},
+          "allowed": true,
+          "rules": [
+            "PASS user exists",
+            "PASS at most five passengers",
+            "PASS flights match origin, destination and trip type",
+            "PASS all payment methods are in the user profile",
+            "PASS at most 1 certificate, 1 credit card, 3 gift cards",
+            "PASS bags: free allowance 1 applied"
+          ],
+          "error": null
+        }
+      ],
+      "diff": {
+        "reservations": {
+          "1KUOX2": {
+            "before": {
+              "reservation_id": "1KUOX2",
+              "user_id": "anya_khan_1074",
+              "origin": "MSP",
+              "destination": "MCO",
+              "flight_type": "one_way",
+              "cabin": "basic_economy",
+              "flights": [
+                {
+                  "flight_number": "HAT036",
+                  "origin": "MSP",
+                  "destination": "MCO",
+                  "date": "2024-05-22",
+                  "price": 91
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Mohamed",
+                  "last_name": "Taylor",
+                  "dob": "1984-03-14"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_1697462",
+                  "amount": 91
+                }
+              ],
+              "created_at": "2024-05-14T17:16:37",
+              "total_baggages": 0,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            },
+            "after": {
+              "reservation_id": "1KUOX2",
+              "user_id": "anya_khan_1074",
+              "origin": "MSP",
+              "destination": "MCO",
+              "flight_type": "one_way",
+              "cabin": "basic_economy",
+              "flights": [
+                {
+                  "flight_number": "HAT036",
+                  "origin": "MSP",
+                  "destination": "MCO",
+                  "date": "2024-05-22",
+                  "price": 91
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Mohamed",
+                  "last_name": "Taylor",
+                  "dob": "1984-03-14"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_1697462",
+                  "amount": 91
+                },
+                {
+                  "payment_id": "credit_card_1697462",
+                  "amount": -91
+                }
+              ],
+              "created_at": "2024-05-14T17:16:37",
+              "total_baggages": 0,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": "cancelled"
+            }
+          },
+          "HATHAT": {
+            "before": null,
+            "after": {
+              "reservation_id": "HATHAT",
+              "user_id": "anya_khan_1074",
+              "origin": "MSP",
+              "destination": "MCO",
+              "flight_type": "one_way",
+              "cabin": "basic_economy",
+              "flights": [
+                {
+                  "flight_number": "HAT036",
+                  "origin": "MSP",
+                  "destination": "MCO",
+                  "date": "2024-05-16",
+                  "price": 54
+                }
+              ],
+              "passengers": [
+                {
+                  "first_name": "Mohamed",
+                  "last_name": "Taylor",
+                  "dob": "1984-03-14"
+                }
+              ],
+              "payment_history": [
+                {
+                  "payment_id": "credit_card_1697462",
+                  "amount": 54
+                }
+              ],
+              "created_at": "2024-05-15T15:00:00",
+              "total_baggages": 0,
+              "nonfree_baggages": 0,
+              "insurance": "no",
+              "status": null
+            }
+          }
+        }
+      }
+    }
+  ]
+}

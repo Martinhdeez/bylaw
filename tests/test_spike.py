@@ -1,0 +1,46 @@
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spike"))
+import holes_by_hand  # noqa: E402
+
+from bylaw.env.tau2_airline import airline, snapshot  # noqa: E402
+from bylaw.goals import GOALS  # noqa: E402
+from bylaw.rules import check  # noqa: E402
+
+
+@pytest.fixture(scope="module")
+def holes():
+    return holes_by_hand.main()
+
+
+def test_at_least_three_class_a(holes):
+    class_a = [h for h in holes if h["class"] == "A"]
+    assert len(class_a) >= 3
+    for h in class_a:
+        assert h["goal_true"]
+        assert all(s["allowed"] and s["error"] is None for s in h["chain"])
+
+
+def test_cancel_rebook_is_never_counted(holes):
+    assert all(h["class"] != "A" for h in holes if h["id"] in ("H4", "H5", "H6"))
+
+
+def test_goals_false_on_untouched_db():
+    env = airline.fresh_env()
+    before, after = snapshot(env), snapshot(env)
+    assert {g: fn(before, after, []) for g, fn in GOALS.items()} == {g: [] for g in GOALS}
+
+
+def test_rules_block_the_direct_route():
+    """Negative control: the one-step versions of H1/H2 must fail the rules."""
+    db = airline.base_db
+    r = db.reservations["T1QOBS"]  # basic economy, no insurance, booked >24h ago
+    pid = holes_by_hand.card(db, r)
+    alt = holes_by_hand.other_date(db, r, "basic_economy")
+    change = {"tool": "update_reservation_flights", "args": {"reservation_id": "T1QOBS", "cabin": "basic_economy", "flights": [alt], "payment_id": pid}}
+    cancel = {"tool": "cancel_reservation", "args": {"reservation_id": "T1QOBS"}, "meta": {"reason": "change of plan"}}
+    assert not check(db, change).ok
+    assert not check(db, cancel).ok
