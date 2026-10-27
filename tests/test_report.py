@@ -74,12 +74,24 @@ def test_an_entry_that_does_not_replay_5_of_5_is_dropped(monkeypatch):
     assert r["holes"] == r["contradictions"] == r["ambiguities"] == []
 
 
-def test_a_cancel_rebook_ambiguity_does_not_shadow_a_finding_with_the_same_key(monkeypatch):
-    # 1KUOX2: basic economy booked inside 24h. cancel+rebook (C) and cabin change + new date (B) both reach G1.
+def test_a_cancel_rebook_ambiguity_does_not_shadow_a_hole_with_the_same_key(monkeypatch):
+    # 1KUOX2: basic economy booked inside 24h. cancel+rebook (C) comes first, cabin change + new date reaches G1 too.
+    # With no gold task on G1, that second chain is a Class A hole and takes the key from the ambiguity.
+    rid = "1KUOX2"
+    monkeypatch.setattr(report_mod, "search", lambda *a, **k: _only(rid))
+    monkeypatch.setattr(report_mod, "gold_goals", lambda domain: {})
+    r = audit(DOMAIN, RULES, budget=20)
+    assert "G1:" + rid in {e["key"] for e in r["holes"]}
+    assert "G1:" + rid not in {e["key"] for e in r["ambiguities"]}
+
+
+def test_a_key_is_listed_once_across_holes_contradictions_and_ambiguities(monkeypatch):
+    # With G1 gold-sanctioned, the first chain to G1:1KUOX2 (the 24h cancel+rebook, Class C) keeps the key (REQ-EX1-3).
     rid = "1KUOX2"
     monkeypatch.setattr(report_mod, "search", lambda *a, **k: _only(rid))
     r = audit(DOMAIN, RULES, budget=20)
-    assert "G1:" + rid in {e["key"] for e in r["contradictions"]}
+    keys = [e["key"] for e in r["holes"] + r["contradictions"] + r["ambiguities"]]
+    assert len(keys) == len(set(keys))
     assert "G1:" + rid in {e["key"] for e in r["ambiguities"]}
 
 

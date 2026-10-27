@@ -104,17 +104,17 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         target = chain[0]["args"].get("reservation_id") or chain[0]["args"].get("user_id")
         for gid, goal in domain.goals.items():
             key, cls = f"{gid}:{target}", classify(domain, db, gid, chain)
-            # One entry per key and list: contradictions (B) apart, holes and ambiguities share keys (A beats C).
-            # Otherwise the first, shortest chain wins, and a chain that extends one already listed for the key adds nothing.
-            slot = ("B" if cls == "B" else "AC", key)
-            if (slot in entries and not (cls == "A" and entries[slot]["class"] == "C")) or _extends(chain, key, entries) \
+            # One entry per key across the three lists. A Class A hole takes the key from a B or C entry: it is never
+            # shadowed. Otherwise the first, shortest chain wins (so the 24h cancel+rebook stays a Class C ambiguity,
+            # REQ-EX1-3), and a chain that extends one already listed for the key adds nothing.
+            if (key in entries and not (cls == "A" and entries[key]["class"] != "A")) or _extends(chain, key, entries) \
                     or not goal.check(before, after, r["results"]):
                 continue
             replays = prove(domain, ruleset, gid, chain, r["diff"])
             if replays != "5/5":
                 continue  # not reproducible: not a proven hole
             tasks = gold_goals(domain).get(gid, [])
-            entries[slot] = {"key": key, "class": cls, "goal": gid, "gold": {"sanctioned": bool(tasks), "tasks": tasks},
+            entries[key] = {"key": key, "class": cls, "goal": gid, "gold": {"sanctioned": bool(tasks), "tasks": tasks},
                             "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
                             "chain": r["steps"], "diff": r["diff"], "goal_true": True, "replays": replays}
     lists = {cls: [{"id": f"{prefix}{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == cls), 1)]
