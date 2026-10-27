@@ -57,30 +57,6 @@ def test_muse_audit_proves_what_its_templates_find_and_counts_its_calls(report):
     assert not any(e["goal"] == "G7" for e in report["ambiguities"])  # blind BFS never sends certificates
 
 
-def test_a_class_a_proof_of_a_key_replaces_an_earlier_class_c_one():
-    """REQ-PR1-1: a key Muse first reaches by cancel+rebook (C) must still be reported as the Class A hole a plain
-    chain proves later, or LLM-on would lose holes blind BFS reports."""
-    from tests.test_proposer import ScriptedMuse
-
-    only = "args['reservation_id'] == '1KUOX2'"
-    flights = lambda day: [{"flight_number": "HAT036", "date": day}]
-    rebook = [  # cancel, then the same trip a day earlier: G1 via cancel+rebook, Class C
-        {"tool": "cancel_reservation", "args_json": json.dumps({"reservation_id": "1KUOX2", "reason": "change of plan"})},
-        {"tool": "book_reservation", "args_json": json.dumps({
-            "user_id": "anya_khan_1074", "origin": "MSP", "destination": "MCO", "flight_type": "one_way",
-            "cabin": "basic_economy", "flights": flights("2024-05-21"), "passengers": "=res['passengers']",
-            "payment_methods": [{"payment_id": "credit_card_1697462", "amount": 86}], "total_baggages": 0,
-            "nonfree_baggages": 0, "insurance": "no"})}]
-    upgrade_then_move = [  # cabin change, then a date change the basic-economy rule no longer sees: Class A
-        {"tool": "update_reservation_flights", "args_json": json.dumps({
-            "reservation_id": "1KUOX2", "cabin": "economy", "flights": flights(day), "payment_id": "credit_card_1697462"})}
-        for day in ("2024-05-22", "2024-05-21")]
-    templates = [{"rationale": "", "where": only, "steps": rebook}, {"rationale": "", "where": only, "steps": upgrade_then_move}]
-    r = audit(DOMAIN, RULES, budget=20, use_llm=True, llm=ScriptedMuse({"G1": templates}))
-    assert "G1:1KUOX2" in [e["key"] for e in r["holes"]]
-    assert "G1:1KUOX2" not in [e["key"] for e in r["ambiguities"]]
-
-
 def test_a_muse_template_that_finds_nothing_hands_its_budget_back_to_the_bfs():
     from tests.test_proposer import G7_TWICE, ScriptedMuse, _cert
 

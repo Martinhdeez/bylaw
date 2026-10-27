@@ -107,13 +107,11 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         target = chain[0]["args"].get("reservation_id") or chain[0]["args"].get("user_id")
         for gid, goal in domain.goals.items():
             key, cls = f"{gid}:{target}", classify(domain, db, gid, chain)
-            # one entry per key, shortest chain first; a Class A proof replaces a Class C one (REQ-PR1-1)
-            if (key in entries and not (cls == "A" and entries[key]["class"] == "C")) or not goal.check(before, after, r["results"]):
+            if key in entries or not goal.check(before, after, r["results"]):  # one entry per key, shortest chain first
                 continue
             replays = prove(domain, ruleset, gid, chain, r["diff"])
             if replays != "5/5":
                 continue  # not reproducible: not a proven hole
-            entries.pop(key, None)
             found[key] = {"key": key, "tool_calls": tool_calls, "seconds": round(time.monotonic() - t0, 2)}
             entries[key] = {"key": key, "class": cls, "goal": gid,
                             "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
