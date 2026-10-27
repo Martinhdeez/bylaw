@@ -1,0 +1,25 @@
+services:
+  bylaw:
+    build: .
+    image: bylaw:local
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env  # MODEL_API_KEY for Muse audits; optional, offline audits run without it
+        required: false
+    environment:
+      BYLAW_REPORTS_DIR: /app/reports
+      BYLAW_RATIFIED_DIR: /app/ratified
+      BYLAW_CACHE_DIR: /app/.cache/reports
+      TAU2_DATA_DIR: /app/.context/tau2-bench/data
+    volumes:
+      - ./reports:/app/reports      # committed demo reports and bench (DM1)
+      - ./ratified:/app/ratified    # ratified amendments (C10)
+      - ./.cache:/app/.cache        # API-run audit reports and the Muse response cache (.cache/llm)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/domains', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
