@@ -49,3 +49,12 @@ Copy `.env.example` to `.env`, set the user and hash, then `docker compose up -d
 - Automatic HTTPS with a real domain. This Mac has no public DNS name. Only `caddy adapt` with `BYLAW_DOMAIN=bylaw.example.org` was checked.
 - ufw on the VPS, and the VPS deploy itself, which waits for the user's go-ahead.
 - The backup and restore commands in `docs/deploy.md`.
+
+## Review (2026-10-27)
+
+Approved. Reviewer reproduced on Docker 29.5.3, Compose v5.1.4, with an uncommitted subnet override and a throwaway env file: no published port on `bylaw` (`docker port` empty), 401 without or with wrong credentials on `/`, `/api/domains`, `POST /api/audits`; 200 with credentials on `/` (text/html) and `/api/domains`; offline airline audit streamed 83 SSE events through Caddy over 53 s, arriving in 54 distinct seconds; LAN `192.168.1.130:8000` refused (rc 7), LAN `:80` 401/200. An unquoted hash is mangled by compose (`$$2a$$14`), so the single-quote rule is needed. Image holds no env file of its own (only tau2's upstream `.env.example`).
+
+Advisories for the VPS deploy, not blocking:
+- `docs/deploy.md` step 5: `ufw allow OpenSSH` covers port 22 only; if sshd listens elsewhere, allow that port before `ufw enable`.
+- `docs/deploy.md` restore: on Linux the container runs as root, so `.cache/reports` and `.cache/llm` are root-owned; extracting over them as a normal user fails. Restore into a fresh checkout, or with `sudo`.
+- `docs/deploy.md` update: `docker image prune -f` removes every dangling image on the host, not only the old `bylaw` one.
