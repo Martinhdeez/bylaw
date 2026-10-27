@@ -127,3 +127,12 @@ def get_domain(name: str) -> Domain
 - **C6 search feedback protocol:** `search` is a generator; after yielding a chain the caller sends back `(executed: int, hit: bool)` — the number of write steps actually executed for that chain (stops at the first blocked step, so a chain blocked at step 1 costs 0) and whether it proved a finding. The budget is charged with `executed`, for both the Muse phase and BFS. PR1 owns this change; GA1 adopts it and drops its own budget edit.
 - **A failed Muse call** for one goal (error or empty reply after retries) is reported in `stats` (`llm_errors`) and that goal falls back to BFS; it never aborts the audit.
 - **REQ-PR1-1 scope:** "at least the holes `--no-llm` finds" is checked at the default budget (2000). Below it, the bench reports both modes honestly per budget; no claim of dominance at small budgets.
+
+## v1.9 (2026-10-27, from FX1), binding on FX1, LC1, BR1, CV1 and the views
+
+- C4 `run.mode` is `"bfs" | "muse" | "bfs-fallback"`. `"bfs-fallback"` means Muse was requested, `stats.llm_calls > 0`, and every call failed, so the whole search ran as BFS.
+- C4 `run.model` is a string, or `null` when no Muse call succeeded (modes `bfs` and `bfs-fallback`).
+- C4 `run.effort` (optional string): the reasoning effort actually sent, after the `BYLAW_EFFORT` override. It is absent for `bfs`.
+- `stats.llm_errors` (int) stays as in v1.8. The CLI prints a warning to stderr when the mode is `bfs-fallback`.
+- C5 `bench` JSON has a top-level `model` (string or `null`) and `commit`.
+- Views: anything that branches on `run.mode === "muse"` shows `bfs-fallback` as an offline run, with a visible "Muse unavailable" note.
