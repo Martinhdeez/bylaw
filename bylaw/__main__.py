@@ -1,6 +1,7 @@
 """CLI (contract C5): python -m bylaw <subcommand>. Each subcommand is one function taking the parsed args."""
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -63,6 +64,64 @@ def cmd_compile(a):
     return 0
 
 
+def cmd_proxy(a):
+    from bylaw.proxy.core import Proxy
+    from bylaw.proxy.mcp_server import serve
+
+    serve(Proxy(get_domain(a.domain)))
+
+
+def latest_report(domain: str) -> Path:
+    """C9 report store (03 v1.1): the newest by mtime of <reports>/<domain>.json and <cache>/<domain>-*.json."""
+    root = Path(__file__).resolve().parents[1]
+    reports = root / os.environ.get("BYLAW_REPORTS_DIR", "reports")
+    cache = root / os.environ.get("BYLAW_CACHE_DIR", ".cache/reports")
+    found = [p for p in [reports / f"{domain}.json", *cache.glob(f"{domain}-*.json")] if p.exists()]
+    if not found:
+        raise SystemExit(f"no report for {domain}; run `python -m bylaw audit --domain {domain}` and pass --report")
+    return max(found, key=lambda p: p.stat().st_mtime)
+
+
+def cmd_replay(a):
+    from bylaw.backtest import load_gold
+    from bylaw.proxy.core import Proxy
+
+    domain = get_domain(a.domain)
+
+    def line(n, tool, out):  # C11 v1.1: "<n> ALLOWED|BLOCKED <tool>[ <reason>]"
+        return f"{n} {'BLOCKED' if out['blocked'] else 'ALLOWED'} {tool}" + (f" {out['reason']}" if out["reason"] else "")
+
+    if a.gold:
+        gold, blocked, unknown = load_gold(domain), 0, 0
+        for task in gold:
+            steps = []
+            for s in task["actions"]:
+                args = dict(s["args"])
+                if s["tool"] == "cancel_reservation" and "reason" not in args:  # C2 v1.1 fact, as in backtest
+                    args["reason"] = task["facts"].get("reason")
+                steps.append((s["tool"], args))
+            if any(t == "cancel_reservation" and args["reason"] is None for t, args in steps):
+                unknown += 1  # C8 unknown: no cancel reason to infer; not replayed, counts as not blocked
+                continue
+            proxy = Proxy(domain)
+            for n, (tool, args) in enumerate(steps):
+                out = proxy.call(tool, args)
+                if out["blocked"]:
+                    blocked += 1
+                    print(f"task {task['id']}: {line(n, tool, out)}")
+                    break
+        print(f"unknown: {unknown}")
+        print(f"blocked: {blocked}/{len(gold)}")
+        return
+    report = json.loads(Path(a.report or latest_report(a.domain)).read_text())
+    hole = next((h for h in [*report["holes"], *report["ambiguities"], *report.get("contradictions", [])] if h["key"] == a.hole), None)
+    if hole is None:
+        raise SystemExit(f"hole {a.hole} not in the report")
+    proxy = Proxy(domain)
+    for n, s in enumerate(hole["chain"]):
+        print(line(n, s["tool"], proxy.call(s["tool"], s["args"])))
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="bylaw")
     sub = p.add_subparsers(required=True)
@@ -80,6 +139,16 @@ def main(argv=None):
     c.add_argument("--domain", required=True)
     c.add_argument("-o", "--output", required=True)
     c.set_defaults(fn=cmd_compile)
+    px = sub.add_parser("proxy", help="MCP stdio server enforcing the effective RuleSet and the goal monitor")
+    px.add_argument("--domain", required=True)
+    px.set_defaults(fn=cmd_proxy)
+    rp = sub.add_parser("replay", help="replay a report hole or the gold tasks through the proxy")
+    rp.add_argument("--domain", required=True)
+    what = rp.add_mutually_exclusive_group(required=True)
+    what.add_argument("--hole", help="hole key, e.g. G1:T1QOBS")
+    what.add_argument("--gold", action="store_true", help="replay the tau2 gold tasks; prints blocked: N/total")
+    rp.add_argument("--report", help="C4 report; default: the latest in the report store")
+    rp.set_defaults(fn=cmd_replay)
     a = p.parse_args(argv)
     return a.fn(a)
 
