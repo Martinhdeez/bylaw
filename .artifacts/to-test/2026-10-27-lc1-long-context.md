@@ -43,4 +43,5 @@ Evidence lives under `.scratch/after/lc1-long-context/` in the builder worktree.
 - The C9 progress events (`api.py` `Job.emit`) still read the process-wide `llm.USAGE` (existing `ponytail:` note). Only the report's `stats.tokens` is per audit now.
 - No `long_context` field on the C9 `AuditRequest`: REQ-LC1-1 names CLI + report only.
 - Not measured: the prompt size without `--long-context` on the same run, and a second live run (variance).
+- The live run predates the GA1 merge (commit 48951c5, before gold adjudication), so its 18 Class A count is pre-v1.7 classification. Its token figures do not depend on GA1.
 - `BYLAW_EFFORT` (FX1) is not merged, so the live run used the default effort (`high` in `_ask`).

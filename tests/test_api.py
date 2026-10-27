@@ -202,7 +202,8 @@ def test_muse_audit_with_amend_drafts_backtests_and_counts_llm_calls(monkeypatch
     assert "backtest" in {e["phase"] for e in evs}
     assert evs[-1]["llm_calls"] == 2 and evs[-1]["tokens"] == 100
     report = client.get("/api/reports/latest", params={"domain": "airline"}).json()
-    (hole,) = [h for h in report["holes"] if h["key"] == "G5:00GMVN"]
+    # G5 is gold-sanctioned (task 18), so the downgrade is a Class B contradiction, amended like a hole (C4 v1.7)
+    (hole,) = [h for h in report["contradictions"] if h["key"] == "G5:00GMVN"]
     assert report["run"]["mode"] == "muse" and report["run"]["model"] == "muse-spark-1.3"
     assert hole["amendment"]["rule_patch"] == [BLOCK] and hole["closes"] is True
     assert hole["backtest"]["tasks"] == 43 and "baseline_blocked" in hole["backtest"]
@@ -213,7 +214,8 @@ def test_done_audit_report_is_stored_in_the_cache(offline_audit):
     aid, evs, cache = offline_audit
     st = client.get(f"/api/audits/{aid}").json()
     assert (st["id"], st["domain"], st["status"], st["error"]) == (aid, "airline", "done", None)
-    assert st["report"]["run"]["mode"] == "bfs" and evs[-1]["holes"] == len(st["report"]["holes"]) > 0
+    assert st["report"]["run"]["mode"] == "bfs" and evs[-1]["holes"] == len(st["report"]["holes"])
+    assert st["report"]["contradictions"]  # airline's offline findings are gold-sanctioned: Class B (C4 v1.7)
     assert json.loads((cache / f"airline-{aid}.json").read_text()) == st["report"]
 
 
