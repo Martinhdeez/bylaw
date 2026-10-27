@@ -8,6 +8,6 @@
 | REQ-AP1-4 | `POST /api/holes/{key}/ratify?domain=D` appends that hole's amendment rule patch to the ratified store (C10); ratifying twice is idempotent; `GET /api/ratified?domain=D` returns the effective RuleSet (base + ratified patches) and the list of ratified amendments. | HTTP + `bylaw/ratified/<domain>.json` |
 | REQ-AP1-5 | `GET /api/bench?domain=D` returns the stored bench JSON (C5 v1.2) or 404. The built web app is served at `/`. | HTTP |
 | REQ-UI2-1 | Every screen of the prototype reads from the API instead of fixtures; no fixture import remains in production screens. | code + Playwright |
-| REQ-UI2-2 | Playwright smoke: open `/`, run an offline audit on airline, open the first Class A hole, step the trace replay, open its amendment, ratify, see the ratified state. | `web/e2e/smoke.spec.ts` |
+| REQ-UI2-2 | Playwright smoke: open `/`, run an offline audit on airline, open the first finding (Class A if any, else Class B), step the trace replay, open its amendment, ratify, see the ratified state. | `web/e2e/smoke.spec.ts` |
 | REQ-UI2-3 | Screenshots of each screen at 1440 and 390 width are saved to `.artifacts/reports/`. | files |
 | REQ-DM1-1 | `reports/airline.json`, `reports/retail.json` (audit with Muse + amendments + backtest) and `reports/airline.bench.json` are committed, each naming the commit and model that produced it. | files + JSON schema |
