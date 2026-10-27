@@ -1,9 +1,7 @@
 """AP1 / C9: the HTTP API over the report store, background audits with SSE progress, ratify and bench. Offline."""
 import json
 import os
-import sys
 import threading
-import types
 from pathlib import Path
 
 import pytest
@@ -107,12 +105,12 @@ def test_ratify_appends_once_and_the_ratified_view_shows_base_plus_patch(stores)
     for _ in range(2):
         r = client.post("/api/holes/G1:T1QOBS/ratify", params={"domain": "airline"})
         assert r.status_code == 200
-        assert r.json() == {"ratified": True, "amendment_id": "A1", "rule_ids": ["R-test-amend-1"]}
+        assert r.json() == {"ratified": True, "amendment_id": "A1", "rule_ids": ["G1:T1QOBS/R-test-amend-1"]}
     view = client.get("/api/ratified", params={"domain": "airline"}).json()
     assert view["domain"] == "airline"
     assert [(a["hole_key"], a["id"]) for a in view["amendments"]] == [("G1:T1QOBS", "A1")]
     assert "ratified_at" in view["amendments"][0]
-    assert view["ruleset"]["tool_rules"][-1] == PATCH
+    assert view["ruleset"]["tool_rules"][-1] == dict(PATCH, id="G1:T1QOBS/R-test-amend-1")
     assert json.loads((stores / "ratified" / "airline.json").read_text())["amendments"][0]["hole_key"] == "G1:T1QOBS"
 
 
@@ -175,23 +173,23 @@ BLOCK = {"id": "R-test-no-upgrade", "tool": "update_reservation_flights", "allow
 
 
 def test_muse_audit_with_amend_drafts_backtests_and_counts_llm_calls(monkeypatch):
-    """PR1 and AM1 are not merged: the Muse search and drafter are stand-ins that count one LLM call each."""
+    """PR1 is not merged: Muse search and drafting are stand-ins counting one LLM call each; amend.apply and
+    amend.closes (the re-audit of the goal) are real."""
+    import bylaw.amend
     import bylaw.backtest
     import bylaw.report
 
-    def fake_search(domain, ruleset, budget, use_llm):
-        assert use_llm
-        api.llm.USAGE["calls"] += 1
-        api.llm.USAGE["prompt_tokens"] += 100
+    def fake_search(domain, ruleset, budget, use_llm):  # also serves the offline re-audit inside amend.closes
+        if use_llm:
+            api.llm.USAGE["calls"] += 1
+            api.llm.USAGE["prompt_tokens"] += 100
         yield [DOWNGRADE]
 
     def draft(domain, ruleset, hole):
         api.llm.USAGE["calls"] += 1
         return {"id": "A1", "hole_id": hole["id"], "policy_text": "No upgrades.", "rule_patch": [BLOCK], "rationale": "r"}
 
-    fake_amend = types.ModuleType("bylaw.amend")
-    fake_amend.draft, fake_amend.apply = draft, lambda rs, am: {**rs, "tool_rules": rs["tool_rules"] + am["rule_patch"]}
-    monkeypatch.setitem(sys.modules, "bylaw.amend", fake_amend)
+    monkeypatch.setattr(bylaw.amend, "draft", draft)
     monkeypatch.setattr(bylaw.report, "search", fake_search)
     monkeypatch.setattr(bylaw.backtest, "backtest", lambda d, rs: {"tasks": 43, "blocked": len(rs["tool_rules"]) % 2,
                                                                    "unknown": 0, "results": [{"id": "7", "blocked": True}]})
@@ -208,7 +206,7 @@ def test_muse_audit_with_amend_drafts_backtests_and_counts_llm_calls(monkeypatch
     assert report["run"]["mode"] == "muse" and report["run"]["model"] == "muse-spark-1.3"
     assert hole["amendment"]["rule_patch"] == [BLOCK] and hole["closes"] is True
     assert hole["backtest"]["tasks"] == 43 and "baseline_blocked" in hole["backtest"]
-    assert client.post("/api/holes/G5:00GMVN/ratify", params={"domain": "airline"}).json()["rule_ids"] == [BLOCK["id"]]
+    assert client.post("/api/holes/G5:00GMVN/ratify", params={"domain": "airline"}).json()["rule_ids"] == ["G5:00GMVN/" + BLOCK["id"]]
 
 
 def test_done_audit_report_is_stored_in_the_cache(offline_audit):
