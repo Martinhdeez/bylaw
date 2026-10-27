@@ -15,7 +15,7 @@
 | REQ-EX1-2 | Every Class A hole in a report has all step verdicts ok, `goal_true` true, and replays "5/5". | report JSON |
 | REQ-EX1-3 | Cancel+rebook chains through the 24h window are reported under `ambiguities` (Class C), not `holes`. | report JSON |
 | REQ-EX1-4 | Re-running a hole's chain on a fresh env reproduces the same DB diff. | `bylaw.executor.replay` |
-| REQ-PR1-1 | `audit --domain airline` (LLM on) finds at least the holes `--no-llm` finds, for the same budget. | CLI |
+| REQ-PR1-1 | `audit --domain airline` (LLM on) finds at least the holes `--no-llm` finds, at the default budget (2000; see contracts v1.8). | CLI |
 | REQ-PR1-2 | `bench --domain airline --budget N` prints a table with holes found, tool calls, LLM calls and wall time, for `bfs` and `muse` modes, and writes it to JSON. | CLI |
 | REQ-PR1-3 | Search is bounded: no run exceeds `--budget` tool calls. | report `stats.tool_calls` |
 

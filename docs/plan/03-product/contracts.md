@@ -41,3 +41,8 @@ Run: `uv run uvicorn bylaw.api:app`. All JSON. Domain is `airline` | `retail`.
 
 - `GET /api/holes/{key}` also finds Class C entries (`ambiguities`); the object carries its `class`.
 - An audit with `use_llm=false` drafts no amendments (amend needs Muse); its holes have no `amendment`, and ratify on them gives 409. The Playwright smoke ratifies on a stored report with amendments (the test places it in its own `BYLAW_REPORTS_DIR` with a newer mtime after the offline audit run), not on the offline audit result.
+
+## v1.3 (2026-10-27, from AM1 review), binding on AP1
+
+- **Ratified rule ids are namespaced:** when a hole's amendment is ratified, each `rule_patch` rule id is stored as `<hole_key>/<rule_id>` (e.g. `G5:00GMVN/R-flights-cabin-bag-allowance`), so two ratified amendments that reuse a rule id never collide in `effective_ruleset`. `rule_ids` in the ratify response are the namespaced ids.
+- `closes` in API-run audits uses `bylaw.amend` (re-audit of the goal), same as the CLI.

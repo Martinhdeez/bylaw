@@ -4,13 +4,19 @@ version = "0.1.0"
 description = "Audits the policy AI agents run on: finds chains of allowed actions that reach forbidden outcomes, proves them, patches them."
 requires-python = ">=3.12,<3.14"
 dependencies = [
+    "fastapi>=0.162.0",
+    "mcp>=2.3.0",
     "openai>=1.50",
     "python-dotenv>=1.0",
     "tau2",
+    "uvicorn>=0.54.0",
 ]
 
 [dependency-groups]
-dev = ["pytest>=8"]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8",
+]
 
 [build-system]
 requires = ["hatchling"]
