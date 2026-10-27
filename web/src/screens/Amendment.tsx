@@ -108,7 +108,7 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
                 <span><Wrench size={14} aria-hidden="true" />τ² tools</span>
               </div>
               <p style={{ color: "var(--muted)", fontSize: 14 }}>
-                Ratified {when(done.ratified_at)}. The proxy now refuses calls that fail {done.rule_patch.map((r) => r.id).join(", ")}.
+                Ratified {when(done.ratified_at)}. The proxy now refuses calls that fail {done.rule_patch.map((r) => r.id.replace(`${h.key}/`, "")).join(", ")}.
               </p>
               <a className="btn" href={`#/${domain}/report`}>Back to report</a>
             </section>

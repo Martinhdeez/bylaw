@@ -106,9 +106,11 @@ export async function mockApi(page: Page, { partial = false, stored = true } = {
       const h = [...report.holes, ...report.contradictions].find((x: any) => x.key === hole);
       if (!h) return route.fulfill(json({ detail: "unknown hole" }, 404));
       if (!h.amendment) return route.fulfill(json({ detail: "no amendment" }, 409));
+      // 03 v1.3: the store namespaces rule ids as <hole_key>/<rule_id>.
+      const rule_patch = h.amendment.rule_patch.map((r: any) => ({ ...r, id: `${hole}/${r.id}` }));
       if (!ratified.amendments.some((a: any) => a.hole_key === hole))
-        ratified.amendments.push({ ...h.amendment, hole_key: hole, ratified_at: "2026-10-27T09:12:00Z" });
-      return route.fulfill(json({ ratified: true, amendment_id: h.amendment.id, rule_ids: h.amendment.rule_patch.map((r: any) => r.id) }));
+        ratified.amendments.push({ ...h.amendment, rule_patch, hole_key: hole, ratified_at: "2026-10-27T09:12:00Z" });
+      return route.fulfill(json({ ratified: true, amendment_id: h.amendment.id, rule_ids: rule_patch.map((r: any) => r.id) }));
     }
     if (hole) {
       const h = [...report.holes, ...report.contradictions, ...report.ambiguities].find((x: any) => x.key === hole);

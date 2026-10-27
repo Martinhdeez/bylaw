@@ -62,6 +62,7 @@ test("offline audit to ratified amendment", async ({ page }) => {
   await expect(page.getByText("Drafted by Muse Spark")).toBeVisible();
   await page.getByRole("button", { name: "Ratify" }).click();
   await expect(page.getByTestId("ratified")).toContainText("Enforced by MCP proxy");
+  await expect(page.getByTestId("ratified")).not.toContainText("/R-"); // 03 v1.3 namespaced ids shown bare
 
   await page.getByRole("link", { name: "Back to report" }).click();
   await expect(page.locator(".instances a").first()).toContainText(/Fixed|Ratified/);
