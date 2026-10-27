@@ -40,9 +40,9 @@ def cmd_audit(a):
           f"{len(report['ambiguities'])} Class C ambiguities; "
           f"{s['chains_tried']} chains, {s['tool_calls']} tool calls, {s['llm_calls']} LLM calls, "
           f"{s['tokens']} tokens, {s['seconds']}s")
-    if s["llm_calls"] and s["llm_errors"] == s["llm_calls"]:
-        print(f"WARNING: every Muse call failed ({s['llm_errors']}/{s['llm_calls']}); this run is a BFS fallback, "
-              f"not a Muse run, whatever run.mode says", file=sys.stderr)
+    if report["run"]["mode"] == "bfs-fallback":
+        print(f"WARNING: every Muse call failed ({s['llm_errors']}/{s['llm_calls']}); "
+              f"the report is labelled bfs-fallback, model null", file=sys.stderr)
     for e in report["holes"] + report["contradictions"] + report["ambiguities"]:
         print(f"  {e['id']} {e['class']} {e['key']} replays {e['replays']} money_delta {e['money_delta']} "
               f"{' -> '.join(st['tool'] for st in e['chain'])}")

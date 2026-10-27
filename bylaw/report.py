@@ -28,9 +28,11 @@ _ENTRY = _obj({"id": _S, "key": _S, "class": {"enum": ["A", "B", "C"]}, "goal": 
                "diff": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": _CHANGE}},
                "goal_true": _B, "replays": {"type": "string", "pattern": r"^\d+/\d+$"},
                "gold": _obj({"sanctioned": _B, "tasks": {"type": "array", "items": _S}})})
+_RUN = _obj({"commit": _S, "domain": _S, "model": {"type": ["string", "null"]},
+             "mode": {"enum": ["bfs", "muse", "bfs-fallback"]}, "started": _S, "budget": _I, "goals_commit": _S})
+_RUN["properties"]["effort"] = _S  # C4 v1.9: optional, so not in "required"
 REPORT_SCHEMA = _obj({
-    "run": _obj({"commit": _S, "domain": _S, "model": _S, "mode": {"enum": ["bfs", "muse"]}, "started": _S,
-                 "budget": _I, "goals_commit": _S}),
+    "run": _RUN,
     **{name: {"type": "array", "items": {**_ENTRY, "properties": {**_ENTRY["properties"], "class": {"const": cls}}}}
        for name, cls in (("holes", "A"), ("contradictions", "B"), ("ambiguities", "C"))},
     "stats": _obj({"chains_tried": _I, "tool_calls": _I, "llm_calls": _I, "tokens": _I, "seconds": {"type": "number", "minimum": 0}}),
@@ -109,7 +111,8 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     asked, errors, billed_from, found, proven = [], [], len(muse.CALLS), {}, []
 
     def counted(*a, **kw):
-        asked.append(1)
+        # C4 v1.9 run.effort: what _call sends (the override applied, and only to a model that takes an effort)
+        asked.append(muse.effective_effort(kw.get("effort")) if muse.caps(kw.get("model"))["reasoning_effort"] else None)
         try:
             return (llm or muse.structured)(*a, **kw)
         except Exception as e:
@@ -145,11 +148,15 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
                             "chain": r["steps"], "diff": r["diff"], "goal_true": True, "replays": replays}
     lists = {cls: [{"id": f"{prefix}{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == cls), 1)]
              for cls, prefix in (("A", "H"), ("B", "B"), ("C", "C"))}
+    mode = "bfs" if not use_llm else "bfs-fallback" if asked and len(errors) == len(asked) else "muse"  # C4 v1.9
+    run_block = {"commit": _commit(), "domain": domain.name,
+                 "model": (model or muse.model()) if mode == "muse" else None, "mode": mode,
+                 "started": started, "budget": budget,
+                 "goals_commit": _git("log", "-1", "--format=%h", "--", GOALS_FILES.get(domain.name, ""))}
+    if asked and asked[-1]:
+        run_block["effort"] = asked[-1]
     return {
-        "run": {"commit": _commit(), "domain": domain.name,
-                "model": model or (muse.model() if use_llm else ""),
-                "mode": "muse" if use_llm else "bfs", "started": started, "budget": budget,
-                "goals_commit": _git("log", "-1", "--format=%h", "--", GOALS_FILES.get(domain.name, ""))},
+        "run": run_block,
         "holes": lists["A"], "contradictions": lists["B"], "ambiguities": lists["C"],
         "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": len(asked),
                   "llm_errors": len(errors),

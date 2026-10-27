@@ -40,3 +40,14 @@ def test_bench_json_names_the_model_and_the_commit(tmp_path, monkeypatch):
     assert len(data["rows"]) == 2  # existing fields kept
     main(["bench", "--domain", "airline", "--budget", "10", "--modes", "bfs", "-o", str(out)])
     assert json.loads(out.read_text())["model"] is None
+
+
+def test_bench_model_is_null_when_every_muse_call_failed(tmp_path, monkeypatch):
+    """C5 v1.9: a muse row that never got an answer must not name a model."""
+    def broken(messages, schema, name, **kw):
+        raise RuntimeError("401 Unauthorized")
+
+    monkeypatch.setattr(llm, "structured", broken)
+    out = tmp_path / "bench.json"
+    main(["bench", "--domain", "airline", "--budget", "10", "--modes", "muse", "-o", str(out)])
+    assert json.loads(out.read_text())["model"] is None

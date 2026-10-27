@@ -39,6 +39,10 @@ def model():
     return os.environ.get("MODEL") or DEFAULT_MODEL
 
 
+def effective_effort(requested=None):
+    return os.environ.get("BYLAW_EFFORT") or requested
+
+
 def caps(name=None):
     return CAPS.get(name or model(), DEFAULT_CAPS)
 
@@ -62,7 +66,7 @@ def _cache_path(payload):
 def _call(messages, response_format=None, effort=None, read_cache=True, **opts):
     name = opts.pop("model", None) or model()
     cap = caps(name)
-    effort = os.environ.get("BYLAW_EFFORT") or effort  # part of the body, hence of the cache key
+    effort = effective_effort(effort)  # part of the body, hence of the cache key
     body ={"model": name, "messages": messages, **opts}
     body["max_tokens"] = max(opts.get("max_tokens", 4000), cap["min_max_tokens"])
     if effort and cap["reasoning_effort"]:
