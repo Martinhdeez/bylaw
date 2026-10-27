@@ -74,8 +74,13 @@ const json = (body: unknown, status = 200) => ({ status, contentType: "applicati
 
 // `partial` stops the event stream before `done`, to show a running audit. `stored: false` starts from the
 // offline audit result (no amendments, C9 v1.2); place() then swaps in a stored report that carries them.
-export async function mockApi(page: Page, { partial = false, stored = true } = {}) {
+// `fallback` serves the report as 01 v1.9 `bfs-fallback`: Muse requested, all 3 calls failed, model null.
+export async function mockApi(page: Page, { partial = false, stored = true, fallback = false } = {}) {
   let report = stored ? storedReport() : adjudicate(fx("airline.report.json"));
+  if (fallback) {
+    report.run = { ...report.run, mode: "bfs-fallback", model: null };
+    report.stats = { ...report.stats, llm_calls: 3, llm_errors: 3 };
+  }
   const ratified = fx("airline.ratified.json");
   const policy = fx("airline.policy.json");
 

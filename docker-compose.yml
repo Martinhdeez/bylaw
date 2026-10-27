@@ -2,8 +2,7 @@ services:
   bylaw:
     build: .
     image: bylaw:local
-    ports:
-      - "8000:8000"
+    # No published port: the API has no auth of its own, so only caddy reaches it, on the compose network.
     env_file:
       - path: .env  # MODEL_API_KEY for Muse audits; optional, offline audits run without it
         required: false
@@ -23,3 +22,25 @@ services:
       start_period: 20s
       retries: 3
     restart: unless-stopped
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    depends_on: [bylaw]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    # Read from .env by compose interpolation; compose refuses to start without the auth pair.
+    environment:
+      BYLAW_DOMAIN: ${BYLAW_DOMAIN:-:80}  # Caddy keeps an empty value instead of its own default
+      BYLAW_BASIC_AUTH_USER: ${BYLAW_BASIC_AUTH_USER:?set BYLAW_BASIC_AUTH_USER in .env}
+      BYLAW_BASIC_AUTH_HASH: ${BYLAW_BASIC_AUTH_HASH:?set BYLAW_BASIC_AUTH_HASH in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data      # TLS certificates and ACME account
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
