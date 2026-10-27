@@ -81,9 +81,13 @@ def report_fixture() -> dict:
             "stats": {"chains_tried": 1, "tool_calls": 2, "llm_calls": 0, "tokens": 0, "seconds": 0.1}}
 
 
-def write_ratified(dir_: Path, domain: str, *rules_) -> None:
-    """A C10 store holding one ratified amendment per given C2 tool_rule."""
+def write_ratified(dir_: Path, domain: str, *rules_, goal: str = "G6") -> None:
+    """A C10 store holding one ratified amendment per given C2 tool_rule, each on a hole of `goal`.
+
+    01 v1.7: the proxy monitor enforces the goals of ratified amendments, so `goal` is monitored.
+    G6 (compensation_ineligible) is reached by no airline gold task and by no test chain here.
+    """
     dir_.mkdir(parents=True, exist_ok=True)
-    amendments = [{"id": f"A{i + 1}", "hole_key": f"G1:X{i}", "policy_text": "t.", "rule_patch": [r],
+    amendments = [{"id": f"A{i + 1}", "hole_key": f"{goal}:X{i}", "policy_text": "t.", "rule_patch": [r],
                    "rationale": "", "ratified_at": "2026-10-27T00:00:00+00:00"} for i, r in enumerate(rules_)]
     (dir_ / f"{domain}.json").write_text(json.dumps({"domain": domain, "amendments": amendments}))

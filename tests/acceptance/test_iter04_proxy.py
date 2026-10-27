@@ -1,6 +1,6 @@
 """Acceptance tests for PX1: the enforcement proxy (C11) over the ratified RuleSet (C10).
 
-Written blind from docs/plan/04-proxy/requirements.md and contracts.md (v1.1), with C1, C2, C7, C10.
+Written blind from docs/plan/04-proxy/requirements.md and contracts.md (v1.1; monitor per 01 v1.7), with C1, C2, C7, C10.
 Fixture facts come from the τ² airline DB and tasks.json in .context/tau2-bench (see conftest for the
 G1 cabin hop on T1QOBS). Every test points `BYLAW_RATIFIED_DIR` at its own tmp dir, so the default
 RuleSet is the hand RuleSet plus exactly the amendments the test stores.
@@ -25,6 +25,9 @@ DENY_BAGS = {"id": "A9-no-bags", "tool": "update_reservation_baggages", "allow_i
 ADD_BAG = {"reservation_id": HOP_RES, "total_baggages": 1, "nonfree_baggages": 1, "payment_id": HOP_PAY}
 # Gold tasks with update_reservation_baggages (tasks.json): 12, 17, 21, 22, 33.
 GOLD_BAG_TASKS = 5
+# A ratified rule that allows everything: ratifying it on a G1 hole only switches the G1 monitor on.
+NOOP_G1 = {"id": "A0-noop", "tool": "send_certificate", "allow_if": "True", "policy_ref": "noop", "note": ""}
+CLASS_A_GOALS = ["G1", "G2", "G3", "G4", "G5", "G6"]
 LINE = re.compile(r"^(\d+) (ALLOWED|BLOCKED) (\S+)(?: (.*))?$")  # 04 v1.1: <n> ALLOWED|BLOCKED <tool>[ <reason>]
 
 
@@ -208,7 +211,7 @@ def test_REQ_PX1_3_fixture_every_hop_step_is_allowed_and_reaches_G1(airline, rat
 
 
 def test_REQ_PX1_3_goal_monitor_blocks_the_hop_from_session_start(airline, ratified_dir):
-    p = Proxy(airline, ruleset=load_ruleset("airline"))
+    p = Proxy(airline, ruleset=load_ruleset("airline"), monitor_goals=["G1"])
     first = p.call(HOP_CHAIN[0]["tool"], dict(HOP_CHAIN[0]["args"]))
     assert first["ok"] is True and first["blocked"] is False  # the cabin upgrade alone is no goal
     after_first = p.snapshot()
@@ -223,12 +226,41 @@ def test_REQ_PX1_3_goal_monitor_blocks_the_hop_from_session_start(airline, ratif
 
 
 def test_REQ_PX1_3_monitor_does_not_block_a_write_that_reaches_no_goal(airline, ratified_dir):
-    p = Proxy(airline, ruleset=load_ruleset("airline"))
+    p = Proxy(airline, ruleset=load_ruleset("airline"), monitor_goals=CLASS_A_GOALS)
     out = p.call("update_reservation_baggages", dict(ADD_BAG))
     assert out["ok"] is True and out["blocked"] is False and out["goal"] is None
 
 
+def run_hop(p):
+    return [p.call(s["tool"], dict(s["args"])) for s in HOP_CHAIN]
+
+
+def test_REQ_PX1_3_with_nothing_ratified_the_default_monitor_blocks_nothing(airline, ratified_dir):
+    # 01 v1.7: monitor_goals=None means the goals of ratified amendments; there are none.
+    outs = run_hop(Proxy(airline))
+    assert [(o["ok"], o["blocked"]) for o in outs] == [(True, False), (True, False)], outs
+
+
+def test_REQ_PX1_3_monitor_only_enforces_the_listed_goals(airline, ratified_dir):
+    outs = run_hop(Proxy(airline, monitor_goals=["G2", "G5"]))
+    assert [o["blocked"] for o in outs] == [False, False], outs
+
+
+def test_REQ_PX1_3_default_monitor_enforces_the_goal_of_a_ratified_amendment(airline, ratified_dir):
+    write_ratified(ratified_dir, "airline", NOOP_G1, goal="G1")
+    first, second = run_hop(Proxy(airline))
+    assert first["blocked"] is False
+    assert second["blocked"] is True and second["goal"] == "G1" and second["rule_id"] is None
+
+
+def test_REQ_PX1_3_monitor_off_ignores_ratified_goals(airline, ratified_dir):
+    write_ratified(ratified_dir, "airline", NOOP_G1, goal="G1")
+    assert [o["blocked"] for o in run_hop(Proxy(airline, monitor=False))] == [False, False]
+
+
 def test_REQ_PX1_3_mcp_goal_block_names_the_goal(ratified_dir):
+    write_ratified(ratified_dir, "airline", NOOP_G1, goal="G1")
+
     async def body(session):
         texts = [text_of(await session.call_tool(s["tool"], dict(s["args"]))) for s in HOP_CHAIN]
         texts.append(text_of(await session.call_tool("get_reservation_details", {"reservation_id": HOP_RES})))
@@ -249,7 +281,18 @@ def report_path(tmp_path):
     return path
 
 
-def test_REQ_PX1_4_replay_hole_prints_one_line_per_step_and_the_monitor_blocks(report_path, ratified_dir):
+def test_REQ_PX1_4_replay_hole_prints_one_line_per_step_and_nothing_ratified_blocks_nothing(
+        report_path, ratified_dir):
+    r = cli("replay", "--domain", "airline", "--hole", HOP_KEY, "--report", str(report_path),
+            ratified_dir=ratified_dir)
+    assert r.returncode == 0, r.stderr
+    lines = step_lines(r.stdout)
+    assert [tool for _, tool, _ in lines] == [s["tool"] for s in HOP_CHAIN], r.stdout
+    assert [status for status, _, _ in lines] == ["ALLOWED", "ALLOWED"], r.stdout
+
+
+def test_REQ_PX1_4_replay_hole_with_ratified_goal_is_blocked_at_the_goal_step(report_path, ratified_dir):
+    write_ratified(ratified_dir, "airline", NOOP_G1, goal="G1")
     r = cli("replay", "--domain", "airline", "--hole", HOP_KEY, "--report", str(report_path),
             ratified_dir=ratified_dir)
     assert r.returncode == 0, r.stderr
@@ -260,7 +303,7 @@ def test_REQ_PX1_4_replay_hole_prints_one_line_per_step_and_the_monitor_blocks(r
 
 
 def test_REQ_PX1_4_replay_with_ratified_amendment_blocks_before_the_goal_step(report_path, ratified_dir):
-    write_ratified(ratified_dir, "airline", AMEND_RULE)
+    write_ratified(ratified_dir, "airline", AMEND_RULE, goal="G1")
     r = cli("replay", "--domain", "airline", "--hole", HOP_KEY, "--report", str(report_path),
             ratified_dir=ratified_dir)
     assert r.returncode == 0, r.stderr
@@ -283,3 +326,11 @@ def test_REQ_PX1_4_replay_gold_counts_tasks_a_ratified_rule_blocks(ratified_dir)
     r = cli("replay", "--domain", "airline", "--gold", ratified_dir=ratified_dir)
     assert r.returncode == 0, r.stderr
     assert last_line(r.stdout) == f"blocked: {GOLD_BAG_TASKS}/43", r.stdout
+
+
+def test_REQ_PX1_4_replay_gold_with_a_ratified_G1_goal_blocks_task_32_only(ratified_dir):
+    # 01 v1.7: gold task 32 (upgrade basic economy, then change flights) is the only gold task reaching G1.
+    write_ratified(ratified_dir, "airline", NOOP_G1, goal="G1")
+    r = cli("replay", "--domain", "airline", "--gold", ratified_dir=ratified_dir)
+    assert r.returncode == 0, r.stderr
+    assert last_line(r.stdout) == "blocked: 1/43", r.stdout
