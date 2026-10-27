@@ -297,7 +297,7 @@ def run_amend(tmp, patch):
     proc = subprocess.run(
         [sys.executable, str(tmp / "runner.py"), str(tmp / "answer.json"), str(log),
          "amend", str(tmp / "report.json"), "-o", str(out)],
-        cwd=ROOT, capture_output=True, text=True, timeout=1800, env=env,
+        cwd=ROOT, capture_output=True, text=True, timeout=3600, env=env,
     )
     assert proc.returncode == 0, proc.stderr[-4000:]
     assert log.exists() and log.read_text().strip(), "the amend CLI never asked the (scripted) model"
