@@ -19,12 +19,12 @@ const ABOUT: Record<Domain, { label: string; docket: string; desc: string; tools
 };
 
 // The phases are the articles of the run, Art. I to Art. V.
-const PHASES: { key: Phase; art: string; label: string; detail: string; effort: string }[] = [
-  { key: "compile", art: "I", label: "Compiling policy", detail: "policy text → tool rules and forbidden goals", effort: "high reasoning" },
-  { key: "search", art: "II", label: "Searching", detail: "chains of allowed write calls, depth ≤ 4", effort: "high reasoning" },
-  { key: "verify", art: "III", label: "Verifying", detail: "every hit replayed 5 times on a fresh DB", effort: "" },
-  { key: "amend", art: "IV", label: "Amending", detail: "one policy sentence and a rule patch per hole", effort: "high reasoning" },
-  { key: "backtest", art: "V", label: "Backtesting", detail: "gold tasks replayed through the patched rules", effort: "" },
+const PHASES: { key: Phase; art: string; label: string; detail: string }[] = [
+  { key: "compile", art: "I", label: "Compiling policy", detail: "policy text → tool rules and forbidden goals" },
+  { key: "search", art: "II", label: "Searching", detail: "chains of allowed write calls, depth ≤ 4" },
+  { key: "verify", art: "III", label: "Verifying", detail: "every hit replayed 5 times on a fresh DB" },
+  { key: "amend", art: "IV", label: "Amending", detail: "one policy sentence and a rule patch per hole" },
+  { key: "backtest", art: "V", label: "Backtesting", detail: "gold tasks replayed through the patched rules" },
 ];
 
 type Run = { id?: string; events: ProgressEvent[]; status: "idle" | "starting" | "running" | "done" | "error"; error?: string; useLlm: boolean };
@@ -159,7 +159,7 @@ export function Audit({ domain, onDomain, onDone }: { domain: Domain; onDomain: 
               </span>
               <span className="nm">{p.label}</span>
               <span className="dt">{p.detail}</span>
-              {p.muse && <span><Muse live={p.state === "active"}>{p.effort ? `Muse Spark, ${p.effort}` : "Muse Spark"}</Muse></span>}
+              {p.muse && <span><Muse live={p.state === "active"}>Muse Spark</Muse></span>}
               <span className="bar"><i /></span>
             </div>
           ))}

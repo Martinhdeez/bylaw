@@ -1,10 +1,10 @@
-// REQ-UI2-3: a screenshot of each screen at 1440 and 390 width, saved to .artifacts/reports/.
+// REQ-UI2-3: a screenshot of each screen at 1440 and 390 width, saved to .scratch/after/ui2/ (gitignored).
 import { expect, test, type Page } from "@playwright/test";
 import { join } from "node:path";
 import { writeFileSync } from "node:fs";
 import { mockApi, storedReport } from "./mock";
 
-const OUT = "../.artifacts/reports/ui2";
+const OUT = "../.scratch/after/ui2/ui2";
 const mock = !!process.env.E2E_MOCK;
 
 for (const [w, h] of [[1440, 900], [390, 844]]) {

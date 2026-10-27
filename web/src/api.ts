@@ -57,6 +57,7 @@ export type Policy = { domain: Domain; lines: string[] };
 export type Bench = {
   domain: Domain;
   budget: number;
+  model?: string | null; // 01 v1.9
   rows: {
     mode: "bfs" | "muse"; holes: number; hole_keys: string[]; tool_calls: number; llm_calls: number; tokens: number; seconds: number;
     found?: { key: string; tool_calls: number; seconds: number }[]; // C5 v1.6

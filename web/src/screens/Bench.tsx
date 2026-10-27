@@ -42,7 +42,7 @@ export function Bench({ domain }: { domain: Domain }) {
           <h1 className="title"><span className="v">Muse-guided</span> search against blind BFS</h1>
           <p className="lede">Same {domain} policy, same budget of {int(budget)} tool calls, same depth limit. Muse Spark proposes chains per forbidden goal before BFS fills the rest of the budget.</p>
         </div>
-        {muse && <Muse>Chains proposed by Muse Spark, high reasoning</Muse>}
+        {muse && <Muse>{bench.data.model ? `Chains proposed by Muse Spark, ${bench.data.model}` : "Chains proposed by Muse Spark"}</Muse>}
       </div>
 
       <div className="bench">

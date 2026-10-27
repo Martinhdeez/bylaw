@@ -2,7 +2,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { mockApi } from "./mock";
 
-const OUT = "../.artifacts/reports/ui4-app";
+const OUT = "../.scratch/after/ui4-redesign/ui4-app";
 test.skip(!process.env.E2E_MOCK, "the stamp and stepping checks run on the mock's stored report");
 
 const firstFinding = async (page: Page) => {

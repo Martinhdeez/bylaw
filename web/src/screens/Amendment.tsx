@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowRight, Bot, Check, FileSearch, Gavel, Loader2, Wren
 import { api, useGet, type ApiError, type Domain, type Hole, type Policy, type Ratified } from "../api";
 import { Crumbs, Failure, Loading, Muse, goldLine, holeHref, humanize, int, lineOf, quote, when } from "../ui";
 
-export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }) {
+export function AmendmentView({ domain, hkey, effort }: { domain: Domain; hkey: string; effort?: string }) {
   const hole = useGet<Hole>(`/api/holes/${encodeURIComponent(hkey)}?domain=${domain}`);
   const ratified = useGet<Ratified>(api.ratified(domain));
   const policy = useGet<Policy>(api.policy(domain));
@@ -70,7 +70,7 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
               : `A sentence for the policy and the rule that enforces it, so that the trace for ${name.toLowerCase()} no longer passes. Past gold tasks were replayed to count the honest customers it would also stop.`}
           </p>
         </div>
-        <Muse>Drafted by Muse Spark, high reasoning</Muse>
+        <Muse>{effort ? `Drafted by Muse Spark, ${effort} effort` : "Drafted by Muse Spark"}</Muse>
       </div>
 
       <div className="amend">

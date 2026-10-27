@@ -74,7 +74,7 @@ function App() {
 
   let page;
   if (inUrl && section === "report") page = <ReportView domain={domain} report={report} />;
-  else if (inUrl && section === "holes" && key && sub === "amendment") page = <AmendmentView domain={domain} hkey={key} />;
+  else if (inUrl && section === "holes" && key && sub === "amendment") page = <AmendmentView domain={domain} hkey={key} effort={report.data?.run.effort} />;
   else if (inUrl && section === "holes" && key) page = <HoleView domain={domain} hkey={key} muse={report.data?.run.mode === "muse"} />;
   else if (inUrl && section === "bench") page = <Bench domain={domain} />;
   else page = <Audit domain={domain} onDomain={setLast} onDone={report.reload} />;
