@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+import threading
 import types
 from pathlib import Path
 
@@ -32,10 +33,21 @@ def stores(tmp_path, monkeypatch):
     return tmp_path
 
 
-def events(audit_id: str) -> list[dict]:
-    with client.stream("GET", f"/api/audits/{audit_id}/events") as r:
-        assert r.status_code == 200 and r.headers["content-type"].startswith("text/event-stream")
-        return [json.loads(line[5:]) for line in r.iter_lines() if line.startswith("data:")]
+def events(audit_id: str, deadline_s: float = 120) -> list[dict]:
+    """Every event of the stream. Read in a daemon thread so a stream that never ends fails the test, not hangs it."""
+    out: dict = {}
+
+    def read():
+        with client.stream("GET", f"/api/audits/{audit_id}/events") as r:
+            out["status"], out["type"] = r.status_code, r.headers["content-type"]
+            out["events"] = [json.loads(line[5:]) for line in r.iter_lines() if line.startswith("data:")]
+
+    t = threading.Thread(target=read, daemon=True)
+    t.start()
+    t.join(deadline_s)
+    assert not t.is_alive(), f"event stream of {audit_id} did not end within {deadline_s}s"
+    assert out["status"] == 200 and out["type"].startswith("text/event-stream")
+    return out["events"]
 
 
 def test_domains_and_numbered_policy_lines():
@@ -125,6 +137,7 @@ def test_built_web_app_is_served_at_root_and_api_paths_are_not_swallowed(stores)
     assert client.get("/").text == "<html>bylaw</html>"
     assert client.get("/app.js").text == "console.log(1)"
     assert client.get("/api/nothing").status_code == 404
+    assert client.get("/api").status_code == 404
     (stores / "secret.txt").write_text("outside dist")
     for path in ("/../secret.txt", "/%2e%2e/secret.txt", "/..%2fsecret.txt"):
         assert "outside dist" not in client.get(path).text, path

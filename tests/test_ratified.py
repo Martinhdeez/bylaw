@@ -1,5 +1,6 @@
 """AP1 / C10: the ratified store appends a hole's amendment once and yields base + patches as the effective RuleSet."""
 import json
+import threading
 
 import pytest
 
@@ -51,3 +52,21 @@ def test_a_patch_whose_rule_id_collides_is_refused_and_not_stored():
     with pytest.raises(ValueError):
         ratified.ratify("airline", bad)
     assert ratified.load("airline")["amendments"] == []
+
+
+def test_concurrent_ratifies_of_different_holes_all_land():
+    holes = [{**HOLE, "key": f"G1:R{i}", "amendment": {**HOLE["amendment"], "id": f"A{i}",
+                                                       "rule_patch": [dict(PATCH, id=f"R-test-amend-{i}")]}}
+             for i in range(16)]
+    barrier = threading.Barrier(len(holes))
+
+    def go(h):
+        barrier.wait()
+        ratified.ratify("airline", h)
+
+    threads = [threading.Thread(target=go, args=(h,)) for h in holes]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert sorted(a["hole_key"] for a in ratified.load("airline")["amendments"]) == sorted(h["key"] for h in holes)

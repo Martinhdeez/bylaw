@@ -2,11 +2,13 @@
 import copy
 import json
 import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HAND_RULESETS = Path(__file__).parent / "rulesets"
+_LOCK = threading.Lock()  # ponytail: one process; several server processes on one store would need a file lock
 
 
 def _path(domain: str) -> Path:
@@ -45,16 +47,18 @@ def effective_ruleset(domain: str, store: dict | None = None) -> dict:
 def ratify(domain: str, hole: dict) -> dict:
     """Append the hole's amendment; a hole already ratified is returned as stored. Raises ValueError when the
     patch does not apply on top of what is already ratified (nothing is written then)."""
-    store = load(domain)
-    for a in store["amendments"]:
-        if a["hole_key"] == hole["key"]:
-            return a
-    am = hole["amendment"]
-    entry = {"id": am["id"], "hole_key": hole["key"], "policy_text": am["policy_text"], "rule_patch": am["rule_patch"],
-             "rationale": am.get("rationale", ""), "ratified_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
-    _apply(effective_ruleset(domain, store), entry)
-    store["amendments"].append(entry)
-    p = _path(domain)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(store, indent=2) + "\n")
-    return entry
+    with _LOCK:
+        store = load(domain)
+        for a in store["amendments"]:
+            if a["hole_key"] == hole["key"]:
+                return a
+        am = hole["amendment"]
+        entry = {"id": am["id"], "hole_key": hole["key"], "policy_text": am["policy_text"], "rule_patch": am["rule_patch"],
+                 "rationale": am.get("rationale", ""),
+                 "ratified_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+        _apply(effective_ruleset(domain, store), entry)
+        store["amendments"].append(entry)
+        p = _path(domain)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(store, indent=2) + "\n")
+        return entry

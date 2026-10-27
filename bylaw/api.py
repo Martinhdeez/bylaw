@@ -258,7 +258,7 @@ def web(path: str):
     """The built web app (web/dist): a file when it exists inside dist, else index.html."""
     dist = WEB_DIST.resolve()
     f = (dist / path).resolve()
-    if path.startswith("api/"):
+    if path == "api" or path.startswith("api/"):
         raise HTTPException(404)
     if path and f.is_file() and f.is_relative_to(dist):
         return FileResponse(f)
