@@ -5,6 +5,7 @@ Muse-guided proposals (`use_llm=True`) arrive with PR1.
 """
 from datetime import date, datetime, timedelta
 from itertools import groupby
+from types import SimpleNamespace
 
 from bylaw.goals import allowance
 
@@ -17,16 +18,16 @@ MAX_SHIFT_DAYS = 30
 def search(domain, ruleset: dict, budget: int, use_llm: bool):
     if use_llm:
         raise NotImplementedError("Muse-guided search is PR1; use --no-llm")
-    if domain.name != "airline":
+    if domain.name not in DOMAINS:
         raise NotImplementedError(f"no BFS move set for domain {domain.name!r}")
+    m = DOMAINS[domain.name]
     db = domain.snapshot(domain.fresh_env())
     spent = 0
-    pool = _pool(domain, db)
     # ponytail: batches of one target per stratum, BFS depth-major inside a batch; a smarter order is PR1's job.
-    for batch in _batches(pool):
+    for batch in _batches(m.pool(domain, db)):
         for depth in range(1, MAX_DEPTH + 1):
             for rid in batch:
-                for chain in _chains(db, rid, _state(db, rid), depth, None):
+                for chain in _chains(db, rid, m.state(db, rid), depth, None, m):
                     if spent + len(chain) > budget:
                         return
                     spent += len(chain)
@@ -118,14 +119,74 @@ def _moves(db, rid, st):
                                                       "nonfree_baggages": st["nonfree"], "payment_id": pid}, {**st, "total": free_cap}
 
 
-def _chains(db, rid, st, depth, last):
-    """Every move sequence of exactly `depth` from `st`. Two cabin changes or two date shifts in a row are
-    pruned: they collapse into one call of the same kind."""
-    for kind, tool, args, nxt in _moves(db, rid, st):
-        if kind == last and kind in ("cabin", "shift"):
+def _chains(db, rid, st, depth, last, m=None):
+    """Every move sequence of exactly `depth` from `st` (airline moves unless `m` says otherwise). Two moves of a
+    kind in `m.no_repeat` in a row are pruned: they collapse into one call of that kind."""
+    m = m or DOMAINS["airline"]
+    for kind, tool, args, nxt in m.moves(db, rid, st):
+        if kind == last and kind in m.no_repeat:
             continue
         if depth == 1:
             yield [(tool, args)]
         else:
-            for rest in _chains(db, rid, nxt, depth - 1, kind):
+            for rest in _chains(db, rid, nxt, depth - 1, kind, m):
                 yield [(tool, args), *rest]
+
+
+# ---- retail: orders stratified by status, static arguments from the DB ----
+
+ADDRESS = {"address1": "1 Elsewhere St", "address2": "", "city": "Springfield", "state": "IL", "country": "USA", "zip": "62701"}
+RETAIL_REASON = "no longer needed"
+
+
+def _retail_pool(domain, db) -> list[list[str]]:
+    """Target orders from domain.targets, one list per order status. Inside a status, orders whose user has more
+    than one payment method come first: a payment switch, or a refund to another method, needs a second one."""
+    oids = sorted({t["order_id"] for g in domain.goals for t in domain.targets(g)})
+
+    def status(oid):
+        return db["orders"][oid]["status"]
+
+    def one_method(oid):
+        return len(db["users"][db["orders"][oid]["user_id"]]["payment_methods"]) < 2
+
+    return [list(g) for _, g in groupby(sorted(oids, key=lambda oid: (status(oid), one_method(oid), oid)), key=status)]
+
+
+def _variant(db, item):
+    """Another available variant of the item's product, or None."""
+    variants = db["products"][item["product_id"]]["variants"]
+    return next((vid for vid, v in sorted(variants.items()) if vid != item["item_id"] and v["available"]), None)
+
+
+def _retail_moves(db, oid, st):
+    """Every retail write on the order, arguments taken from the DB: the first item and another available variant
+    of it, the original payment method for item changes, each other method of the user for a payment switch.
+    The kind of a move is its tool."""
+    o = db["orders"][oid]
+    original = o["payment_history"][0]["payment_method_id"]
+    item = o["items"][0]
+    new = _variant(db, item)
+    moves = [("cancel_pending_order", {"order_id": oid, "reason": RETAIL_REASON}),
+             ("modify_pending_order_address", {"order_id": oid, **ADDRESS})]
+    moves += [("modify_pending_order_payment", {"order_id": oid, "payment_method_id": pm})
+              for pm in sorted(db["users"][o["user_id"]]["payment_methods"]) if pm != original]
+    if new:
+        swap = {"order_id": oid, "item_ids": [item["item_id"]], "new_item_ids": [new], "payment_method_id": original}
+        moves += [("modify_pending_order_items", swap), ("exchange_delivered_order_items", swap)]
+    moves += [("return_delivered_order_items", {"order_id": oid, "item_ids": [item["item_id"]], "payment_method_id": original}),
+              ("modify_user_address", {"user_id": o["user_id"], **ADDRESS})]
+    for tool, args in moves:
+        yield tool, tool, args, st
+
+
+# Lambdas look the functions up at call time, so tests can patch them on the module.
+DOMAINS = {
+    "airline": SimpleNamespace(pool=lambda d, db: _pool(d, db), state=lambda db, t: _state(db, t),
+                               moves=lambda db, t, st: _moves(db, t, st), no_repeat={"cabin", "shift"}),
+    "retail": SimpleNamespace(pool=lambda d, db: _retail_pool(d, db), state=lambda db, t: {},
+                              moves=lambda db, t, st: _retail_moves(db, t, st),
+                              no_repeat={"cancel_pending_order", "modify_pending_order_address", "modify_pending_order_payment",
+                                         "modify_pending_order_items", "exchange_delivered_order_items",
+                                         "return_delivered_order_items", "modify_user_address"}),
+}
