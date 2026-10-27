@@ -117,7 +117,7 @@ def test_REQ_PX1_1_mcp_server_lists_every_tool_with_its_schema(airline, ratified
     by_name = {t.name: t for t in tools}
     for spec in airline.tools:
         fn = spec.get("function", spec)
-        assert by_name[fn["name"]].inputSchema == fn["parameters"], fn["name"]
+        assert by_name[fn["name"]].input_schema == fn["parameters"], fn["name"]  # mcp 2.x field name
 
 
 # ---------- REQ-PX1-2 ----------
