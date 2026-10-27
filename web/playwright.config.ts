@@ -17,7 +17,8 @@ Object.assign(process.env, stores);
 const vite = { command: "npm run dev -- --port 5173 --strictPort", url: "http://localhost:5173", reuseExistingServer: true };
 const uvicorn = {
   command: "uv run uvicorn bylaw.api:app --port 8000",
-  cwd: "..",
+  // BYLAW_API_ROOT runs the API from another checkout, e.g. an unmerged AP1 branch.
+  cwd: process.env.BYLAW_API_ROOT ?? "..",
   url: "http://localhost:8000/api/domains",
   reuseExistingServer: false,
   timeout: 120_000,
