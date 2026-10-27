@@ -69,9 +69,12 @@ def test_schema_requires_the_contradictions_list_and_the_gold_block(report):
 
 
 def test_an_entry_that_does_not_replay_5_of_5_is_dropped(monkeypatch):
+    # 0QOP4M: a cabin downgrade alone keeps free bags over the allowance (G5), found at depth 1.
+    monkeypatch.setattr(report_mod, "search", lambda *a, **k: _only("0QOP4M", depths=(1,)))
+    findings = lambda r: r["holes"] + r["contradictions"] + r["ambiguities"]  # noqa: E731
+    assert "G5:0QOP4M" in {e["key"] for e in findings(audit(DOMAIN, RULES, budget=50))}
     monkeypatch.setattr(report_mod, "prove", lambda *a, **k: "4/5")
-    r = audit(DOMAIN, RULES, budget=10)
-    assert r["holes"] == r["contradictions"] == r["ambiguities"] == []
+    assert findings(audit(DOMAIN, RULES, budget=50)) == []
 
 
 def test_a_cancel_rebook_ambiguity_does_not_shadow_a_hole_with_the_same_key(monkeypatch):
@@ -95,17 +98,6 @@ def test_a_key_is_listed_once_across_holes_contradictions_and_ambiguities(monkey
     assert "G1:" + rid in {e["key"] for e in r["ambiguities"]}
 
 
-def test_a_longer_chain_is_not_listed_again_for_an_outcome_its_prefix_already_reached(monkeypatch):
-    # 0QOP4M: a downgrade alone keeps free bags over the allowance (G5); downgrade + cancel + rebook adds nothing.
-    monkeypatch.setattr(report_mod, "search", lambda *a, **k: _only("0QOP4M", depths=(1, 2, 3)))
-    r = audit(DOMAIN, RULES, budget=10**4)
-    found = r["holes"] + r["contradictions"] + r["ambiguities"]
-    for e in found:
-        for other in found:
-            shorter = [(s["tool"], s["args"]) for s in other["chain"]]
-            assert other is e or other["key"] != e["key"] or [(s["tool"], s["args"]) for s in e["chain"][:len(shorter)]] != shorter, e["id"]
-
-
 def _only(rid, depths=(1, 2)):
     from bylaw import proposer
     db = DOMAIN.snapshot(DOMAIN.fresh_env())
@@ -125,3 +117,61 @@ def test_run_block_names_the_commit_and_the_goals_commit(report):
     assert run["commit"].split("-")[0] == git("rev-parse", "--short", "HEAD")
     assert run["commit"].endswith("-dirty") == bool(git("status", "--porcelain", "--untracked-files=no"))
     assert run["goals_commit"] == git("log", "-1", "--format=%h", "--", "bylaw/goals.py") != ""
+
+
+def test_muse_audit_proves_what_its_templates_find_and_counts_its_calls(report):
+    from tests.test_proposer import G7_TWICE, ScriptedMuse
+
+    muse = audit(DOMAIN, RULES, budget=40, use_llm=True, llm=ScriptedMuse({"G7": [G7_TWICE]}))
+    jsonschema.validate(muse, REPORT_SCHEMA)
+    assert muse["run"]["mode"] == "muse"
+    assert muse["stats"]["llm_calls"] == len(DOMAIN.goals) and muse["stats"]["tool_calls"] <= 40
+    g7 = [e for e in muse["ambiguities"] if e["goal"] == "G7"]
+    assert g7 and all(e["replays"] == "5/5" and [s["tool"] for s in e["chain"]] == ["send_certificate"] * 2 for e in g7)
+    assert not any(e["goal"] == "G7" for e in report["ambiguities"])  # blind BFS never sends certificates
+
+
+def test_a_muse_template_that_finds_nothing_hands_its_budget_back_to_the_bfs():
+    from tests.test_proposer import G7_TWICE, ScriptedMuse, _cert
+
+    dud = {**G7_TWICE, "steps": [_cert(), _cert("lost luggage")]}  # the rules block step 2: never a hole
+    muse = audit(DOMAIN, RULES, budget=40, use_llm=True, llm=ScriptedMuse({"G7": [dud]}))
+    # two misses drop the template; each executed 1 write step (C6 v1.8 charges executed steps), so the BFS gets 38
+    keys = lambda r: [e["key"] for e in r["holes"] + r["contradictions"] + r["ambiguities"]]  # noqa: E731
+    bfs = audit(DOMAIN, RULES, budget=38)
+    assert keys(muse) == keys(bfs)
+    assert muse["stats"]["tool_calls"] == 2 + bfs["stats"]["tool_calls"]
+
+
+ONLY_1KUOX2 = {"rationale": "cabin change, then a date change the basic-economy rule no longer sees",
+               "where": "args['reservation_id'] == '1KUOX2'", "steps": [
+                   {"tool": "update_reservation_flights", "args_json": json.dumps({
+                       "reservation_id": "1KUOX2", "cabin": "economy", "payment_id": "credit_card_1697462",
+                       "flights": [{"flight_number": "HAT036", "date": day}]})} for day in ("2024-05-22", "2024-05-21")]}
+
+
+def test_found_records_the_cumulative_write_steps_at_which_each_hole_was_proved(monkeypatch):
+    from tests.test_proposer import ScriptedMuse
+
+    monkeypatch.setattr(report_mod, "gold_goals", lambda domain: {})  # every finding a Class A hole (C4 v1.7)
+    r = audit(DOMAIN, RULES, budget=30, use_llm=True, llm=ScriptedMuse({"G1": [ONLY_1KUOX2]}))
+    found = r["stats"]["found"]
+    assert found[0]["key"] == "G1:1KUOX2" and found[0]["tool_calls"] == 2  # the first chain, 2 steps executed
+    bfs = audit(DOMAIN, RULES, budget=28)  # what the BFS does with the rest, from its own start
+    assert [f["tool_calls"] - 2 for f in found[1:]] == [f["tool_calls"] for f in bfs["stats"]["found"]]
+    assert [f["key"] for f in found] == [h["key"] for h in r["holes"]]
+
+
+def test_a_failed_muse_call_is_counted_and_never_aborts_the_audit():
+    from tests.test_proposer import G7_TWICE, ScriptedMuse
+
+    ok = ScriptedMuse({"G7": [G7_TWICE]})
+
+    def flaky(messages, schema, name, **kw):
+        if json.loads(messages[-1]["content"])["goal"]["id"] in ("G1", "G2"):
+            raise RuntimeError("empty reply")
+        return ok(messages, schema, name, **kw)
+
+    r = audit(DOMAIN, RULES, budget=30, use_llm=True, llm=flaky)
+    assert r["stats"]["llm_errors"] == 2 and r["stats"]["llm_calls"] == len(DOMAIN.goals)
+    assert any(e["goal"] == "G7" for e in r["ambiguities"])

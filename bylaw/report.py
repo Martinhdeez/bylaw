@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from bylaw import llm as muse
 from bylaw.gold import gold_goals
 from bylaw.executor import run
 from bylaw.proposer import search
@@ -78,11 +79,6 @@ def _target(chain: list[dict]) -> str:
     return ""
 
 
-def _extends(chain: list[dict], key: str, entries: dict) -> bool:
-    calls = [(s["tool"], s["args"]) for s in chain]
-    return any(e["key"] == key and calls[:len(e["chain"])] == [(s["tool"], s["args"]) for s in e["chain"]] for e in entries.values())
-
-
 GOALS_FILES = {"airline": "bylaw/goals.py", "retail": "bylaw/goals_retail.py"}
 
 
@@ -99,12 +95,38 @@ def _git(*args) -> str:
         return ""
 
 
-def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "") -> dict:
+def _steered(search_gen, entries: dict, tool_calls):
+    """Yields the search's chains and, after each one is tried, sends back the C6 v1.8 feedback
+    (write steps it executed, whether it added a proven entry). `tool_calls()` is the running total."""
+    n, done, feedback = len(entries), tool_calls(), None
+    while True:
+        try:
+            proposal = search_gen.send(feedback)
+        except StopIteration:
+            return
+        yield proposal
+        feedback, n, done = (tool_calls() - done, len(entries) > n), len(entries), tool_calls()
+
+
+def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "", llm=None) -> dict:
+    """`llm` replaces bylaw.llm.structured (tests script Muse with it). llm_calls counts the requests the search
+    made; tokens counts what the API billed for them (0 for a reply served from the disk cache)."""
     t0 = time.monotonic()
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     db = domain.snapshot(domain.fresh_env())
     entries, chains_tried, tool_calls = {}, 0, 0
-    for proposal in search(domain, ruleset, budget, use_llm):
+    asked, errors, billed_from, found = [], [], len(muse.CALLS), {}
+
+    def counted(*a, **kw):
+        asked.append(1)
+        try:
+            return (llm or muse.structured)(*a, **kw)
+        except Exception:
+            errors.append(1)  # the search leaves that goal to the BFS (C6 v1.8)
+            raise
+
+    gen = search(domain, ruleset, budget, use_llm, llm=counted) if use_llm else search(domain, ruleset, budget, use_llm)
+    for proposal in _steered(gen, entries, lambda: tool_calls):
         chain = [{"tool": t, "args": a} for t, a in proposal]
         r = run(domain, chain, ruleset)
         chains_tried += 1
@@ -117,24 +139,28 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             key, cls = f"{gid}:{target}", classify(domain, db, gid, chain)
             # One entry per key across the three lists. A Class A hole takes the key from a B or C entry: it is never
             # shadowed. Otherwise the first, shortest chain wins (so the 24h cancel+rebook stays a Class C ambiguity,
-            # REQ-EX1-3), and a chain that extends one already listed for the key adds nothing.
-            if (key in entries and not (cls == "A" and entries[key]["class"] != "A")) or _extends(chain, key, entries) \
-                    or not goal.check(before, after, r["results"]):
+            # REQ-EX1-3).
+            if (key in entries and not (cls == "A" and entries[key]["class"] != "A")) or not goal.check(before, after, r["results"]):
                 continue
             replays = prove(domain, ruleset, gid, chain, r["diff"])
             if replays != "5/5":
                 continue  # not reproducible: not a proven hole
             tasks = gold_goals(domain).get(gid, [])
+            found[key] = {"key": key, "tool_calls": tool_calls, "seconds": round(time.monotonic() - t0, 2)}
             entries[key] = {"key": key, "class": cls, "goal": gid, "gold": {"sanctioned": bool(tasks), "tasks": tasks},
                             "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
                             "chain": r["steps"], "diff": r["diff"], "goal_true": True, "replays": replays}
     lists = {cls: [{"id": f"{prefix}{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == cls), 1)]
              for cls, prefix in (("A", "H"), ("B", "B"), ("C", "C"))}
     return {
-        "run": {"commit": _commit(), "domain": domain.name, "model": model,
+        "run": {"commit": _commit(), "domain": domain.name,
+                "model": model or (muse.model() if use_llm else ""),
                 "mode": "muse" if use_llm else "bfs", "started": started, "budget": budget,
                 "goals_commit": _git("log", "-1", "--format=%h", "--", GOALS_FILES.get(domain.name, ""))},
         "holes": lists["A"], "contradictions": lists["B"], "ambiguities": lists["C"],
-        "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": 0, "tokens": 0,
-                  "seconds": round(time.monotonic() - t0, 2)},
+        "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": len(asked),
+                  "llm_errors": len(errors),
+                  "tokens": sum(c["prompt_tokens"] + c["completion_tokens"] for c in muse.CALLS[billed_from:]),
+                  "seconds": round(time.monotonic() - t0, 2),
+                  "found": [found[h["key"]] for h in lists["A"]]},  # C5 v1.6: when each hole was first proved
     }

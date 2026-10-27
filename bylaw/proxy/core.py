@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from bylaw import rules
+from bylaw.gold import goal_of
 
 HAND_RULESETS = Path(__file__).resolve().parents[1] / "rulesets"
 
@@ -30,7 +31,7 @@ def default_ruleset(domain_name: str) -> dict:
 def ratified_goals(domain_name: str) -> set[str]:
     """01 v1.7: the goals of the domain's ratified amendments (goal = the hole key before ':'); none if no store."""
     ratified = _ratified()
-    return set() if ratified is None else {a["hole_key"].split(":")[0] for a in ratified.load(domain_name)["amendments"]}
+    return set() if ratified is None else {goal_of(a["hole_key"]) for a in ratified.load(domain_name)["amendments"]}
 
 
 class Proxy:

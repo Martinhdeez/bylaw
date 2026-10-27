@@ -1,0 +1,7042 @@
+{
+ "ambiguities": [
+  {
+   "chain": [
+    {
+     "args": {
+      "reason": "change of plan",
+      "reservation_id": "1KUOX2"
+     },
+     "ok": true,
+     "tool": "cancel_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-cancel-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must also obtain the reason for cancellation (change of plan, airline cancelled flight, or other reasons)",
+       "rule_id": "R-cancel-reason"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If any portion of the flight has already been flown, the agent cannot help and transfer is needed.",
+       "rule_id": "R-cancel-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Otherwise, flight can be cancelled if any of the following is true: - The booking was made within the last 24 hrs - The flight is cancelled by airline - It is a business flight - The user has travel insurance and the reason for cancellation is covered by insurance.",
+       "rule_id": "R-cancel-ground"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "destination": "MCO",
+      "flight_type": "one_way",
+      "flights": [
+       {
+        "date": "2024-05-21",
+        "flight_number": "HAT036"
+       }
+      ],
+      "insurance": "no",
+      "nonfree_baggages": 0,
+      "origin": "MSP",
+      "passengers": [
+       {
+        "dob": "1984-03-14",
+        "first_name": "Mohamed",
+        "last_name": "Taylor"
+       }
+      ],
+      "payment_methods": [
+       {
+        "amount": 86,
+        "payment_id": "credit_card_1697462"
+       }
+      ],
+      "total_baggages": 0,
+      "user_id": "anya_khan_1074"
+     },
+     "ok": true,
+     "tool": "book_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id from the user.",
+       "rule_id": "R-book-user"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Each reservation can have at most five passengers.",
+       "rule_id": "R-book-max-pax"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent should then ask for the trip type, origin, destination.",
+       "rule_id": "R-book-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-book-payment-in-profile"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards.",
+       "rule_id": "R-book-payment-mix"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-book-bags"
+      }
+     ]
+    }
+   ],
+   "class": "C",
+   "diff": {
+    "flights": {
+     "HAT036": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T15:57:00",
+         "actual_departure_time_est": "2024-05-01T12:38:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T16:44:00",
+         "actual_departure_time_est": "2024-05-02T13:18:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T16:25:00",
+         "actual_departure_time_est": "2024-05-03T13:00:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T15:56:00",
+         "actual_departure_time_est": "2024-05-04T13:26:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T15:58:00",
+         "actual_departure_time_est": "2024-05-05T12:58:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T15:27:00",
+         "actual_departure_time_est": "2024-05-06T12:40:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T15:48:00",
+         "actual_departure_time_est": "2024-05-07T12:58:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T15:48:00",
+         "actual_departure_time_est": "2024-05-08T12:39:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T16:44:00",
+         "actual_departure_time_est": "2024-05-09T13:14:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T16:15:00",
+         "actual_departure_time_est": "2024-05-10T13:22:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T16:17:00",
+         "actual_departure_time_est": "2024-05-11T13:18:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T16:13:00",
+         "actual_departure_time_est": "2024-05-12T12:44:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T16:03:00",
+         "actual_departure_time_est": "2024-05-13T13:11:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "status": "cancelled"
+        },
+        "2024-05-15": {
+         "actual_departure_time_est": "2024-05-15T12:38:00",
+         "estimated_arrival_time_est": "2024-05-15T15:50:00",
+         "status": "flying"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 12,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 54,
+          "business": 409,
+          "economy": 171
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 16,
+          "business": 16,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 316,
+          "economy": 152
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 12,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 83,
+          "business": 359,
+          "economy": 119
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 1,
+          "business": 15,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 100,
+          "business": 211,
+          "economy": 195
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 5,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 433,
+          "economy": 186
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 20,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 86,
+          "business": 218,
+          "economy": 116
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 9,
+          "economy": 19
+         },
+         "prices": {
+          "basic_economy": 63,
+          "business": 406,
+          "economy": 127
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 10,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 83,
+          "business": 421,
+          "economy": 111
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 4,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 56,
+          "business": 362,
+          "economy": 180
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 15,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 58,
+          "business": 312,
+          "economy": 101
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 19,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 217,
+          "economy": 129
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 4,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 99,
+          "business": 236,
+          "economy": 138
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 10,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 59,
+          "business": 411,
+          "economy": 157
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 11,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 440,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 0,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 88,
+          "business": 456,
+          "economy": 152
+         },
+         "status": "available"
+        }
+       },
+       "destination": "MCO",
+       "flight_number": "HAT036",
+       "origin": "MSP",
+       "scheduled_arrival_time_est": "16:00:00",
+       "scheduled_departure_time_est": "13:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T15:57:00",
+         "actual_departure_time_est": "2024-05-01T12:38:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T16:44:00",
+         "actual_departure_time_est": "2024-05-02T13:18:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T16:25:00",
+         "actual_departure_time_est": "2024-05-03T13:00:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T15:56:00",
+         "actual_departure_time_est": "2024-05-04T13:26:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T15:58:00",
+         "actual_departure_time_est": "2024-05-05T12:58:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T15:27:00",
+         "actual_departure_time_est": "2024-05-06T12:40:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T15:48:00",
+         "actual_departure_time_est": "2024-05-07T12:58:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T15:48:00",
+         "actual_departure_time_est": "2024-05-08T12:39:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T16:44:00",
+         "actual_departure_time_est": "2024-05-09T13:14:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T16:15:00",
+         "actual_departure_time_est": "2024-05-10T13:22:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T16:17:00",
+         "actual_departure_time_est": "2024-05-11T13:18:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T16:13:00",
+         "actual_departure_time_est": "2024-05-12T12:44:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T16:03:00",
+         "actual_departure_time_est": "2024-05-13T13:11:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "status": "cancelled"
+        },
+        "2024-05-15": {
+         "actual_departure_time_est": "2024-05-15T12:38:00",
+         "estimated_arrival_time_est": "2024-05-15T15:50:00",
+         "status": "flying"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 12,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 54,
+          "business": 409,
+          "economy": 171
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 16,
+          "business": 16,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 316,
+          "economy": 152
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 12,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 83,
+          "business": 359,
+          "economy": 119
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 1,
+          "business": 15,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 100,
+          "business": 211,
+          "economy": 195
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 5,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 433,
+          "economy": 186
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 16,
+          "business": 20,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 86,
+          "business": 218,
+          "economy": 116
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 9,
+          "economy": 19
+         },
+         "prices": {
+          "basic_economy": 63,
+          "business": 406,
+          "economy": 127
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 10,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 83,
+          "business": 421,
+          "economy": 111
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 4,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 56,
+          "business": 362,
+          "economy": 180
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 15,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 58,
+          "business": 312,
+          "economy": 101
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 19,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 217,
+          "economy": 129
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 4,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 99,
+          "business": 236,
+          "economy": 138
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 10,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 59,
+          "business": 411,
+          "economy": 157
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 11,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 440,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 0,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 88,
+          "business": 456,
+          "economy": 152
+         },
+         "status": "available"
+        }
+       },
+       "destination": "MCO",
+       "flight_number": "HAT036",
+       "origin": "MSP",
+       "scheduled_arrival_time_est": "16:00:00",
+       "scheduled_departure_time_est": "13:00:00"
+      }
+     }
+    },
+    "reservations": {
+     "1KUOX2": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T17:16:37",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-22",
+         "destination": "MCO",
+         "flight_number": "HAT036",
+         "origin": "MSP",
+         "price": 91
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1984-03-14",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 91,
+         "payment_id": "credit_card_1697462"
+        },
+        {
+         "amount": -91,
+         "payment_id": "credit_card_1697462"
+        }
+       ],
+       "reservation_id": "1KUOX2",
+       "status": "cancelled",
+       "total_baggages": 0,
+       "user_id": "anya_khan_1074"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T17:16:37",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-22",
+         "destination": "MCO",
+         "flight_number": "HAT036",
+         "origin": "MSP",
+         "price": 91
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1984-03-14",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 91,
+         "payment_id": "credit_card_1697462"
+        }
+       ],
+       "reservation_id": "1KUOX2",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "anya_khan_1074"
+      }
+     },
+     "HATHAT": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-15T15:00:00",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "MCO",
+         "flight_number": "HAT036",
+         "origin": "MSP",
+         "price": 86
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1984-03-14",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 86,
+         "payment_id": "credit_card_1697462"
+        }
+       ],
+       "reservation_id": "HATHAT",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "anya_khan_1074"
+      },
+      "before": null
+     }
+    },
+    "users": {
+     "anya_khan_1074": {
+      "after": {
+       "address": {
+        "address1": "364 Sunset Drive",
+        "address2": "Suite 704",
+        "city": "Houston",
+        "country": "USA",
+        "state": "TX",
+        "zip": "77081"
+       },
+       "dob": "1984-04-08",
+       "email": "anya.khan3991@example.com",
+       "membership": "silver",
+       "name": {
+        "first_name": "Anya",
+        "last_name": "Khan"
+       },
+       "payment_methods": {
+        "certificate_4196207": {
+         "amount": 250.0,
+         "id": "certificate_4196207",
+         "source": "certificate"
+        },
+        "credit_card_1697462": {
+         "brand": "visa",
+         "id": "credit_card_1697462",
+         "last_four": "2560",
+         "source": "credit_card"
+        },
+        "gift_card_9637418": {
+         "amount": 56.0,
+         "id": "gift_card_9637418",
+         "source": "gift_card"
+        }
+       },
+       "reservations": [
+        "77VWO5",
+        "2X85TD",
+        "1KUOX2",
+        "DV9PVT",
+        "4DK634",
+        "YLOKZC",
+        "CT5H4T",
+        "6SIWA2",
+        "20WTGO",
+        "75GVW5",
+        "HATHAT"
+       ],
+       "saved_passengers": [
+        {
+         "dob": "1987-04-21",
+         "first_name": "Noah",
+         "last_name": "Muller"
+        }
+       ],
+       "user_id": "anya_khan_1074"
+      },
+      "before": {
+       "address": {
+        "address1": "364 Sunset Drive",
+        "address2": "Suite 704",
+        "city": "Houston",
+        "country": "USA",
+        "state": "TX",
+        "zip": "77081"
+       },
+       "dob": "1984-04-08",
+       "email": "anya.khan3991@example.com",
+       "membership": "silver",
+       "name": {
+        "first_name": "Anya",
+        "last_name": "Khan"
+       },
+       "payment_methods": {
+        "certificate_4196207": {
+         "amount": 250.0,
+         "id": "certificate_4196207",
+         "source": "certificate"
+        },
+        "credit_card_1697462": {
+         "brand": "visa",
+         "id": "credit_card_1697462",
+         "last_four": "2560",
+         "source": "credit_card"
+        },
+        "gift_card_9637418": {
+         "amount": 56.0,
+         "id": "gift_card_9637418",
+         "source": "gift_card"
+        }
+       },
+       "reservations": [
+        "77VWO5",
+        "2X85TD",
+        "1KUOX2",
+        "DV9PVT",
+        "4DK634",
+        "YLOKZC",
+        "CT5H4T",
+        "6SIWA2",
+        "20WTGO",
+        "75GVW5"
+       ],
+       "saved_passengers": [
+        {
+         "dob": "1987-04-21",
+         "first_name": "Noah",
+         "last_name": "Muller"
+        }
+       ],
+       "user_id": "anya_khan_1074"
+      }
+     }
+    }
+   },
+   "goal": "G1",
+   "goal_true": true,
+   "id": "C1",
+   "key": "G1:1KUOX2",
+   "money_delta": 5.0,
+   "replays": "5/5",
+   "title": "basic_economy_flights_changed on 1KUOX2"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "reason": "change of plan",
+      "reservation_id": "PIM2PK"
+     },
+     "ok": true,
+     "tool": "cancel_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-cancel-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must also obtain the reason for cancellation (change of plan, airline cancelled flight, or other reasons)",
+       "rule_id": "R-cancel-reason"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If any portion of the flight has already been flown, the agent cannot help and transfer is needed.",
+       "rule_id": "R-cancel-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Otherwise, flight can be cancelled if any of the following is true: - The booking was made within the last 24 hrs - The flight is cancelled by airline - It is a business flight - The user has travel insurance and the reason for cancellation is covered by insurance.",
+       "rule_id": "R-cancel-ground"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "destination": "CLT",
+      "flight_type": "round_trip",
+      "flights": [
+       {
+        "date": "2024-05-23",
+        "flight_number": "HAT017"
+       },
+       {
+        "date": "2024-05-23",
+        "flight_number": "HAT277"
+       },
+       {
+        "date": "2024-05-25",
+        "flight_number": "HAT287"
+       },
+       {
+        "date": "2024-05-25",
+        "flight_number": "HAT013"
+       }
+      ],
+      "insurance": "yes",
+      "nonfree_baggages": 0,
+      "origin": "MCO",
+      "passengers": [
+       {
+        "dob": "1979-02-23",
+        "first_name": "Evelyn",
+        "last_name": "Silva"
+       }
+      ],
+      "payment_methods": [
+       {
+        "amount": 326,
+        "payment_id": "credit_card_1638882"
+       }
+      ],
+      "total_baggages": 0,
+      "user_id": "evelyn_silva_5208"
+     },
+     "ok": true,
+     "tool": "book_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id from the user.",
+       "rule_id": "R-book-user"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Each reservation can have at most five passengers.",
+       "rule_id": "R-book-max-pax"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent should then ask for the trip type, origin, destination.",
+       "rule_id": "R-book-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-book-payment-in-profile"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards.",
+       "rule_id": "R-book-payment-mix"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-book-bags"
+      }
+     ]
+    }
+   ],
+   "class": "C",
+   "diff": {
+    "flights": {
+     "HAT013": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T23:05:00",
+         "actual_departure_time_est": "2024-05-01T19:30:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T22:29:00",
+         "actual_departure_time_est": "2024-05-02T19:03:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T21:55:00",
+         "actual_departure_time_est": "2024-05-03T18:38:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T21:46:00",
+         "actual_departure_time_est": "2024-05-04T18:42:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T22:53:00",
+         "actual_departure_time_est": "2024-05-05T19:02:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T23:17:00",
+         "actual_departure_time_est": "2024-05-06T19:30:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T22:04:00",
+         "actual_departure_time_est": "2024-05-07T18:58:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T23:01:00",
+         "actual_departure_time_est": "2024-05-08T19:06:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T22:25:00",
+         "actual_departure_time_est": "2024-05-09T18:59:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T22:49:00",
+         "actual_departure_time_est": "2024-05-10T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T22:31:00",
+         "actual_departure_time_est": "2024-05-11T19:12:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T22:35:00",
+         "actual_departure_time_est": "2024-05-12T19:26:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T22:23:00",
+         "actual_departure_time_est": "2024-05-13T19:07:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T22:23:00",
+         "actual_departure_time_est": "2024-05-14T18:58:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "estimated_arrival_time_est": "2024-05-15T22:24:00",
+         "estimated_departure_time_est": "2024-05-15T18:43:00",
+         "status": "on time"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 15,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 90,
+          "business": 303,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 18,
+          "economy": 4
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 444,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 14,
+          "economy": 5
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 338,
+          "economy": 128
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 6,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 94,
+          "business": 385,
+          "economy": 120
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 11,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 442,
+          "economy": 100
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 17,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 355,
+          "economy": 186
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 16,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 55,
+          "business": 328,
+          "economy": 162
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 13,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 69,
+          "business": 468,
+          "economy": 187
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 5,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 96,
+          "business": 422,
+          "economy": 119
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 17,
+          "business": 4,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 95,
+          "business": 288,
+          "economy": 123
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 91,
+          "business": 434,
+          "economy": 131
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 20,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 50,
+          "business": 373,
+          "economy": 104
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 1,
+          "business": 6,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 63,
+          "business": 383,
+          "economy": 170
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 18,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 88,
+          "business": 308,
+          "economy": 193
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 20,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 73,
+          "business": 467,
+          "economy": 191
+         },
+         "status": "available"
+        }
+       },
+       "destination": "MCO",
+       "flight_number": "HAT013",
+       "origin": "BOS",
+       "scheduled_arrival_time_est": "22:30:00",
+       "scheduled_departure_time_est": "19:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T23:05:00",
+         "actual_departure_time_est": "2024-05-01T19:30:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T22:29:00",
+         "actual_departure_time_est": "2024-05-02T19:03:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T21:55:00",
+         "actual_departure_time_est": "2024-05-03T18:38:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T21:46:00",
+         "actual_departure_time_est": "2024-05-04T18:42:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T22:53:00",
+         "actual_departure_time_est": "2024-05-05T19:02:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T23:17:00",
+         "actual_departure_time_est": "2024-05-06T19:30:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T22:04:00",
+         "actual_departure_time_est": "2024-05-07T18:58:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T23:01:00",
+         "actual_departure_time_est": "2024-05-08T19:06:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T22:25:00",
+         "actual_departure_time_est": "2024-05-09T18:59:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T22:49:00",
+         "actual_departure_time_est": "2024-05-10T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T22:31:00",
+         "actual_departure_time_est": "2024-05-11T19:12:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T22:35:00",
+         "actual_departure_time_est": "2024-05-12T19:26:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T22:23:00",
+         "actual_departure_time_est": "2024-05-13T19:07:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T22:23:00",
+         "actual_departure_time_est": "2024-05-14T18:58:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "estimated_arrival_time_est": "2024-05-15T22:24:00",
+         "estimated_departure_time_est": "2024-05-15T18:43:00",
+         "status": "on time"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 15,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 90,
+          "business": 303,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 18,
+          "economy": 4
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 444,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 14,
+          "economy": 5
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 338,
+          "economy": 128
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 6,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 94,
+          "business": 385,
+          "economy": 120
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 11,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 442,
+          "economy": 100
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 17,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 355,
+          "economy": 186
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 16,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 55,
+          "business": 328,
+          "economy": 162
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 13,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 69,
+          "business": 468,
+          "economy": 187
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 5,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 96,
+          "business": 422,
+          "economy": 119
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 4,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 95,
+          "business": 288,
+          "economy": 123
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 91,
+          "business": 434,
+          "economy": 131
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 20,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 50,
+          "business": 373,
+          "economy": 104
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 1,
+          "business": 6,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 63,
+          "business": 383,
+          "economy": 170
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 18,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 88,
+          "business": 308,
+          "economy": 193
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 20,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 73,
+          "business": 467,
+          "economy": 191
+         },
+         "status": "available"
+        }
+       },
+       "destination": "MCO",
+       "flight_number": "HAT013",
+       "origin": "BOS",
+       "scheduled_arrival_time_est": "22:30:00",
+       "scheduled_departure_time_est": "19:00:00"
+      }
+     },
+     "HAT017": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "status": "cancelled"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T13:00:00",
+         "actual_departure_time_est": "2024-05-02T09:39:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T13:50:00",
+         "actual_departure_time_est": "2024-05-03T10:18:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T14:16:00",
+         "actual_departure_time_est": "2024-05-04T10:18:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T13:21:00",
+         "actual_departure_time_est": "2024-05-05T09:53:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T14:07:00",
+         "actual_departure_time_est": "2024-05-06T10:09:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T13:07:00",
+         "actual_departure_time_est": "2024-05-07T09:45:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T12:58:00",
+         "actual_departure_time_est": "2024-05-08T09:49:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T13:28:00",
+         "actual_departure_time_est": "2024-05-09T10:24:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "status": "cancelled"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T13:10:00",
+         "actual_departure_time_est": "2024-05-11T09:36:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T13:09:00",
+         "actual_departure_time_est": "2024-05-12T09:40:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T12:57:00",
+         "actual_departure_time_est": "2024-05-13T09:43:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T13:14:00",
+         "actual_departure_time_est": "2024-05-14T10:01:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "actual_arrival_time_est": "2024-05-15T13:39:00",
+         "actual_departure_time_est": "2024-05-15T09:52:00",
+         "status": "landed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 9,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 77,
+          "business": 240,
+          "economy": 199
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 4,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 99,
+          "business": 489,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 13,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 77,
+          "business": 257,
+          "economy": 183
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 2,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 376,
+          "economy": 121
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 19,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 413,
+          "economy": 148
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 14,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 426,
+          "economy": 163
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 4,
+          "economy": 7
+         },
+         "prices": {
+          "basic_economy": 89,
+          "business": 237,
+          "economy": 200
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 1,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 79,
+          "business": 223,
+          "economy": 189
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 18,
+          "economy": 7
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 391,
+          "economy": 197
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 13,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 452,
+          "economy": 183
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 12,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 66,
+          "business": 374,
+          "economy": 163
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 13,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 89,
+          "business": 258,
+          "economy": 120
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 9,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 93,
+          "business": 388,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 14,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 371,
+          "economy": 182
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 20,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 95,
+          "business": 324,
+          "economy": 120
+         },
+         "status": "available"
+        }
+       },
+       "destination": "BOS",
+       "flight_number": "HAT017",
+       "origin": "MCO",
+       "scheduled_arrival_time_est": "13:30:00",
+       "scheduled_departure_time_est": "10:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "status": "cancelled"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T13:00:00",
+         "actual_departure_time_est": "2024-05-02T09:39:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T13:50:00",
+         "actual_departure_time_est": "2024-05-03T10:18:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T14:16:00",
+         "actual_departure_time_est": "2024-05-04T10:18:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T13:21:00",
+         "actual_departure_time_est": "2024-05-05T09:53:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T14:07:00",
+         "actual_departure_time_est": "2024-05-06T10:09:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T13:07:00",
+         "actual_departure_time_est": "2024-05-07T09:45:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T12:58:00",
+         "actual_departure_time_est": "2024-05-08T09:49:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T13:28:00",
+         "actual_departure_time_est": "2024-05-09T10:24:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "status": "cancelled"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T13:10:00",
+         "actual_departure_time_est": "2024-05-11T09:36:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T13:09:00",
+         "actual_departure_time_est": "2024-05-12T09:40:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T12:57:00",
+         "actual_departure_time_est": "2024-05-13T09:43:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T13:14:00",
+         "actual_departure_time_est": "2024-05-14T10:01:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "actual_arrival_time_est": "2024-05-15T13:39:00",
+         "actual_departure_time_est": "2024-05-15T09:52:00",
+         "status": "landed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 9,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 77,
+          "business": 240,
+          "economy": 199
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 4,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 99,
+          "business": 489,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 13,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 77,
+          "business": 257,
+          "economy": 183
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 2,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 376,
+          "economy": 121
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 19,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 413,
+          "economy": 148
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 14,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 426,
+          "economy": 163
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 4,
+          "economy": 7
+         },
+         "prices": {
+          "basic_economy": 89,
+          "business": 237,
+          "economy": 200
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 1,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 79,
+          "business": 223,
+          "economy": 189
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 18,
+          "economy": 7
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 391,
+          "economy": 197
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 13,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 452,
+          "economy": 183
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 12,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 66,
+          "business": 374,
+          "economy": 163
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 13,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 89,
+          "business": 258,
+          "economy": 120
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 9,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 93,
+          "business": 388,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 14,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 371,
+          "economy": 182
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 20,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 95,
+          "business": 324,
+          "economy": 120
+         },
+         "status": "available"
+        }
+       },
+       "destination": "BOS",
+       "flight_number": "HAT017",
+       "origin": "MCO",
+       "scheduled_arrival_time_est": "13:30:00",
+       "scheduled_departure_time_est": "10:00:00"
+      }
+     },
+     "HAT277": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T20:54:00",
+         "actual_departure_time_est": "2024-05-01T18:42:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T20:55:00",
+         "actual_departure_time_est": "2024-05-02T19:18:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T21:20:00",
+         "actual_departure_time_est": "2024-05-03T19:22:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T21:17:00",
+         "actual_departure_time_est": "2024-05-04T19:20:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T20:56:00",
+         "actual_departure_time_est": "2024-05-05T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "status": "cancelled"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T21:15:00",
+         "actual_departure_time_est": "2024-05-07T19:11:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T20:35:00",
+         "actual_departure_time_est": "2024-05-08T19:04:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T21:41:00",
+         "actual_departure_time_est": "2024-05-09T19:18:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "status": "cancelled"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T21:12:00",
+         "actual_departure_time_est": "2024-05-11T18:46:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T20:40:00",
+         "actual_departure_time_est": "2024-05-12T19:10:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T21:03:00",
+         "actual_departure_time_est": "2024-05-13T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T20:19:00",
+         "actual_departure_time_est": "2024-05-14T18:39:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "estimated_arrival_time_est": "2024-05-15T23:49:00",
+         "estimated_departure_time_est": "2024-05-15T21:49:00",
+         "status": "delayed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 1,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 72,
+          "business": 221,
+          "economy": 200
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 17,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 314,
+          "economy": 124
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 17,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 400,
+          "economy": 149
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 5,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 59,
+          "business": 351,
+          "economy": 129
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 17,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 92,
+          "business": 238,
+          "economy": 147
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 20,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 365,
+          "economy": 101
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 16,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 270,
+          "economy": 150
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 3,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 52,
+          "business": 249,
+          "economy": 134
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 3,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 73,
+          "business": 215,
+          "economy": 198
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 2,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 357,
+          "economy": 195
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 12,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 67,
+          "business": 207,
+          "economy": 146
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 4,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 306,
+          "economy": 197
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 479,
+          "economy": 103
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 3,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 76,
+          "business": 422,
+          "economy": 185
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 3,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 54,
+          "business": 256,
+          "economy": 178
+         },
+         "status": "available"
+        }
+       },
+       "destination": "CLT",
+       "flight_number": "HAT277",
+       "origin": "BOS",
+       "scheduled_arrival_time_est": "21:00:00",
+       "scheduled_departure_time_est": "19:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T20:54:00",
+         "actual_departure_time_est": "2024-05-01T18:42:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T20:55:00",
+         "actual_departure_time_est": "2024-05-02T19:18:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T21:20:00",
+         "actual_departure_time_est": "2024-05-03T19:22:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T21:17:00",
+         "actual_departure_time_est": "2024-05-04T19:20:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T20:56:00",
+         "actual_departure_time_est": "2024-05-05T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "status": "cancelled"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T21:15:00",
+         "actual_departure_time_est": "2024-05-07T19:11:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T20:35:00",
+         "actual_departure_time_est": "2024-05-08T19:04:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T21:41:00",
+         "actual_departure_time_est": "2024-05-09T19:18:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "status": "cancelled"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T21:12:00",
+         "actual_departure_time_est": "2024-05-11T18:46:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T20:40:00",
+         "actual_departure_time_est": "2024-05-12T19:10:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T21:03:00",
+         "actual_departure_time_est": "2024-05-13T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T20:19:00",
+         "actual_departure_time_est": "2024-05-14T18:39:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "estimated_arrival_time_est": "2024-05-15T23:49:00",
+         "estimated_departure_time_est": "2024-05-15T21:49:00",
+         "status": "delayed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 1,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 72,
+          "business": 221,
+          "economy": 200
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 17,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 314,
+          "economy": 124
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 17,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 400,
+          "economy": 149
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 5,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 59,
+          "business": 351,
+          "economy": 129
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 17,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 92,
+          "business": 238,
+          "economy": 147
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 20,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 365,
+          "economy": 101
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 16,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 270,
+          "economy": 150
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 52,
+          "business": 249,
+          "economy": 134
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 3,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 73,
+          "business": 215,
+          "economy": 198
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 2,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 357,
+          "economy": 195
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 12,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 67,
+          "business": 207,
+          "economy": 146
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 4,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 306,
+          "economy": 197
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 479,
+          "economy": 103
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 3,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 76,
+          "business": 422,
+          "economy": 185
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 3,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 54,
+          "business": 256,
+          "economy": 178
+         },
+         "status": "available"
+        }
+       },
+       "destination": "CLT",
+       "flight_number": "HAT277",
+       "origin": "BOS",
+       "scheduled_arrival_time_est": "21:00:00",
+       "scheduled_departure_time_est": "19:00:00"
+      }
+     },
+     "HAT287": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T11:20:00",
+         "actual_departure_time_est": "2024-05-01T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T11:37:00",
+         "actual_departure_time_est": "2024-05-02T09:14:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T10:37:00",
+         "actual_departure_time_est": "2024-05-03T08:44:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T11:07:00",
+         "actual_departure_time_est": "2024-05-04T09:04:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T10:08:00",
+         "actual_departure_time_est": "2024-05-05T08:38:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T10:56:00",
+         "actual_departure_time_est": "2024-05-06T09:14:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T10:35:00",
+         "actual_departure_time_est": "2024-05-07T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T11:34:00",
+         "actual_departure_time_est": "2024-05-08T09:05:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T10:38:00",
+         "actual_departure_time_est": "2024-05-09T09:03:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T10:48:00",
+         "actual_departure_time_est": "2024-05-10T09:05:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T10:20:00",
+         "actual_departure_time_est": "2024-05-11T08:30:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T11:03:00",
+         "actual_departure_time_est": "2024-05-12T09:00:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T10:57:00",
+         "actual_departure_time_est": "2024-05-13T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T10:52:00",
+         "actual_departure_time_est": "2024-05-14T09:08:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "actual_arrival_time_est": "2024-05-15T11:27:00",
+         "actual_departure_time_est": "2024-05-15T08:58:00",
+         "status": "landed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 6,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 360,
+          "economy": 185
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 0,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 296,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 20,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 97,
+          "business": 349,
+          "economy": 191
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 20,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 72,
+          "business": 242,
+          "economy": 196
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 12,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 301,
+          "economy": 178
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 8,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 267,
+          "economy": 128
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 19,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 84,
+          "business": 380,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 13,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 381,
+          "economy": 191
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 5,
+          "business": 5,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 298,
+          "economy": 115
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 20,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 257,
+          "economy": 171
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 6,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 93,
+          "business": 445,
+          "economy": 177
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 18,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 490,
+          "economy": 110
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 18,
+          "economy": 4
+         },
+         "prices": {
+          "basic_economy": 52,
+          "business": 220,
+          "economy": 196
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 17,
+          "business": 18,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 91,
+          "business": 500,
+          "economy": 193
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 7,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 465,
+          "economy": 192
+         },
+         "status": "available"
+        }
+       },
+       "destination": "BOS",
+       "flight_number": "HAT287",
+       "origin": "CLT",
+       "scheduled_arrival_time_est": "11:00:00",
+       "scheduled_departure_time_est": "09:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T11:20:00",
+         "actual_departure_time_est": "2024-05-01T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T11:37:00",
+         "actual_departure_time_est": "2024-05-02T09:14:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T10:37:00",
+         "actual_departure_time_est": "2024-05-03T08:44:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T11:07:00",
+         "actual_departure_time_est": "2024-05-04T09:04:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T10:08:00",
+         "actual_departure_time_est": "2024-05-05T08:38:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T10:56:00",
+         "actual_departure_time_est": "2024-05-06T09:14:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T10:35:00",
+         "actual_departure_time_est": "2024-05-07T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T11:34:00",
+         "actual_departure_time_est": "2024-05-08T09:05:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T10:38:00",
+         "actual_departure_time_est": "2024-05-09T09:03:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T10:48:00",
+         "actual_departure_time_est": "2024-05-10T09:05:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T10:20:00",
+         "actual_departure_time_est": "2024-05-11T08:30:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T11:03:00",
+         "actual_departure_time_est": "2024-05-12T09:00:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T10:57:00",
+         "actual_departure_time_est": "2024-05-13T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T10:52:00",
+         "actual_departure_time_est": "2024-05-14T09:08:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "actual_arrival_time_est": "2024-05-15T11:27:00",
+         "actual_departure_time_est": "2024-05-15T08:58:00",
+         "status": "landed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 6,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 360,
+          "economy": 185
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 0,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 296,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 20,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 97,
+          "business": 349,
+          "economy": 191
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 20,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 72,
+          "business": 242,
+          "economy": 196
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 12,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 301,
+          "economy": 178
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 8,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 267,
+          "economy": 128
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 19,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 84,
+          "business": 380,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 13,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 381,
+          "economy": 191
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 5,
+          "business": 5,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 298,
+          "economy": 115
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 20,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 257,
+          "economy": 171
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 6,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 93,
+          "business": 445,
+          "economy": 177
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 18,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 490,
+          "economy": 110
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 18,
+          "economy": 4
+         },
+         "prices": {
+          "basic_economy": 52,
+          "business": 220,
+          "economy": 196
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 17,
+          "business": 18,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 91,
+          "business": 500,
+          "economy": 193
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 7,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 465,
+          "economy": 192
+         },
+         "status": "available"
+        }
+       },
+       "destination": "BOS",
+       "flight_number": "HAT287",
+       "origin": "CLT",
+       "scheduled_arrival_time_est": "11:00:00",
+       "scheduled_departure_time_est": "09:00:00"
+      }
+     }
+    },
+    "reservations": {
+     "HATHAT": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-15T15:00:00",
+       "destination": "CLT",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-23",
+         "destination": "BOS",
+         "flight_number": "HAT017",
+         "origin": "MCO",
+         "price": 79
+        },
+        {
+         "date": "2024-05-23",
+         "destination": "CLT",
+         "flight_number": "HAT277",
+         "origin": "BOS",
+         "price": 52
+        },
+        {
+         "date": "2024-05-25",
+         "destination": "BOS",
+         "flight_number": "HAT287",
+         "origin": "CLT",
+         "price": 70
+        },
+        {
+         "date": "2024-05-25",
+         "destination": "MCO",
+         "flight_number": "HAT013",
+         "origin": "BOS",
+         "price": 95
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MCO",
+       "passengers": [
+        {
+         "dob": "1979-02-23",
+         "first_name": "Evelyn",
+         "last_name": "Silva"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 326,
+         "payment_id": "credit_card_1638882"
+        }
+       ],
+       "reservation_id": "HATHAT",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "evelyn_silva_5208"
+      },
+      "before": null
+     },
+     "PIM2PK": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:01:45",
+       "destination": "CLT",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "BOS",
+         "flight_number": "HAT017",
+         "origin": "MCO",
+         "price": 100
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT277",
+         "origin": "BOS",
+         "price": 61
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "BOS",
+         "flight_number": "HAT287",
+         "origin": "CLT",
+         "price": 86
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "MCO",
+         "flight_number": "HAT013",
+         "origin": "BOS",
+         "price": 77
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MCO",
+       "passengers": [
+        {
+         "dob": "1979-02-23",
+         "first_name": "Evelyn",
+         "last_name": "Silva"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 354,
+         "payment_id": "credit_card_1638882"
+        },
+        {
+         "amount": -354,
+         "payment_id": "credit_card_1638882"
+        }
+       ],
+       "reservation_id": "PIM2PK",
+       "status": "cancelled",
+       "total_baggages": 0,
+       "user_id": "evelyn_silva_5208"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:01:45",
+       "destination": "CLT",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "BOS",
+         "flight_number": "HAT017",
+         "origin": "MCO",
+         "price": 100
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT277",
+         "origin": "BOS",
+         "price": 61
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "BOS",
+         "flight_number": "HAT287",
+         "origin": "CLT",
+         "price": 86
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "MCO",
+         "flight_number": "HAT013",
+         "origin": "BOS",
+         "price": 77
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MCO",
+       "passengers": [
+        {
+         "dob": "1979-02-23",
+         "first_name": "Evelyn",
+         "last_name": "Silva"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 354,
+         "payment_id": "credit_card_1638882"
+        }
+       ],
+       "reservation_id": "PIM2PK",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "evelyn_silva_5208"
+      }
+     }
+    },
+    "users": {
+     "evelyn_silva_5208": {
+      "after": {
+       "address": {
+        "address1": "886 Elm Avenue",
+        "address2": "Suite 466",
+        "city": "Los Angeles",
+        "country": "USA",
+        "state": "CA",
+        "zip": "91582"
+       },
+       "dob": "1979-02-23",
+       "email": "evelyn.silva5743@example.com",
+       "membership": "silver",
+       "name": {
+        "first_name": "Evelyn",
+        "last_name": "Silva"
+       },
+       "payment_methods": {
+        "certificate_3781045": {
+         "amount": 500.0,
+         "id": "certificate_3781045",
+         "source": "certificate"
+        },
+        "credit_card_1638882": {
+         "brand": "visa",
+         "id": "credit_card_1638882",
+         "last_four": "5642",
+         "source": "credit_card"
+        }
+       },
+       "reservations": [
+        "90WDMA",
+        "HOHNAZ",
+        "HE73UU",
+        "PIM2PK",
+        "7E43S2",
+        "9G0PVB",
+        "HATHAT"
+       ],
+       "saved_passengers": [
+        {
+         "dob": "1980-12-07",
+         "first_name": "Olivia",
+         "last_name": "Ahmed"
+        }
+       ],
+       "user_id": "evelyn_silva_5208"
+      },
+      "before": {
+       "address": {
+        "address1": "886 Elm Avenue",
+        "address2": "Suite 466",
+        "city": "Los Angeles",
+        "country": "USA",
+        "state": "CA",
+        "zip": "91582"
+       },
+       "dob": "1979-02-23",
+       "email": "evelyn.silva5743@example.com",
+       "membership": "silver",
+       "name": {
+        "first_name": "Evelyn",
+        "last_name": "Silva"
+       },
+       "payment_methods": {
+        "certificate_3781045": {
+         "amount": 500.0,
+         "id": "certificate_3781045",
+         "source": "certificate"
+        },
+        "credit_card_1638882": {
+         "brand": "visa",
+         "id": "credit_card_1638882",
+         "last_four": "5642",
+         "source": "credit_card"
+        }
+       },
+       "reservations": [
+        "90WDMA",
+        "HOHNAZ",
+        "HE73UU",
+        "PIM2PK",
+        "7E43S2",
+        "9G0PVB"
+       ],
+       "saved_passengers": [
+        {
+         "dob": "1980-12-07",
+         "first_name": "Olivia",
+         "last_name": "Ahmed"
+        }
+       ],
+       "user_id": "evelyn_silva_5208"
+      }
+     }
+    }
+   },
+   "goal": "G1",
+   "goal_true": true,
+   "id": "C2",
+   "key": "G1:PIM2PK",
+   "money_delta": 28.0,
+   "replays": "5/5",
+   "title": "basic_economy_flights_changed on PIM2PK"
+  }
+ ],
+ "holes": [
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-21",
+        "flight_number": "HAT204"
+       }
+      ],
+      "payment_id": "credit_card_3029145",
+      "reservation_id": "00GMVN"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "00GMVN": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T22:33:39",
+       "destination": "SEA",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "SEA",
+         "flight_number": "HAT204",
+         "origin": "SFO",
+         "price": 60
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "SFO",
+       "passengers": [
+        {
+         "dob": "1981-04-19",
+         "first_name": "Aarav",
+         "last_name": "Brown"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 900,
+         "payment_id": "gift_card_7654035"
+        },
+        {
+         "amount": -840,
+         "payment_id": "credit_card_3029145"
+        }
+       ],
+       "reservation_id": "00GMVN",
+       "status": null,
+       "total_baggages": 2,
+       "user_id": "aarav_brown_5556"
+      },
+      "before": {
+       "cabin": "business",
+       "created_at": "2024-05-14T22:33:39",
+       "destination": "SEA",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "SEA",
+         "flight_number": "HAT204",
+         "origin": "SFO",
+         "price": 900
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "SFO",
+       "passengers": [
+        {
+         "dob": "1981-04-19",
+         "first_name": "Aarav",
+         "last_name": "Brown"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 900,
+         "payment_id": "gift_card_7654035"
+        }
+       ],
+       "reservation_id": "00GMVN",
+       "status": null,
+       "total_baggages": 2,
+       "user_id": "aarav_brown_5556"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H1",
+   "key": "G5:00GMVN",
+   "money_delta": 840.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 00GMVN"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT215"
+       },
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT262"
+       }
+      ],
+      "payment_id": "credit_card_3559098",
+      "reservation_id": "0QOP4M"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "0QOP4M": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T23:07:52",
+       "destination": "DEN",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT215",
+         "origin": "EWR",
+         "price": 60
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "DEN",
+         "flight_number": "HAT262",
+         "origin": "CLT",
+         "price": 51
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1964-04-13",
+         "first_name": "Chen",
+         "last_name": "Garcia"
+        },
+        {
+         "dob": "1980-09-08",
+         "first_name": "Lucas",
+         "last_name": "Jackson"
+        },
+        {
+         "dob": "1957-12-15",
+         "first_name": "Amelia",
+         "last_name": "Patel"
+        },
+        {
+         "dob": "1969-08-14",
+         "first_name": "Ava",
+         "last_name": "Gonzalez"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 9300,
+         "payment_id": "credit_card_3559098"
+        },
+        {
+         "amount": -8736,
+         "payment_id": "credit_card_3559098"
+        }
+       ],
+       "reservation_id": "0QOP4M",
+       "status": null,
+       "total_baggages": 5,
+       "user_id": "mohamed_patel_4472"
+      },
+      "before": {
+       "cabin": "business",
+       "created_at": "2024-05-14T23:07:52",
+       "destination": "DEN",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT215",
+         "origin": "EWR",
+         "price": 1018
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "DEN",
+         "flight_number": "HAT262",
+         "origin": "CLT",
+         "price": 1277
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1964-04-13",
+         "first_name": "Chen",
+         "last_name": "Garcia"
+        },
+        {
+         "dob": "1980-09-08",
+         "first_name": "Lucas",
+         "last_name": "Jackson"
+        },
+        {
+         "dob": "1957-12-15",
+         "first_name": "Amelia",
+         "last_name": "Patel"
+        },
+        {
+         "dob": "1969-08-14",
+         "first_name": "Ava",
+         "last_name": "Gonzalez"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 9300,
+         "payment_id": "credit_card_3559098"
+        }
+       ],
+       "reservation_id": "0QOP4M",
+       "status": null,
+       "total_baggages": 5,
+       "user_id": "mohamed_patel_4472"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H2",
+   "key": "G5:0QOP4M",
+   "money_delta": 8736.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 0QOP4M"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-21",
+        "flight_number": "HAT187"
+       },
+       {
+        "date": "2024-05-21",
+        "flight_number": "HAT222"
+       },
+       {
+        "date": "2024-05-22",
+        "flight_number": "HAT258"
+       },
+       {
+        "date": "2024-05-22",
+        "flight_number": "HAT257"
+       }
+      ],
+      "payment_id": "credit_card_5747809",
+      "reservation_id": "2HN8UN"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "2HN8UN": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-08T06:59:08",
+       "destination": "SEA",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "DFW",
+         "flight_number": "HAT187",
+         "origin": "LAX",
+         "price": 59
+        },
+        {
+         "date": "2024-05-21",
+         "destination": "SEA",
+         "flight_number": "HAT222",
+         "origin": "DFW",
+         "price": 99
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "SFO",
+         "flight_number": "HAT258",
+         "origin": "SEA",
+         "price": 61
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "LAX",
+         "flight_number": "HAT257",
+         "origin": "SFO",
+         "price": 70
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "LAX",
+       "passengers": [
+        {
+         "dob": "1984-06-14",
+         "first_name": "Juan",
+         "last_name": "Smith"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 541,
+         "payment_id": "gift_card_9305264"
+        },
+        {
+         "amount": -252,
+         "payment_id": "credit_card_5747809"
+        }
+       ],
+       "reservation_id": "2HN8UN",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "juan_smith_7200"
+      },
+      "before": {
+       "cabin": "economy",
+       "created_at": "2024-05-08T06:59:08",
+       "destination": "SEA",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "DFW",
+         "flight_number": "HAT187",
+         "origin": "LAX",
+         "price": 129
+        },
+        {
+         "date": "2024-05-21",
+         "destination": "SEA",
+         "flight_number": "HAT222",
+         "origin": "DFW",
+         "price": 130
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "SFO",
+         "flight_number": "HAT258",
+         "origin": "SEA",
+         "price": 117
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "LAX",
+         "flight_number": "HAT257",
+         "origin": "SFO",
+         "price": 165
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "LAX",
+       "passengers": [
+        {
+         "dob": "1984-06-14",
+         "first_name": "Juan",
+         "last_name": "Smith"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 541,
+         "payment_id": "gift_card_9305264"
+        }
+       ],
+       "reservation_id": "2HN8UN",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "juan_smith_7200"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H3",
+   "key": "G5:2HN8UN",
+   "money_delta": 252.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 2HN8UN"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-18",
+        "flight_number": "HAT291"
+       },
+       {
+        "date": "2024-05-18",
+        "flight_number": "HAT273"
+       }
+      ],
+      "payment_id": "credit_card_2413934",
+      "reservation_id": "5K7YMA"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "5K7YMA": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:55:49",
+       "destination": "LAX",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-18",
+         "destination": "SFO",
+         "flight_number": "HAT291",
+         "origin": "PHL",
+         "price": 83
+        },
+        {
+         "date": "2024-05-18",
+         "destination": "LAX",
+         "flight_number": "HAT273",
+         "origin": "SFO",
+         "price": 95
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "PHL",
+       "passengers": [
+        {
+         "dob": "1956-06-03",
+         "first_name": "James",
+         "last_name": "Kovacs"
+        },
+        {
+         "dob": "1953-01-16",
+         "first_name": "Harper",
+         "last_name": "Johansson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 558,
+         "payment_id": "credit_card_2413934"
+        },
+        {
+         "amount": -142,
+         "payment_id": "credit_card_2413934"
+        }
+       ],
+       "reservation_id": "5K7YMA",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "james_kovacs_6640"
+      },
+      "before": {
+       "cabin": "economy",
+       "created_at": "2024-05-14T21:55:49",
+       "destination": "LAX",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-18",
+         "destination": "SFO",
+         "flight_number": "HAT291",
+         "origin": "PHL",
+         "price": 102
+        },
+        {
+         "date": "2024-05-18",
+         "destination": "LAX",
+         "flight_number": "HAT273",
+         "origin": "SFO",
+         "price": 147
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "PHL",
+       "passengers": [
+        {
+         "dob": "1956-06-03",
+         "first_name": "James",
+         "last_name": "Kovacs"
+        },
+        {
+         "dob": "1953-01-16",
+         "first_name": "Harper",
+         "last_name": "Johansson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 558,
+         "payment_id": "credit_card_2413934"
+        }
+       ],
+       "reservation_id": "5K7YMA",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "james_kovacs_6640"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H4",
+   "key": "G5:5K7YMA",
+   "money_delta": 142.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 5K7YMA"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "economy",
+      "flights": [
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT208"
+       },
+       {
+        "date": "2024-05-29",
+        "flight_number": "HAT300"
+       }
+      ],
+      "payment_id": "credit_card_4188609",
+      "reservation_id": "1ERWZ8"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "economy",
+      "flights": [
+       {
+        "date": "2024-05-23",
+        "flight_number": "HAT208"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT300"
+       }
+      ],
+      "payment_id": "credit_card_4188609",
+      "reservation_id": "1ERWZ8"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "1ERWZ8": {
+      "after": {
+       "cabin": "economy",
+       "created_at": "2024-05-10T14:35:44",
+       "destination": "MSP",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-23",
+         "destination": "MSP",
+         "flight_number": "HAT208",
+         "origin": "EWR",
+         "price": 200
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "EWR",
+         "flight_number": "HAT300",
+         "origin": "MSP",
+         "price": 192
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1991-06-17",
+         "first_name": "Raj",
+         "last_name": "Johnson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 117,
+         "payment_id": "gift_card_3613186"
+        },
+        {
+         "amount": 175,
+         "payment_id": "credit_card_4188609"
+        },
+        {
+         "amount": 100,
+         "payment_id": "credit_card_4188609"
+        }
+       ],
+       "reservation_id": "1ERWZ8",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "raj_johnson_6495"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-10T14:35:44",
+       "destination": "MSP",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "MSP",
+         "flight_number": "HAT208",
+         "origin": "EWR",
+         "price": 66
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "EWR",
+         "flight_number": "HAT300",
+         "origin": "MSP",
+         "price": 51
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1991-06-17",
+         "first_name": "Raj",
+         "last_name": "Johnson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 117,
+         "payment_id": "gift_card_3613186"
+        }
+       ],
+       "reservation_id": "1ERWZ8",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "raj_johnson_6495"
+      }
+     }
+    }
+   },
+   "goal": "G1",
+   "goal_true": true,
+   "id": "H5",
+   "key": "G1:1ERWZ8",
+   "money_delta": -275.0,
+   "replays": "5/5",
+   "title": "basic_economy_flights_changed on 1ERWZ8"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "business",
+      "flights": [
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT208"
+       },
+       {
+        "date": "2024-05-29",
+        "flight_number": "HAT300"
+       }
+      ],
+      "payment_id": "credit_card_4188609",
+      "reservation_id": "1ERWZ8"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "reason": "change of plan",
+      "reservation_id": "1ERWZ8"
+     },
+     "ok": true,
+     "tool": "cancel_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-cancel-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must also obtain the reason for cancellation (change of plan, airline cancelled flight, or other reasons)",
+       "rule_id": "R-cancel-reason"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If any portion of the flight has already been flown, the agent cannot help and transfer is needed.",
+       "rule_id": "R-cancel-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Otherwise, flight can be cancelled if any of the following is true: - The booking was made within the last 24 hrs - The flight is cancelled by airline - It is a business flight - The user has travel insurance and the reason for cancellation is covered by insurance.",
+       "rule_id": "R-cancel-ground"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "1ERWZ8": {
+      "after": {
+       "cabin": "business",
+       "created_at": "2024-05-10T14:35:44",
+       "destination": "MSP",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "MSP",
+         "flight_number": "HAT208",
+         "origin": "EWR",
+         "price": 258
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "EWR",
+         "flight_number": "HAT300",
+         "origin": "MSP",
+         "price": 314
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1991-06-17",
+         "first_name": "Raj",
+         "last_name": "Johnson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 117,
+         "payment_id": "gift_card_3613186"
+        },
+        {
+         "amount": 455,
+         "payment_id": "credit_card_4188609"
+        },
+        {
+         "amount": -117,
+         "payment_id": "gift_card_3613186"
+        },
+        {
+         "amount": -455,
+         "payment_id": "credit_card_4188609"
+        }
+       ],
+       "reservation_id": "1ERWZ8",
+       "status": "cancelled",
+       "total_baggages": 0,
+       "user_id": "raj_johnson_6495"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-10T14:35:44",
+       "destination": "MSP",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "MSP",
+         "flight_number": "HAT208",
+         "origin": "EWR",
+         "price": 66
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "EWR",
+         "flight_number": "HAT300",
+         "origin": "MSP",
+         "price": 51
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1991-06-17",
+         "first_name": "Raj",
+         "last_name": "Johnson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 117,
+         "payment_id": "gift_card_3613186"
+        }
+       ],
+       "reservation_id": "1ERWZ8",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "raj_johnson_6495"
+      }
+     }
+    }
+   },
+   "goal": "G2",
+   "goal_true": true,
+   "id": "H6",
+   "key": "G2:1ERWZ8",
+   "money_delta": 117.0,
+   "replays": "5/5",
+   "title": "nonrefundable_refunded on 1ERWZ8"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "economy",
+      "flights": [
+       {
+        "date": "2024-05-17",
+        "flight_number": "HAT057"
+       },
+       {
+        "date": "2024-05-17",
+        "flight_number": "HAT233"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT057"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT233"
+       }
+      ],
+      "payment_id": "credit_card_8590142",
+      "reservation_id": "01WQQ7"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "economy",
+      "flights": [
+       {
+        "date": "2024-05-18",
+        "flight_number": "HAT057"
+       },
+       {
+        "date": "2024-05-18",
+        "flight_number": "HAT233"
+       },
+       {
+        "date": "2024-05-29",
+        "flight_number": "HAT057"
+       },
+       {
+        "date": "2024-05-29",
+        "flight_number": "HAT233"
+       }
+      ],
+      "payment_id": "credit_card_8590142",
+      "reservation_id": "01WQQ7"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "01WQQ7": {
+      "after": {
+       "cabin": "economy",
+       "created_at": "2024-05-02T01:52:19",
+       "destination": "JFK",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-18",
+         "destination": "ATL",
+         "flight_number": "HAT057",
+         "origin": "JFK",
+         "price": 117
+        },
+        {
+         "date": "2024-05-18",
+         "destination": "JFK",
+         "flight_number": "HAT233",
+         "origin": "ATL",
+         "price": 108
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "ATL",
+         "flight_number": "HAT057",
+         "origin": "JFK",
+         "price": 167
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "JFK",
+         "flight_number": "HAT233",
+         "origin": "ATL",
+         "price": 109
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "JFK",
+       "passengers": [
+        {
+         "dob": "1969-11-26",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        },
+        {
+         "dob": "1972-03-23",
+         "first_name": "Ava",
+         "last_name": "Li"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 772,
+         "payment_id": "credit_card_8590142"
+        },
+        {
+         "amount": 380,
+         "payment_id": "credit_card_8590142"
+        },
+        {
+         "amount": -90,
+         "payment_id": "credit_card_8590142"
+        }
+       ],
+       "reservation_id": "01WQQ7",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "mohamed_taylor_5128"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-02T01:52:19",
+       "destination": "JFK",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-17",
+         "destination": "ATL",
+         "flight_number": "HAT057",
+         "origin": "JFK",
+         "price": 92
+        },
+        {
+         "date": "2024-05-17",
+         "destination": "JFK",
+         "flight_number": "HAT233",
+         "origin": "ATL",
+         "price": 86
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "ATL",
+         "flight_number": "HAT057",
+         "origin": "JFK",
+         "price": 83
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "JFK",
+         "flight_number": "HAT233",
+         "origin": "ATL",
+         "price": 95
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "JFK",
+       "passengers": [
+        {
+         "dob": "1969-11-26",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        },
+        {
+         "dob": "1972-03-23",
+         "first_name": "Ava",
+         "last_name": "Li"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 772,
+         "payment_id": "credit_card_8590142"
+        }
+       ],
+       "reservation_id": "01WQQ7",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "mohamed_taylor_5128"
+      }
+     }
+    }
+   },
+   "goal": "G1",
+   "goal_true": true,
+   "id": "H7",
+   "key": "G1:01WQQ7",
+   "money_delta": -290.0,
+   "replays": "5/5",
+   "title": "basic_economy_flights_changed on 01WQQ7"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "nonfree_baggages": 0,
+      "payment_id": "credit_card_1321177",
+      "reservation_id": "0SZHSV",
+      "total_baggages": 2
+     },
+     "ok": true,
+     "tool": "update_reservation_baggages",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-bags-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-no-remove"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-paid-stay-paid"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-bags-free-allowance"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-bags-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-18",
+        "flight_number": "HAT156"
+       },
+       {
+        "date": "2024-05-18",
+        "flight_number": "HAT274"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT204"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT236"
+       }
+      ],
+      "payment_id": "credit_card_1321177",
+      "reservation_id": "0SZHSV"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "0SZHSV": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-01T22:48:43",
+       "destination": "SFO",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-18",
+         "destination": "SEA",
+         "flight_number": "HAT156",
+         "origin": "PHX",
+         "price": 77
+        },
+        {
+         "date": "2024-05-18",
+         "destination": "SFO",
+         "flight_number": "HAT274",
+         "origin": "SEA",
+         "price": 56
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "SEA",
+         "flight_number": "HAT204",
+         "origin": "SFO",
+         "price": 100
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "PHX",
+         "flight_number": "HAT236",
+         "origin": "SEA",
+         "price": 74
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "PHX",
+       "passengers": [
+        {
+         "dob": "1985-03-05",
+         "first_name": "Yusuf",
+         "last_name": "Thomas"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 2868,
+         "payment_id": "gift_card_5627081"
+        },
+        {
+         "amount": -2561,
+         "payment_id": "credit_card_1321177"
+        }
+       ],
+       "reservation_id": "0SZHSV",
+       "status": null,
+       "total_baggages": 2,
+       "user_id": "yusuf_thomas_7802"
+      },
+      "before": {
+       "cabin": "business",
+       "created_at": "2024-05-01T22:48:43",
+       "destination": "SFO",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-18",
+         "destination": "SEA",
+         "flight_number": "HAT156",
+         "origin": "PHX",
+         "price": 665
+        },
+        {
+         "date": "2024-05-18",
+         "destination": "SFO",
+         "flight_number": "HAT274",
+         "origin": "SEA",
+         "price": 1086
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "SEA",
+         "flight_number": "HAT204",
+         "origin": "SFO",
+         "price": 531
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "PHX",
+         "flight_number": "HAT236",
+         "origin": "SEA",
+         "price": 586
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "PHX",
+       "passengers": [
+        {
+         "dob": "1985-03-05",
+         "first_name": "Yusuf",
+         "last_name": "Thomas"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 2868,
+         "payment_id": "gift_card_5627081"
+        }
+       ],
+       "reservation_id": "0SZHSV",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "yusuf_thomas_7802"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H8",
+   "key": "G5:0SZHSV",
+   "money_delta": 2561.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 0SZHSV"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "nonfree_baggages": 0,
+      "payment_id": "credit_card_2140654",
+      "reservation_id": "07S7FC",
+      "total_baggages": 8
+     },
+     "ok": true,
+     "tool": "update_reservation_baggages",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-bags-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-no-remove"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-paid-stay-paid"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-bags-free-allowance"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-bags-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT286"
+       },
+       {
+        "date": "2024-05-29",
+        "flight_number": "HAT175"
+       }
+      ],
+      "payment_id": "credit_card_2140654",
+      "reservation_id": "07S7FC"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "07S7FC": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-04T05:12:00",
+       "destination": "LAS",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-28",
+         "destination": "LAS",
+         "flight_number": "HAT286",
+         "origin": "IAH",
+         "price": 54
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "IAH",
+         "flight_number": "HAT175",
+         "origin": "LAS",
+         "price": 79
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "IAH",
+       "passengers": [
+        {
+         "dob": "1959-05-28",
+         "first_name": "Anya",
+         "last_name": "Anderson"
+        },
+        {
+         "dob": "1965-03-19",
+         "first_name": "Sophia",
+         "last_name": "Jackson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 4118,
+         "payment_id": "credit_card_6082923"
+        },
+        {
+         "amount": -3792,
+         "payment_id": "credit_card_2140654"
+        }
+       ],
+       "reservation_id": "07S7FC",
+       "status": null,
+       "total_baggages": 8,
+       "user_id": "mei_hernandez_8984"
+      },
+      "before": {
+       "cabin": "business",
+       "created_at": "2024-05-04T05:12:00",
+       "destination": "LAS",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-28",
+         "destination": "LAS",
+         "flight_number": "HAT286",
+         "origin": "IAH",
+         "price": 917
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "IAH",
+         "flight_number": "HAT175",
+         "origin": "LAS",
+         "price": 1112
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "IAH",
+       "passengers": [
+        {
+         "dob": "1959-05-28",
+         "first_name": "Anya",
+         "last_name": "Anderson"
+        },
+        {
+         "dob": "1965-03-19",
+         "first_name": "Sophia",
+         "last_name": "Jackson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 4118,
+         "payment_id": "credit_card_6082923"
+        }
+       ],
+       "reservation_id": "07S7FC",
+       "status": null,
+       "total_baggages": 3,
+       "user_id": "mei_hernandez_8984"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H9",
+   "key": "G5:07S7FC",
+   "money_delta": 3792.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 07S7FC"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "nonfree_baggages": 0,
+      "payment_id": "credit_card_9457450",
+      "reservation_id": "S81ZOT",
+      "total_baggages": 1
+     },
+     "ok": true,
+     "tool": "update_reservation_baggages",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-bags-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-no-remove"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-paid-stay-paid"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-bags-free-allowance"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-bags-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-20",
+        "flight_number": "HAT084"
+       },
+       {
+        "date": "2024-05-20",
+        "flight_number": "HAT137"
+       }
+      ],
+      "payment_id": "credit_card_9457450",
+      "reservation_id": "S81ZOT"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "S81ZOT": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:19:56",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-20",
+         "destination": "LAS",
+         "flight_number": "HAT084",
+         "origin": "DEN",
+         "price": 95
+        },
+        {
+         "date": "2024-05-20",
+         "destination": "MCO",
+         "flight_number": "HAT137",
+         "origin": "LAS",
+         "price": 78
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "DEN",
+       "passengers": [
+        {
+         "dob": "1954-08-26",
+         "first_name": "Ava",
+         "last_name": "Davis"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 279,
+         "payment_id": "credit_card_9457450"
+        },
+        {
+         "amount": -106,
+         "payment_id": "credit_card_9457450"
+        }
+       ],
+       "reservation_id": "S81ZOT",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "ava_davis_4349"
+      },
+      "before": {
+       "cabin": "economy",
+       "created_at": "2024-05-14T21:19:56",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-20",
+         "destination": "LAS",
+         "flight_number": "HAT084",
+         "origin": "DEN",
+         "price": 120
+        },
+        {
+         "date": "2024-05-20",
+         "destination": "MCO",
+         "flight_number": "HAT137",
+         "origin": "LAS",
+         "price": 159
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "DEN",
+       "passengers": [
+        {
+         "dob": "1954-08-26",
+         "first_name": "Ava",
+         "last_name": "Davis"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 279,
+         "payment_id": "credit_card_9457450"
+        }
+       ],
+       "reservation_id": "S81ZOT",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "ava_davis_4349"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H10",
+   "key": "G5:S81ZOT",
+   "money_delta": 106.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on S81ZOT"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "nonfree_baggages": 0,
+      "payment_id": "credit_card_7486134",
+      "reservation_id": "0HUIH5",
+      "total_baggages": 3
+     },
+     "ok": true,
+     "tool": "update_reservation_baggages",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-bags-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-no-remove"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-paid-stay-paid"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-bags-free-allowance"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-bags-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-22",
+        "flight_number": "HAT248"
+       },
+       {
+        "date": "2024-05-22",
+        "flight_number": "HAT263"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT092"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT237"
+       }
+      ],
+      "payment_id": "credit_card_7486134",
+      "reservation_id": "0HUIH5"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "0HUIH5": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-01T23:27:12",
+       "destination": "JFK",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-22",
+         "destination": "DTW",
+         "flight_number": "HAT248",
+         "origin": "MSP",
+         "price": 79
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "JFK",
+         "flight_number": "HAT263",
+         "origin": "DTW",
+         "price": 69
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "DTW",
+         "flight_number": "HAT092",
+         "origin": "JFK",
+         "price": 50
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "MSP",
+         "flight_number": "HAT237",
+         "origin": "DTW",
+         "price": 84
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1957-09-08",
+         "first_name": "Lucas",
+         "last_name": "Kovacs"
+        },
+        {
+         "dob": "1992-04-12",
+         "first_name": "Raj",
+         "last_name": "Rossi"
+        },
+        {
+         "dob": "1962-11-16",
+         "first_name": "Liam",
+         "last_name": "Ito"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 1719,
+         "payment_id": "credit_card_7486134"
+        },
+        {
+         "amount": -783,
+         "payment_id": "credit_card_7486134"
+        }
+       ],
+       "reservation_id": "0HUIH5",
+       "status": null,
+       "total_baggages": 3,
+       "user_id": "lucas_kovacs_4017"
+      },
+      "before": {
+       "cabin": "economy",
+       "created_at": "2024-05-01T23:27:12",
+       "destination": "JFK",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-22",
+         "destination": "DTW",
+         "flight_number": "HAT248",
+         "origin": "MSP",
+         "price": 104
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "JFK",
+         "flight_number": "HAT263",
+         "origin": "DTW",
+         "price": 117
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "DTW",
+         "flight_number": "HAT092",
+         "origin": "JFK",
+         "price": 122
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "MSP",
+         "flight_number": "HAT237",
+         "origin": "DTW",
+         "price": 200
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1957-09-08",
+         "first_name": "Lucas",
+         "last_name": "Kovacs"
+        },
+        {
+         "dob": "1992-04-12",
+         "first_name": "Raj",
+         "last_name": "Rossi"
+        },
+        {
+         "dob": "1962-11-16",
+         "first_name": "Liam",
+         "last_name": "Ito"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 1719,
+         "payment_id": "credit_card_7486134"
+        }
+       ],
+       "reservation_id": "0HUIH5",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "lucas_kovacs_4017"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H11",
+   "key": "G5:0HUIH5",
+   "money_delta": 783.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 0HUIH5"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "economy",
+      "flights": [
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT208"
+       },
+       {
+        "date": "2024-05-29",
+        "flight_number": "HAT300"
+       }
+      ],
+      "payment_id": "credit_card_4188609",
+      "reservation_id": "1ERWZ8"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "nonfree_baggages": 0,
+      "payment_id": "credit_card_4188609",
+      "reservation_id": "1ERWZ8",
+      "total_baggages": 1
+     },
+     "ok": true,
+     "tool": "update_reservation_baggages",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-bags-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-no-remove"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-paid-stay-paid"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-bags-free-allowance"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-bags-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT208"
+       },
+       {
+        "date": "2024-05-29",
+        "flight_number": "HAT300"
+       }
+      ],
+      "payment_id": "credit_card_4188609",
+      "reservation_id": "1ERWZ8"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "1ERWZ8": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-10T14:35:44",
+       "destination": "MSP",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "MSP",
+         "flight_number": "HAT208",
+         "origin": "EWR",
+         "price": 76
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "EWR",
+         "flight_number": "HAT300",
+         "origin": "MSP",
+         "price": 66
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1991-06-17",
+         "first_name": "Raj",
+         "last_name": "Johnson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 117,
+         "payment_id": "gift_card_3613186"
+        },
+        {
+         "amount": 175,
+         "payment_id": "credit_card_4188609"
+        },
+        {
+         "amount": -150,
+         "payment_id": "credit_card_4188609"
+        }
+       ],
+       "reservation_id": "1ERWZ8",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "raj_johnson_6495"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-10T14:35:44",
+       "destination": "MSP",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "MSP",
+         "flight_number": "HAT208",
+         "origin": "EWR",
+         "price": 66
+        },
+        {
+         "date": "2024-05-29",
+         "destination": "EWR",
+         "flight_number": "HAT300",
+         "origin": "MSP",
+         "price": 51
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1991-06-17",
+         "first_name": "Raj",
+         "last_name": "Johnson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 117,
+         "payment_id": "gift_card_3613186"
+        }
+       ],
+       "reservation_id": "1ERWZ8",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "raj_johnson_6495"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H12",
+   "key": "G5:1ERWZ8",
+   "money_delta": -25.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 1ERWZ8"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "economy",
+      "flights": [
+       {
+        "date": "2024-05-22",
+        "flight_number": "HAT036"
+       }
+      ],
+      "payment_id": "credit_card_1697462",
+      "reservation_id": "1KUOX2"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "nonfree_baggages": 0,
+      "payment_id": "credit_card_1697462",
+      "reservation_id": "1KUOX2",
+      "total_baggages": 2
+     },
+     "ok": true,
+     "tool": "update_reservation_baggages",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-bags-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-no-remove"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-paid-stay-paid"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-bags-free-allowance"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-bags-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-22",
+        "flight_number": "HAT036"
+       }
+      ],
+      "payment_id": "credit_card_1697462",
+      "reservation_id": "1KUOX2"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "1KUOX2": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T17:16:37",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-22",
+         "destination": "MCO",
+         "flight_number": "HAT036",
+         "origin": "MSP",
+         "price": 63
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1984-03-14",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 91,
+         "payment_id": "credit_card_1697462"
+        },
+        {
+         "amount": 36,
+         "payment_id": "credit_card_1697462"
+        },
+        {
+         "amount": -64,
+         "payment_id": "credit_card_1697462"
+        }
+       ],
+       "reservation_id": "1KUOX2",
+       "status": null,
+       "total_baggages": 2,
+       "user_id": "anya_khan_1074"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T17:16:37",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-22",
+         "destination": "MCO",
+         "flight_number": "HAT036",
+         "origin": "MSP",
+         "price": 91
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1984-03-14",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 91,
+         "payment_id": "credit_card_1697462"
+        }
+       ],
+       "reservation_id": "1KUOX2",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "anya_khan_1074"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H13",
+   "key": "G5:1KUOX2",
+   "money_delta": 28.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 1KUOX2"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "economy",
+      "flights": [
+       {
+        "date": "2024-05-17",
+        "flight_number": "HAT057"
+       },
+       {
+        "date": "2024-05-17",
+        "flight_number": "HAT233"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT057"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT233"
+       }
+      ],
+      "payment_id": "credit_card_8590142",
+      "reservation_id": "01WQQ7"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "nonfree_baggages": 0,
+      "payment_id": "credit_card_8590142",
+      "reservation_id": "01WQQ7",
+      "total_baggages": 2
+     },
+     "ok": true,
+     "tool": "update_reservation_baggages",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-bags-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-no-remove"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-paid-stay-paid"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-bags-free-allowance"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-bags-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-17",
+        "flight_number": "HAT057"
+       },
+       {
+        "date": "2024-05-17",
+        "flight_number": "HAT233"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT057"
+       },
+       {
+        "date": "2024-05-28",
+        "flight_number": "HAT233"
+       }
+      ],
+      "payment_id": "credit_card_8590142",
+      "reservation_id": "01WQQ7"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "01WQQ7": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-02T01:52:19",
+       "destination": "JFK",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-17",
+         "destination": "ATL",
+         "flight_number": "HAT057",
+         "origin": "JFK",
+         "price": 86
+        },
+        {
+         "date": "2024-05-17",
+         "destination": "JFK",
+         "flight_number": "HAT233",
+         "origin": "ATL",
+         "price": 51
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "ATL",
+         "flight_number": "HAT057",
+         "origin": "JFK",
+         "price": 62
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "JFK",
+         "flight_number": "HAT233",
+         "origin": "ATL",
+         "price": 61
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "JFK",
+       "passengers": [
+        {
+         "dob": "1969-11-26",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        },
+        {
+         "dob": "1972-03-23",
+         "first_name": "Ava",
+         "last_name": "Li"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 772,
+         "payment_id": "credit_card_8590142"
+        },
+        {
+         "amount": 380,
+         "payment_id": "credit_card_8590142"
+        },
+        {
+         "amount": -572,
+         "payment_id": "credit_card_8590142"
+        }
+       ],
+       "reservation_id": "01WQQ7",
+       "status": null,
+       "total_baggages": 2,
+       "user_id": "mohamed_taylor_5128"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-02T01:52:19",
+       "destination": "JFK",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-17",
+         "destination": "ATL",
+         "flight_number": "HAT057",
+         "origin": "JFK",
+         "price": 92
+        },
+        {
+         "date": "2024-05-17",
+         "destination": "JFK",
+         "flight_number": "HAT233",
+         "origin": "ATL",
+         "price": 86
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "ATL",
+         "flight_number": "HAT057",
+         "origin": "JFK",
+         "price": 83
+        },
+        {
+         "date": "2024-05-28",
+         "destination": "JFK",
+         "flight_number": "HAT233",
+         "origin": "ATL",
+         "price": 95
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "JFK",
+       "passengers": [
+        {
+         "dob": "1969-11-26",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        },
+        {
+         "dob": "1972-03-23",
+         "first_name": "Ava",
+         "last_name": "Li"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 772,
+         "payment_id": "credit_card_8590142"
+        }
+       ],
+       "reservation_id": "01WQQ7",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "mohamed_taylor_5128"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H14",
+   "key": "G5:01WQQ7",
+   "money_delta": 192.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 01WQQ7"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "economy",
+      "flights": [
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT017"
+       },
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT277"
+       },
+       {
+        "date": "2024-05-26",
+        "flight_number": "HAT287"
+       },
+       {
+        "date": "2024-05-26",
+        "flight_number": "HAT013"
+       }
+      ],
+      "payment_id": "credit_card_1638882",
+      "reservation_id": "PIM2PK"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "nonfree_baggages": 0,
+      "payment_id": "credit_card_1638882",
+      "reservation_id": "PIM2PK",
+      "total_baggages": 2
+     },
+     "ok": true,
+     "tool": "update_reservation_baggages",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-bags-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-no-remove"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The user can add but not remove checked bags.",
+       "rule_id": "R-bags-paid-stay-paid"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-bags-free-allowance"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-bags-payment"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT017"
+       },
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT277"
+       },
+       {
+        "date": "2024-05-26",
+        "flight_number": "HAT287"
+       },
+       {
+        "date": "2024-05-26",
+        "flight_number": "HAT013"
+       }
+      ],
+      "payment_id": "credit_card_1638882",
+      "reservation_id": "PIM2PK"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "PIM2PK": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:01:45",
+       "destination": "CLT",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "BOS",
+         "flight_number": "HAT017",
+         "origin": "MCO",
+         "price": 61
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT277",
+         "origin": "BOS",
+         "price": 73
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "BOS",
+         "flight_number": "HAT287",
+         "origin": "CLT",
+         "price": 93
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "MCO",
+         "flight_number": "HAT013",
+         "origin": "BOS",
+         "price": 91
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MCO",
+       "passengers": [
+        {
+         "dob": "1979-02-23",
+         "first_name": "Evelyn",
+         "last_name": "Silva"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 354,
+         "payment_id": "credit_card_1638882"
+        },
+        {
+         "amount": 379,
+         "payment_id": "credit_card_1638882"
+        },
+        {
+         "amount": -385,
+         "payment_id": "credit_card_1638882"
+        }
+       ],
+       "reservation_id": "PIM2PK",
+       "status": null,
+       "total_baggages": 2,
+       "user_id": "evelyn_silva_5208"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:01:45",
+       "destination": "CLT",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "BOS",
+         "flight_number": "HAT017",
+         "origin": "MCO",
+         "price": 100
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT277",
+         "origin": "BOS",
+         "price": 61
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "BOS",
+         "flight_number": "HAT287",
+         "origin": "CLT",
+         "price": 86
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "MCO",
+         "flight_number": "HAT013",
+         "origin": "BOS",
+         "price": 77
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MCO",
+       "passengers": [
+        {
+         "dob": "1979-02-23",
+         "first_name": "Evelyn",
+         "last_name": "Silva"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 354,
+         "payment_id": "credit_card_1638882"
+        }
+       ],
+       "reservation_id": "PIM2PK",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "evelyn_silva_5208"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H15",
+   "key": "G5:PIM2PK",
+   "money_delta": 6.0,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on PIM2PK"
+  }
+ ],
+ "run": {
+  "budget": 2000,
+  "commit": "",
+  "domain": "airline",
+  "goals_commit": "",
+  "mode": "bfs",
+  "model": "",
+  "started": "2026-10-26T23:52:50+00:00"
+ },
+ "stats": {
+  "chains_tried": 706,
+  "llm_calls": 0,
+  "seconds": 174.53,
+  "tokens": 0,
+  "tool_calls": 1486
+ }
+}
