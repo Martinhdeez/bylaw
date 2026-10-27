@@ -28,7 +28,6 @@ export function Bench({ domain }: { domain: Domain }) {
   const muse = rows.find((r) => r.mode === "muse");
   const bfs = rows.find((r) => r.mode === "bfs");
   const maxHoles = Math.max(1, ...rows.map((r) => r.holes));
-  const maxRate = Math.max(0.001, ...rows.map((r) => per1k(r.holes, r.tool_calls)));
   const ratio = muse && bfs && per1k(bfs.holes, bfs.tool_calls) > 0 ? per1k(muse.holes, muse.tool_calls) / per1k(bfs.holes, bfs.tool_calls) : null;
   const onlyMuse = muse && bfs ? muse.hole_keys.filter((k) => !bfs.hole_keys.includes(k)) : [];
 
@@ -46,25 +45,11 @@ export function Bench({ domain }: { domain: Domain }) {
       <div className="bench">
         <section className="panel">
           <div className="panel-h">
-            <h2>Holes proven</h2>
+            <h2>Holes proven by tool calls spent <span className="label">(log scale)</span></h2>
             <div className="legend">{rows.map((r) => <span key={r.mode}><i style={{ background: COLOR[r.mode] }} />{LABEL[r.mode]}</span>)}</div>
           </div>
-          <div className="bars">
-            {[
-              { name: "Holes found", v: (r: (typeof rows)[0]) => r.holes, max: maxHoles, fmt: (x: number) => int(x) },
-              { name: "Holes per 1,000 tool calls", v: (r: (typeof rows)[0]) => per1k(r.holes, r.tool_calls), max: maxRate, fmt: (x: number) => x.toFixed(2) },
-            ].map((m) => (
-              <div key={m.name} className="bar-group">
-                <span className="label">{m.name}</span>
-                {rows.map((r) => (
-                  <div key={r.mode} className="bar-row">
-                    <span className="mono">{LABEL[r.mode]}</span>
-                    <span className="track"><i style={{ width: `${(m.v(r) / m.max) * 100}%`, background: COLOR[r.mode] }} /></span>
-                    <b className="num">{m.fmt(m.v(r))}</b>
-                  </div>
-                ))}
-              </div>
-            ))}
+          <div className="chart">
+            <Curve rows={rows} budget={budget} max={maxHoles} />
           </div>
         </section>
 
@@ -107,5 +92,39 @@ export function Bench({ domain }: { domain: Domain }) {
         </table>
       </section>
     </div>
+  );
+}
+
+type Row = BenchT["rows"][0];
+const W = 720, H = 300, L = 40, B = 28, T = 14, R = 70;
+
+// Cumulative holes proven against write steps spent, one step line per mode (C5 v1.6 `found`).
+function Curve({ rows, budget, max }: { rows: Row[]; budget: number; max: number }) {
+  const x = (c: number) => L + ((Math.log10(Math.max(c, 10)) - 1) / (Math.log10(Math.max(budget, 100)) - 1)) * (W - L - R);
+  const y = (h: number) => H - B - (h / max) * (H - B - T);
+  const ticks = [10, 100, 1000, budget].filter((c, i, a) => c <= budget && a.indexOf(c) === i);
+  const path = (f: { tool_calls: number }[]) => {
+    let d = `M${x(10)},${y(0)}`;
+    [...f].sort((a, b) => a.tool_calls - b.tool_calls).forEach((p, i) => (d += ` H${x(p.tool_calls)} V${y(i + 1)}`));
+    return d + ` H${x(budget)}`;
+  };
+  const first = (r: Row) => Math.min(...(r.found ?? []).map((f) => f.tool_calls));
+  const summary = rows.map((r) => `${LABEL[r.mode]} proves ${r.holes} holes${r.found?.length ? `, the first at call ${first(r)}` : ""}`).join("; ");
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={summary}>
+      {[0, Math.round(max / 2), max].map((h) => (
+        <g key={h}>
+          <line x1={L} x2={W - R} y1={y(h)} y2={y(h)} stroke="var(--line)" strokeDasharray={h ? "3 4" : undefined} />
+          <text x={L - 10} y={y(h) + 4} textAnchor="end">{h}</text>
+        </g>
+      ))}
+      {ticks.map((c) => <text key={c} x={x(c)} y={H - 6} textAnchor="middle">{int(c)}</text>)}
+      {rows.map((r) => (
+        <g key={r.mode}>
+          <path d={path(r.found ?? [])} fill="none" stroke={COLOR[r.mode]} strokeWidth={r.mode === "muse" ? 3 : 2} />
+          <text x={x(budget) + 8} y={y(r.found?.length ?? 0) + 4} style={{ fill: COLOR[r.mode], fontWeight: 700 }}>{r.found?.length ?? 0} {r.mode}</text>
+        </g>
+      ))}
+    </svg>
   );
 }

@@ -119,13 +119,15 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
               const t = humanize(a.title, a.key);
               return (
                 <li key={a.key}>
-                  <span className="id">{a.id}</span>
-                  <span>
-                    <span className="t">{t.name} <span className="mono" style={{ color: "var(--muted)" }}>{t.target}</span></span>
-                    <br />
-                    <span className="c">{a.chain.map((s) => s.tool).join(" → ")}</span>
-                  </span>
-                  <span className="tag">{a.goal} · {a.replays}</span>
+                  <a href={holeHref(domain, a.key)}>
+                    <span className="id">{a.id}</span>
+                    <span>
+                      <span className="t">{t.name} <span className="mono" style={{ color: "var(--muted)" }}>{t.target}</span></span>
+                      <br />
+                      <span className="c">{a.chain.map((s) => s.tool).join(" → ")}</span>
+                    </span>
+                    <span className="tag">{a.goal} · {a.replays}</span>
+                  </a>
                 </li>
               );
             })}

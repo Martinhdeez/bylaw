@@ -59,7 +59,11 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
       <div className="head">
         <div>
           <h1 className="title">{name} <span className="mono-t">{target}</span></h1>
-          <p className="lede">Each step below passes every rule of the policy. Together they reach goal {h.goal}, an outcome the policy forbids.</p>
+          <p className="lede">
+            {h.class === "C"
+              ? `Class C ambiguity, not counted: each step passes every rule and together they reach goal ${h.goal}, but cancel and rebook inside a permitted cancel ground is the method the policy allows.`
+              : `Each step below passes every rule of the policy. Together they reach goal ${h.goal}, an outcome the policy forbids.`}
+          </p>
         </div>
         <div className="replay-ctl">
           {isFixed ? (
@@ -67,7 +71,7 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
           ) : h.amendment ? (
             <a className="btn primary" href={holeHref(domain, h.key, "/amendment")}>Review amendment <ArrowRight size={16} aria-hidden="true" /></a>
           ) : (
-            <span className="tag">No amendment drafted</span>
+            <span className="tag">{h.class === "C" ? "Class C · listed for review" : "No amendment drafted"}</span>
           )}
         </div>
       </div>

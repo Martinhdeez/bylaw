@@ -26,7 +26,7 @@ const AMENDMENTS: Record<string, object> = {
   },
 };
 
-function withAmendments(report: any) {
+export function withAmendments(report: any) {
   let n = 0;
   for (const h of report.holes) {
     const a = AMENDMENTS[h.goal];
@@ -38,12 +38,13 @@ function withAmendments(report: any) {
   return report;
 }
 
+const found = (calls: number[]) => calls.map((c, i) => ({ key: `H${i + 1}`, tool_calls: c, seconds: c / 8.5 }));
 const BENCH = {
   domain: "airline",
   budget: 2000,
   rows: [
-    { mode: "bfs", holes: 15, hole_keys: [], tool_calls: 1486, llm_calls: 0, tokens: 0, seconds: 174.5 },
-    { mode: "muse", holes: 18, hole_keys: [], tool_calls: 1320, llm_calls: 14, tokens: 412880, seconds: 236.0 },
+    { mode: "bfs", holes: 15, hole_keys: [], tool_calls: 1486, llm_calls: 0, tokens: 0, seconds: 174.5, found: found([212, 240, 266, 310, 402, 455, 517, 590, 688, 760, 881, 973, 1104, 1290, 1460]) },
+    { mode: "muse", holes: 18, hole_keys: [], tool_calls: 1320, llm_calls: 14, tokens: 412880, seconds: 236.0, found: found([22, 31, 38, 47, 61, 75, 96, 118, 140, 171, 205, 260, 330, 410, 520, 690, 905, 1210]) },
   ],
 };
 
@@ -57,9 +58,10 @@ export const EVENTS = [
 
 const json = (body: unknown, status = 200) => ({ status, contentType: "application/json", body: JSON.stringify(body) });
 
-// `partial` stops the event stream before `done`, to show a running audit.
-export async function mockApi(page: Page, { partial = false } = {}) {
-  const report = withAmendments(fx("airline.report.json"));
+// `partial` stops the event stream before `done`, to show a running audit. `stored: false` starts from the
+// offline audit result (no amendments, C9 v1.2); place() then swaps in a stored report that carries them.
+export async function mockApi(page: Page, { partial = false, stored = true } = {}) {
+  let report = stored ? withAmendments(fx("airline.report.json")) : fx("airline.report.json");
   const ratified = fx("airline.ratified.json");
   const policy = fx("airline.policy.json");
 
@@ -85,7 +87,8 @@ export async function mockApi(page: Page, { partial = false } = {}) {
     }
     if (hole && p.endsWith("/ratify") && method === "POST") {
       const h = report.holes.find((x: any) => x.key === hole);
-      if (!h?.amendment) return route.fulfill(json({ detail: "no amendment" }, 409));
+      if (!h) return route.fulfill(json({ detail: "unknown hole" }, 404));
+      if (!h.amendment) return route.fulfill(json({ detail: "no amendment" }, 409));
       if (!ratified.amendments.some((a: any) => a.hole_key === hole))
         ratified.amendments.push({ ...h.amendment, hole_key: hole, ratified_at: "2026-10-27T09:12:00Z" });
       return route.fulfill(json({ ratified: true, amendment_id: h.amendment.id, rule_ids: h.amendment.rule_patch.map((r: any) => r.id) }));
@@ -96,4 +99,5 @@ export async function mockApi(page: Page, { partial = false } = {}) {
     }
     return route.fulfill(json({ detail: `mock has no ${method} ${p}` }, 404));
   });
+  return { place: () => void (report = withAmendments(fx("airline.report.json"))) };
 }

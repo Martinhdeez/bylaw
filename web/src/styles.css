@@ -164,7 +164,10 @@ code, pre, .mono { font-family: var(--mono); }
 .hcard .cta { font: 700 13px var(--display); display: inline-flex; align-items: center; gap: 4px; }
 .hcard .fixed { position: absolute; right: 16px; top: 16px; }
 .amb { display: flex; flex-direction: column; }
-.amb li { list-style: none; display: grid; grid-template-columns: 52px 1fr auto; gap: 14px; align-items: center; padding: 12px 18px; border-top: 1px solid var(--line); }
+.amb li { list-style: none; border-top: 1px solid var(--line); }
+.amb a { display: grid; grid-template-columns: 52px 1fr auto; gap: 14px; align-items: center; padding: 12px 18px; }
+.amb a:hover { background: var(--raise); }
+.amb a:hover .t { text-decoration: underline; text-underline-offset: 3px; }
 .amb li:first-child { border-top: 0; }
 .amb .id { font: 700 13px var(--mono); color: var(--muted); }
 .amb .t { font-weight: 700; }
@@ -325,12 +328,6 @@ code, pre, .mono { font-family: var(--mono); }
 .instances .rep { font: 700 12px var(--mono); color: var(--green); }
 .instances svg { color: var(--faint); }
 
-.bars { padding: 18px; display: flex; flex-direction: column; gap: 22px; }
-.bar-group { display: flex; flex-direction: column; gap: 10px; }
-.bar-row { display: grid; grid-template-columns: 110px 1fr 64px; gap: 12px; align-items: center; font-size: 12.5px; }
-.bar-row .track { height: 14px; border-radius: 4px; background: var(--sunk); overflow: hidden; }
-.bar-row .track i { display: block; height: 100%; border-radius: 4px; }
-.bar-row b { text-align: right; font: 800 20px var(--display); font-stretch: 72%; }
 
 @media (max-width: 1080px) {
   .goal-group { grid-template-columns: minmax(0, 1fr); }
@@ -341,8 +338,7 @@ code, pre, .mono { font-family: var(--mono); }
   .instances .c, .instances .rep { display: none; }
   .instances a > .tag { grid-column: 2 / 4; justify-self: start; }
   .instances a > span:empty { display: none; }
-  .bar-row { grid-template-columns: 90px 1fr 52px; }
-  .phases { grid-template-columns: 1fr; }
+    .phases { grid-template-columns: 1fr; }
   .step-h, .outcome { grid-template-columns: 22px minmax(0, 1fr); }
   .step-h .verdict, .outcome .verdict { grid-column: 2; }
 }

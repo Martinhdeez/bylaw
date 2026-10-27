@@ -54,7 +54,10 @@ export type Policy = { domain: Domain; lines: string[] };
 export type Bench = {
   domain: Domain;
   budget: number;
-  rows: { mode: "bfs" | "muse"; holes: number; hole_keys: string[]; tool_calls: number; llm_calls: number; tokens: number; seconds: number }[];
+  rows: {
+    mode: "bfs" | "muse"; holes: number; hole_keys: string[]; tool_calls: number; llm_calls: number; tokens: number; seconds: number;
+    found?: { key: string; tool_calls: number; seconds: number }[]; // C5 v1.6
+  }[];
 };
 
 export class ApiError extends Error {
