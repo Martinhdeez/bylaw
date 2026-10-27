@@ -69,9 +69,12 @@ def test_schema_requires_the_contradictions_list_and_the_gold_block(report):
 
 
 def test_an_entry_that_does_not_replay_5_of_5_is_dropped(monkeypatch):
+    # 0QOP4M: a cabin downgrade alone keeps free bags over the allowance (G5), found at depth 1.
+    monkeypatch.setattr(report_mod, "search", lambda *a, **k: _only("0QOP4M", depths=(1,)))
+    findings = lambda r: r["holes"] + r["contradictions"] + r["ambiguities"]  # noqa: E731
+    assert "G5:0QOP4M" in {e["key"] for e in findings(audit(DOMAIN, RULES, budget=50))}
     monkeypatch.setattr(report_mod, "prove", lambda *a, **k: "4/5")
-    r = audit(DOMAIN, RULES, budget=10)
-    assert r["holes"] == r["contradictions"] == r["ambiguities"] == []
+    assert findings(audit(DOMAIN, RULES, budget=50)) == []
 
 
 def test_a_cancel_rebook_ambiguity_does_not_shadow_a_hole_with_the_same_key(monkeypatch):
@@ -93,17 +96,6 @@ def test_a_key_is_listed_once_across_holes_contradictions_and_ambiguities(monkey
     keys = [e["key"] for e in r["holes"] + r["contradictions"] + r["ambiguities"]]
     assert len(keys) == len(set(keys))
     assert "G1:" + rid in {e["key"] for e in r["ambiguities"]}
-
-
-def test_a_longer_chain_is_not_listed_again_for_an_outcome_its_prefix_already_reached(monkeypatch):
-    # 0QOP4M: a downgrade alone keeps free bags over the allowance (G5); downgrade + cancel + rebook adds nothing.
-    monkeypatch.setattr(report_mod, "search", lambda *a, **k: _only("0QOP4M", depths=(1, 2, 3)))
-    r = audit(DOMAIN, RULES, budget=10**4)
-    found = r["holes"] + r["contradictions"] + r["ambiguities"]
-    for e in found:
-        for other in found:
-            shorter = [(s["tool"], s["args"]) for s in other["chain"]]
-            assert other is e or other["key"] != e["key"] or [(s["tool"], s["args"]) for s in e["chain"][:len(shorter)]] != shorter, e["id"]
 
 
 def _only(rid, depths=(1, 2)):

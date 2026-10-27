@@ -67,11 +67,6 @@ def _touched(snapshot: dict, diff: dict) -> dict:
     return out
 
 
-def _extends(chain: list[dict], key: str, entries: dict) -> bool:
-    calls = [(s["tool"], s["args"]) for s in chain]
-    return any(e["key"] == key and calls[:len(e["chain"])] == [(s["tool"], s["args"]) for s in e["chain"]] for e in entries.values())
-
-
 GOALS_FILES = {"airline": "bylaw/goals.py", "retail": "bylaw/goals_retail.py"}
 
 
@@ -106,9 +101,8 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             key, cls = f"{gid}:{target}", classify(domain, db, gid, chain)
             # One entry per key across the three lists. A Class A hole takes the key from a B or C entry: it is never
             # shadowed. Otherwise the first, shortest chain wins (so the 24h cancel+rebook stays a Class C ambiguity,
-            # REQ-EX1-3), and a chain that extends one already listed for the key adds nothing.
-            if (key in entries and not (cls == "A" and entries[key]["class"] != "A")) or _extends(chain, key, entries) \
-                    or not goal.check(before, after, r["results"]):
+            # REQ-EX1-3).
+            if (key in entries and not (cls == "A" and entries[key]["class"] != "A")) or not goal.check(before, after, r["results"]):
                 continue
             replays = prove(domain, ruleset, gid, chain, r["diff"])
             if replays != "5/5":
