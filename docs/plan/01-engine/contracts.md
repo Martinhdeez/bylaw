@@ -121,3 +121,9 @@ def get_domain(name: str) -> Domain
 - **Class C:** as before (ambiguous by pre-registration, e.g. 24h cancel+rebook).
 - C4: each hole/ambiguity carries `"class": "A"|"B"|"C"` and `"gold": {"sanctioned": bool, "tasks": [task_id]}`. Class B entries go in a new top-level list `"contradictions"` (same shape). `holes` holds Class A only.
 - **C11 goal monitor:** enforces only the goals of ratified amendments (the human's decision that this outcome is forbidden). `Proxy(domain, ruleset=None, monitor=True, monitor_goals=None)`; `monitor_goals=None` means "goals of the ratified amendments for this domain". With nothing ratified, the monitor blocks nothing, so the gold replay baseline is the RuleSet's.
+
+## v1.8 (2026-10-27, from review of PR #13), binding on PR1 and GA1
+
+- **C6 search feedback protocol:** `search` is a generator; after yielding a chain the caller sends back `(executed: int, hit: bool)` — the number of write steps actually executed for that chain (stops at the first blocked step, so a chain blocked at step 1 costs 0) and whether it proved a finding. The budget is charged with `executed`, for both the Muse phase and BFS. PR1 owns this change; GA1 adopts it and drops its own budget edit.
+- **A failed Muse call** for one goal (error or empty reply after retries) is reported in `stats` (`llm_errors`) and that goal falls back to BFS; it never aborts the audit.
+- **REQ-PR1-1 scope:** "at least the holes `--no-llm` finds" is checked at the default budget (2000). Below it, the bench reports both modes honestly per budget; no claim of dominance at small budgets.
