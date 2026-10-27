@@ -177,6 +177,28 @@ def cmd_bench(a):
         print(" | ".join(f"{row[c]!s:>14}" for c in cols))
 
 
+def cmd_review(a):
+    from bylaw.review import EXPECTED, VERDICTS, review
+
+    out = review(json.loads(Path(a.report).read_text()), source=a.report)
+    Path(a.output).write_text(json.dumps(out, indent=2) + "\n")
+    r, ag = out["run"], out["agreement"]
+
+    def frac(x):
+        return f"{x['agree']}/{x['n']} ({x['rate']:.2f})" if x["n"] else "0/0 (n/a)"
+
+    print(f"wrote {a.output}: blind review of {a.report} (commit {r['commit'][:7]}, model {r['model']})")
+    print(f"agreement {frac(ag['overall'])}")
+    for c, x in ag["by_class"].items():
+        print(f"  {c} <-> {EXPECTED[c]:10} {frac(x)}")
+    print("confusion (rows engine class, columns blind verdict):")
+    print("   " + " ".join(f"{v:>10}" for v in VERDICTS))
+    for c, row in ag["confusion"].items():
+        print(f"{c:2} " + " ".join(f"{row[v]:>10}" for v in VERDICTS))
+    for v in out["reviews"]:
+        print(f"  {v['id']} {v['class']} {v['key']} {v['verdict']}{'' if v['agree'] else ' (disagrees)'}: {v['reason']}")
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="bylaw")
     sub = p.add_subparsers(required=True)
@@ -215,6 +237,10 @@ def main(argv=None):
     be.add_argument("--modes", default="bfs,muse", help="comma-separated: bfs, muse")
     be.add_argument("-o", "--output", default="bench.json")
     be.set_defaults(fn=cmd_bench)
+    rv = sub.add_parser("review", help="blind Muse review of every finding and its agreement with the engine class")
+    rv.add_argument("report")
+    rv.add_argument("-o", "--output", default="review.json")
+    rv.set_defaults(fn=cmd_review)
     a = p.parse_args(argv)
     return a.fn(a)
 
