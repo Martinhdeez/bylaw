@@ -1,9 +1,11 @@
-"""Hole report (contract C4): run the search, execute every chain, prove what fires a goal, write the JSON."""
+"""Hole report (contract C4 v1.7): run the search, execute every chain, prove what fires a goal, adjudicate it
+against the gold tasks (A hole, B contradiction, C ambiguity), write the JSON."""
 import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from bylaw.gold import gold_goals
 from bylaw.executor import run
 from bylaw.proposer import search
 from bylaw.verifier import prove
@@ -19,29 +21,31 @@ def _obj(props: dict, **extra) -> dict:
 _CHANGE = _obj({"before": {"type": ["object", "null"]}, "after": {"type": ["object", "null"]}}, additionalProperties=False)
 _STEP = _obj({"tool": _S, "args": {"type": "object"}, "ok": _B,
               "verdicts": {"type": "array", "items": _obj({"rule_id": _S, "ok": _B, "policy_ref": _S})}})
-_ENTRY = _obj({"id": _S, "key": _S, "class": {"enum": ["A", "C"]}, "goal": _S, "title": _S, "money_delta": _N,
+_ENTRY = _obj({"id": _S, "key": _S, "class": {"enum": ["A", "B", "C"]}, "goal": _S, "title": _S, "money_delta": _N,
                "chain": {"type": "array", "minItems": 1, "items": _STEP},
                "diff": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": _CHANGE}},
-               "goal_true": _B, "replays": {"type": "string", "pattern": r"^\d+/\d+$"}})
+               "goal_true": _B, "replays": {"type": "string", "pattern": r"^\d+/\d+$"},
+               "gold": _obj({"sanctioned": _B, "tasks": {"type": "array", "items": _S}})})
 REPORT_SCHEMA = _obj({
     "run": _obj({"commit": _S, "domain": _S, "model": _S, "mode": {"enum": ["bfs", "muse"]}, "started": _S,
                  "budget": _I, "goals_commit": _S}),
-    "holes": {"type": "array", "items": {**_ENTRY, "properties": {**_ENTRY["properties"], "class": {"const": "A"}}}},
-    "ambiguities": {"type": "array", "items": {**_ENTRY, "properties": {**_ENTRY["properties"], "class": {"const": "C"}}}},
+    **{name: {"type": "array", "items": {**_ENTRY, "properties": {**_ENTRY["properties"], "class": {"const": cls}}}}
+       for name, cls in (("holes", "A"), ("contradictions", "B"), ("ambiguities", "C"))},
     "stats": _obj({"chains_tried": _I, "tool_calls": _I, "llm_calls": _I, "tokens": _I, "seconds": {"type": "number", "minimum": 0}}),
 })
 
 
 def classify(domain, db: dict, goal_id: str, chain: list[dict]) -> str:
     """Class C when the goal is pre-registered C, or the chain cancels a reservation and then books again for the
-    same user: cancel+rebook inside a permitted cancel ground is the permitted method (REQ-EX1-3)."""
+    same user: cancel+rebook inside a permitted cancel ground is the permitted method (REQ-EX1-3).
+    Otherwise Class B when a gold task reaches the goal (C4 v1.7), else Class A."""
     if domain.goals[goal_id].cls == "C":
         return "C"
     for i, s in enumerate(chain):
         res = db["reservations"].get(s["args"].get("reservation_id")) if s["tool"] == "cancel_reservation" else None
         if res and any(t["tool"] == "book_reservation" and t["args"].get("user_id") == res["user_id"] for t in chain[i + 1:]):
             return "C"
-    return "A"
+    return "B" if goal_id in gold_goals(domain) else "A"
 
 
 def money_delta(diff: dict) -> float:
@@ -63,6 +67,11 @@ def _touched(snapshot: dict, diff: dict) -> dict:
     return out
 
 
+def _extends(chain: list[dict], key: str, entries: dict) -> bool:
+    calls = [(s["tool"], s["args"]) for s in chain]
+    return any(e["key"] == key and calls[:len(e["chain"])] == [(s["tool"], s["args"]) for s in e["chain"]] for e in entries.values())
+
+
 def _git(*args) -> str:
     try:
         return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
@@ -74,33 +83,44 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     t0 = time.monotonic()
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     db = domain.snapshot(domain.fresh_env())
-    entries, chains_tried, tool_calls = {}, 0, 0
-    for proposal in search(domain, ruleset, budget, use_llm):
+    entries, chains_tried, tool_calls, executed = {}, 0, 0, None
+    proposals = search(domain, ruleset, budget, use_llm)
+    while True:
+        try:
+            proposal = proposals.send(executed)
+        except StopIteration:
+            break
         chain = [{"tool": t, "args": a} for t, a in proposal]
         r = run(domain, chain, ruleset)
         chains_tried += 1
-        tool_calls += len(r["results"])
+        executed = len(r["results"])  # C6 v1.2: the budget is charged on executed write steps
+        tool_calls += executed
         if len(r["results"]) < len(chain) or not all(s["ok"] for s in r["steps"]) or not r["diff"]:
             continue
         before, after = _touched(r["before"], r["diff"]), _touched(r["after"], r["diff"])
         target = chain[0]["args"].get("reservation_id") or chain[0]["args"].get("user_id")
         for gid, goal in domain.goals.items():
             key, cls = f"{gid}:{target}", classify(domain, db, gid, chain)
-            if key in entries or not goal.check(before, after, r["results"]):  # one entry per key, shortest chain first
+            # One entry per key and list: contradictions (B) apart, holes and ambiguities share keys (A beats C).
+            # Otherwise the first, shortest chain wins, and a chain that extends one already listed for the key adds nothing.
+            slot = ("B" if cls == "B" else "AC", key)
+            if (slot in entries and not (cls == "A" and entries[slot]["class"] == "C")) or _extends(chain, key, entries) \
+                    or not goal.check(before, after, r["results"]):
                 continue
             replays = prove(domain, ruleset, gid, chain, r["diff"])
             if replays != "5/5":
                 continue  # not reproducible: not a proven hole
-            entries[key] = {"key": key, "class": cls, "goal": gid,
+            tasks = gold_goals(domain).get(gid, [])
+            entries[slot] = {"key": key, "class": cls, "goal": gid, "gold": {"sanctioned": bool(tasks), "tasks": tasks},
                             "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
                             "chain": r["steps"], "diff": r["diff"], "goal_true": True, "replays": replays}
-    holes = [{"id": f"H{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == "A"), 1)]
-    ambiguities = [{"id": f"C{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == "C"), 1)]
+    lists = {cls: [{"id": f"{prefix}{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == cls), 1)]
+             for cls, prefix in (("A", "H"), ("B", "B"), ("C", "C"))}
     return {
         "run": {"commit": _git("rev-parse", "HEAD"), "domain": domain.name, "model": model,
                 "mode": "muse" if use_llm else "bfs", "started": started, "budget": budget,
                 "goals_commit": _git("log", "-1", "--format=%H", "--", "bylaw/goals.py")},
-        "holes": holes, "ambiguities": ambiguities,
+        "holes": lists["A"], "contradictions": lists["B"], "ambiguities": lists["C"],
         "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": 0, "tokens": 0,
                   "seconds": round(time.monotonic() - t0, 2)},
     }

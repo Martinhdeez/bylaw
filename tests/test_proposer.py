@@ -1,4 +1,4 @@
-"""EX1: bounded BFS behind the C6 interface: write tools only, depth <= 4, budget = write steps yielded."""
+"""EX1/GA1: bounded BFS behind the C6 interface: write tools only, depth <= 4, budget = executed write steps."""
 import itertools
 import json
 
@@ -6,6 +6,7 @@ import pytest
 
 from bylaw.domain import get_domain
 from bylaw.env.tau2_airline import RULESET
+from bylaw import proposer
 from bylaw.proposer import MAX_DEPTH, search
 
 DOMAIN = get_domain("airline")
@@ -28,3 +29,23 @@ def test_chains_are_write_only_bounded_and_shortest_first():
 def test_search_is_deterministic():
     a = list(search(DOMAIN, RULES, 100, use_llm=False))
     assert a == list(search(DOMAIN, RULES, 100, use_llm=False))
+
+
+def test_budget_is_charged_on_the_steps_the_executor_reports_as_executed():
+    # The consumer sends back how many steps of each chain ran (C6 v1.2); here every chain stops after one step.
+    gen, chains, executed = search(DOMAIN, RULES, 100, use_llm=False), [], None
+    while True:
+        try:
+            chains.append(gen.send(executed))
+        except StopIteration:
+            break
+        executed = 1
+    assert 100 - MAX_DEPTH < len(chains) <= 100  # one executed step charged per chain, not len(chain)
+    assert sum(len(c) for c in chains) > 100
+
+
+def test_depth_limit_holds_once_a_target_is_exhausted(monkeypatch):
+    monkeypatch.setattr(proposer, "_pool", lambda domain, db: [["1KUOX2"]])
+    chains = list(search(DOMAIN, RULES, 10**6, use_llm=False))
+    assert max(len(c) for c in chains) == MAX_DEPTH
+    assert [len(c) for c in chains] == sorted(len(c) for c in chains)  # every depth before the next
