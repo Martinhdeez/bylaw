@@ -36,10 +36,11 @@ def cmd_audit(a):
     report = audit(domain, json.loads((HAND_RULESETS / f"{a.domain}.json").read_text()), a.budget, use_llm=not a.no_llm)
     Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
     s = report["stats"]
-    print(f"wrote {a.output}: {len(report['holes'])} Class A holes, {len(report['ambiguities'])} ambiguities; "
+    print(f"wrote {a.output}: {len(report['holes'])} Class A holes, {len(report['contradictions'])} Class B contradictions, "
+          f"{len(report['ambiguities'])} Class C ambiguities; "
           f"{s['chains_tried']} chains, {s['tool_calls']} tool calls, {s['llm_calls']} LLM calls, "
           f"{s['tokens']} tokens, {s['seconds']}s")
-    for e in report["holes"] + report["ambiguities"]:
+    for e in report["holes"] + report["contradictions"] + report["ambiguities"]:
         print(f"  {e['id']} {e['class']} {e['key']} replays {e['replays']} money_delta {e['money_delta']} "
               f"{' -> '.join(st['tool'] for st in e['chain'])}")
 

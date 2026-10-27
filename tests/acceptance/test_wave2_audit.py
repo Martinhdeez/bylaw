@@ -2,6 +2,8 @@
 
 Written blind from docs/plan/01-engine/requirements.md and contracts.md (C1, C4, C5, v1.1).
 v1.2 adds the diff format, the hole key and the replay signature.
+v1.7 (gold adjudication): proven findings on gold-sanctioned goals move from `holes` (Class A) to
+`contradictions` (Class B). The EX1 proof checks apply to both lists ("findings").
 Domain facts (DB shape, clock 2024-05-15T15:00:00, deterministic ids) come from .context/tau2-bench.
 Helpers live in this file on purpose: the wave-1 conftest is on another unmerged branch.
 """
@@ -20,6 +22,13 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_BUDGET = 2000  # C5: --budget N=2000
 SMALL_BUDGET = 25
 COUNTED_GOALS = {"G1", "G2", "G5"}  # pre-registered Class A airline goals
+# v1.7 / REQ-GA1-1: goals some airline gold task reaches (tasks.json), hence Class B when proven.
+GOLD_SANCTIONED = {"G1": {"32"}, "G2": {"7"}, "G4": {"25"}, "G5": {"18"}}
+
+
+def findings(r: dict) -> list[dict]:
+    """Proven Class A holes and Class B contradictions (v1.7)."""
+    return r["holes"] + r["contradictions"]
 
 
 def run_cli(*argv, timeout=1800):
@@ -101,11 +110,14 @@ def assert_c4_shape(r: dict) -> None:
     assert isinstance(r["ambiguities"], list)
     for h in r["holes"]:
         assert_c4_entry(h, "A")
+    assert isinstance(r["contradictions"], list)
+    for c in r["contradictions"]:
+        assert_c4_entry(c, "B")
     for a in r["ambiguities"]:
         assert_c4_entry(a, "C")
-    ids = [e["id"] for e in r["holes"] + r["ambiguities"]]
+    ids = [e["id"] for e in findings(r) + r["ambiguities"]]
     assert len(ids) == len(set(ids)), "hole/ambiguity ids must be unique"
-    keys = [e["key"] for e in r["holes"] + r["ambiguities"]]
+    keys = [e["key"] for e in findings(r) + r["ambiguities"]]
     assert len(keys) == len(set(keys)), "hole/ambiguity keys must be unique"
     s = r["stats"]
     for key in ("chains_tried", "tool_calls", "llm_calls", "tokens"):
@@ -197,27 +209,32 @@ def test_REQ_EX1_1_run_block_describes_a_no_llm_airline_run(report):
 
 
 def test_REQ_EX1_1_at_least_three_class_A_holes(report):
-    holes = [h for h in report["holes"] if h["class"] == "A"]
+    holes = [h for h in findings(report) if h["class"] in ("A", "B")]
     assert len(holes) >= 3, [h["goal"] for h in holes]
 
 
 def test_REQ_EX1_1_holes_name_class_A_goals_of_the_domain(report, domain):
-    for h in report["holes"]:
+    for h in findings(report):
         assert h["goal"] in domain.goals, h["goal"]
         assert domain.goals[h["goal"]].cls == "A", h["goal"]
 
 
 def test_REQ_EX1_1_the_three_counted_airline_goals_are_found(report):
     # G1 basic economy flights changed, G2 non-refundable refunded, G5 free bags over allowance.
-    assert COUNTED_GOALS <= {h["goal"] for h in report["holes"]}
+    # v1.7: found as holes or contradictions, each in the list its gold status dictates.
+    assert COUNTED_GOALS <= {h["goal"] for h in findings(report)}
+    for h in report["holes"]:
+        assert h["goal"] not in GOLD_SANCTIONED, h["key"]
+    for c in report["contradictions"]:
+        assert c["goal"] in GOLD_SANCTIONED, c["key"]
 
 
 # ---------- REQ-EX1-2 ----------
 
 def test_REQ_EX1_2_every_hole_is_proven(report):
-    assert report["holes"], "no holes to check"
-    for h in report["holes"]:
-        assert h["class"] == "A"
+    assert findings(report), "no holes to check"
+    for h in findings(report):
+        assert h["class"] in ("A", "B")
         assert h["goal_true"] is True, h["id"]
         assert h["replays"] == "5/5", (h["id"], h["replays"])
         for step in h["chain"]:
@@ -227,12 +244,12 @@ def test_REQ_EX1_2_every_hole_is_proven(report):
 
 
 def test_REQ_EX1_2_holes_carry_a_db_diff(report):
-    for h in report["holes"]:
+    for h in findings(report):
         assert h["diff"], f"{h['id']} has an empty diff"
 
 
 def test_REQ_EX1_2_holes_in_the_small_run_are_proven_too(small_report):
-    for h in small_report["holes"]:
+    for h in findings(small_report):
         assert h["goal_true"] is True and h["replays"] == "5/5"
         assert all(s["ok"] and all(v["ok"] for v in s["verdicts"]) for s in h["chain"])
 
@@ -240,7 +257,7 @@ def test_REQ_EX1_2_holes_in_the_small_run_are_proven_too(small_report):
 # ---------- REQ-EX1-3 ----------
 
 def test_REQ_EX1_3_cancel_rebook_inside_24h_window_is_not_a_hole(report, fresh_db, domain):
-    for h in report["holes"]:
+    for h in findings(report):
         rid = cancel_rebook_target(h["chain"], fresh_db)
         assert rid is None or not within_24h(rid, fresh_db, domain.now), (
             f"{h['id']} is a cancel+rebook through the 24h window ({rid}) reported as a hole")
@@ -258,7 +275,7 @@ def test_REQ_EX1_3_cancel_rebook_through_24h_window_is_an_ambiguity(report, fres
 def test_REQ_EX1_3_ambiguities_are_class_C(report):
     for a in report["ambiguities"]:
         assert a["class"] == "C"
-    for h in report["holes"]:
+    for h in findings(report):
         assert h["class"] != "C"
 
 
@@ -266,8 +283,8 @@ def test_REQ_EX1_3_ambiguities_are_class_C(report):
 
 def test_REQ_EX1_4_replay_gives_the_report_diff(report, domain):
     replay = importlib.import_module("bylaw.executor").replay
-    assert report["holes"], "no holes to replay"
-    for h in report["holes"]:
+    assert findings(report), "no holes to replay"
+    for h in findings(report):
         chain = [{"tool": s["tool"], "args": copy.deepcopy(s["args"])} for s in h["chain"]]
         first = replay(domain, chain)
         second = replay(domain, copy.deepcopy(chain))
@@ -280,14 +297,14 @@ def test_REQ_EX1_4_replay_gives_the_report_diff(report, domain):
 
 
 def test_REQ_EX1_4_report_diff_matches_the_db_change_seen_through_c1(report, domain):
-    for h in report["holes"]:
+    for h in findings(report):
         before, after, _ = replay_by_contract(domain, h["chain"])
         assert canon(h["diff"]) == canon(expected_diff(before, after)), h["id"]
 
 
 def test_REQ_EX1_4_hole_chain_reproduces_the_same_diff_on_fresh_envs(report, domain):
-    assert report["holes"], "no holes to replay"
-    for h in report["holes"]:
+    assert findings(report), "no holes to replay"
+    for h in findings(report):
         b1, a1, r1 = replay_by_contract(domain, h["chain"])
         b2, a2, r2 = replay_by_contract(domain, h["chain"])
         assert all(r.ok for r in r1), (h["id"], [r.error for r in r1])
@@ -298,7 +315,7 @@ def test_REQ_EX1_4_hole_chain_reproduces_the_same_diff_on_fresh_envs(report, dom
 
 
 def test_REQ_EX1_4_replay_does_not_leak_into_the_next_fresh_env(report, domain, fresh_db):
-    for h in report["holes"][:3]:
+    for h in findings(report)[:3]:
         replay_by_contract(domain, h["chain"])
         assert canon(domain.snapshot(domain.fresh_env())) == canon(fresh_db)
 
@@ -324,4 +341,4 @@ def test_REQ_PR1_1_llm_audit_finds_at_least_the_no_llm_holes(report, tmp_path):
     assert muse["run"]["budget"] == DEFAULT_BUDGET
     assert muse["stats"]["tool_calls"] <= DEFAULT_BUDGET
     assert muse["stats"]["llm_calls"] > 0
-    assert {h["key"] for h in report["holes"]} <= {h["key"] for h in muse["holes"]}
+    assert {h["key"] for h in findings(report)} <= {h["key"] for h in findings(muse)}
