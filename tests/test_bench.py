@@ -26,3 +26,17 @@ def test_bench_compares_muse_with_blind_bfs_on_one_budget(tmp_path, monkeypatch,
     assert any(k.startswith("G7:") for k in rows["muse"]["ambiguity_keys"])
     printed = capsys.readouterr().out
     assert "bfs" in printed and "muse" in printed and "tool_calls" in printed
+
+
+def test_bench_json_names_the_model_and_the_commit(tmp_path, monkeypatch):
+    """FX1 / REQ-DM1-1: a bench result names the commit and the model that produced it."""
+    monkeypatch.setattr(llm, "structured", ScriptedMuse({"G7": [G7_TWICE]}))
+    monkeypatch.setenv("MODEL", "muse-test-model")
+    out = tmp_path / "bench.json"
+    main(["bench", "--domain", "airline", "--budget", "10", "--modes", "bfs,muse", "-o", str(out)])
+    data = json.loads(out.read_text())
+    assert data["model"] == "muse-test-model"
+    assert data["commit"] and data["commit"] == data["rows"][0]["commit"]
+    assert len(data["rows"]) == 2  # existing fields kept
+    main(["bench", "--domain", "airline", "--budget", "10", "--modes", "bfs", "-o", str(out)])
+    assert json.loads(out.read_text())["model"] is None

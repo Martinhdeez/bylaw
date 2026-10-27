@@ -40,6 +40,9 @@ def cmd_audit(a):
           f"{len(report['ambiguities'])} Class C ambiguities; "
           f"{s['chains_tried']} chains, {s['tool_calls']} tool calls, {s['llm_calls']} LLM calls, "
           f"{s['tokens']} tokens, {s['seconds']}s")
+    if s["llm_calls"] and s["llm_errors"] == s["llm_calls"]:
+        print(f"WARNING: every Muse call failed ({s['llm_errors']}/{s['llm_calls']}); this run is a BFS fallback, "
+              f"not a Muse run, whatever run.mode says", file=sys.stderr)
     for e in report["holes"] + report["contradictions"] + report["ambiguities"]:
         print(f"  {e['id']} {e['class']} {e['key']} replays {e['replays']} money_delta {e['money_delta']} "
               f"{' -> '.join(st['tool'] for st in e['chain'])}")
@@ -159,7 +162,7 @@ def cmd_bench(a):
 
     domain = get_domain(a.domain)
     ruleset = json.loads((HAND_RULESETS / f"{a.domain}.json").read_text())
-    modes, rows = a.modes.split(","), []
+    modes, rows, model, commit = a.modes.split(","), [], None, None
     if set(modes) - {"bfs", "muse"}:
         raise SystemExit(f"unknown mode in --modes {a.modes!r}; known: bfs, muse")
     for mode in modes:
@@ -170,7 +173,11 @@ def cmd_bench(a):
                      "ambiguities": len(r["ambiguities"]), "ambiguity_keys": [h["key"] for h in r["ambiguities"]],
                      **{k: r["stats"][k] for k in ("tool_calls", "llm_calls", "llm_errors", "tokens", "seconds", "found")},
                      "commit": r["run"]["commit"]})
-    Path(a.output).write_text(json.dumps({"domain": a.domain, "budget": a.budget, "rows": rows}, indent=2) + "\n")
+        commit = r["run"]["commit"]
+        if mode == "muse":
+            model = r["run"]["model"]
+    Path(a.output).write_text(json.dumps({"domain": a.domain, "budget": a.budget, "model": model, "commit": commit,
+                                          "rows": rows}, indent=2) + "\n")
     cols = ("mode", "holes", "contradictions", "ambiguities", "tool_calls", "llm_calls", "tokens", "seconds")
     print(f"bench {a.domain} budget {a.budget} -> {a.output}")
     print(" | ".join(f"{c:>14}" for c in cols))

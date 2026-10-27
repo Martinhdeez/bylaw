@@ -177,6 +177,30 @@ def test_a_failed_muse_call_is_counted_and_never_aborts_the_audit():
     assert any(e["goal"] == "G7" for e in r["ambiguities"])
 
 
+def test_every_failed_muse_call_is_logged_to_stderr_with_its_exception(capsys):
+    """FX1: a failed Muse call still falls back to BFS (C6 v1.8), but its cause is not dropped."""
+    def broken(messages, schema, name, **kw):
+        raise PermissionError("no MODEL_API_KEY")
+
+    r = audit(DOMAIN, RULES, budget=10, use_llm=True, llm=broken)
+    err = capsys.readouterr().err
+    assert r["stats"]["llm_errors"] == r["stats"]["llm_calls"] > 0
+    assert err.count("PermissionError: no MODEL_API_KEY") == r["stats"]["llm_calls"]
+
+
+def test_the_cli_warns_when_every_muse_call_failed(tmp_path, monkeypatch, capsys):
+    """FX1: an audit run as Muse whose every call failed must not pass silently as a Muse run (REQ-DM1-1)."""
+    from bylaw import llm
+    from bylaw.__main__ import main
+
+    def broken(messages, schema, name, **kw):
+        raise RuntimeError("401 Unauthorized")
+
+    monkeypatch.setattr(llm, "structured", broken)
+    main(["audit", "--domain", "airline", "--budget", "10", "-o", str(tmp_path / "r.json")])
+    assert "WARNING: every Muse call failed" in capsys.readouterr().err
+
+
 def test_a_hole_that_takes_the_key_from_an_ambiguity_is_fed_back_as_a_hit(monkeypatch):
     # C6 v1.8: hit means the chain proved a finding. The Class A chain to G1:1KUOX2 replaces the cancel+rebook
     # ambiguity under the same key: the entry count does not grow, but the chain still proved a finding.

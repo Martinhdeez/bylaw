@@ -1,6 +1,7 @@
 """Hole report (contract C4 v1.7): run the search, execute every chain, prove what fires a goal, adjudicate it
 against the gold tasks (A hole, B contradiction, C ambiguity), write the JSON."""
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -111,8 +112,9 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         asked.append(1)
         try:
             return (llm or muse.structured)(*a, **kw)
-        except Exception:
+        except Exception as e:
             errors.append(1)  # the search leaves that goal to the BFS (C6 v1.8)
+            print(f"muse call failed, goal falls back to BFS: {type(e).__name__}: {e}", file=sys.stderr)
             raise
 
     gen = search(domain, ruleset, budget, use_llm, llm=counted) if use_llm else search(domain, ruleset, budget, use_llm)
