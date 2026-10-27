@@ -1,11 +1,13 @@
 """Hole report (contract C4 v1.7): run the search, execute every chain, prove what fires a goal, adjudicate it
 against the gold tasks (A hole, B contradiction, C ambiguity), write the JSON."""
+import json
 import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 from bylaw import llm as muse
+from bylaw.backtest import load_gold
 from bylaw.gold import gold_goals
 from bylaw.executor import run
 from bylaw.proposer import search
@@ -29,7 +31,7 @@ _ENTRY = _obj({"id": _S, "key": _S, "class": {"enum": ["A", "B", "C"]}, "goal": 
                "gold": _obj({"sanctioned": _B, "tasks": {"type": "array", "items": _S}})})
 REPORT_SCHEMA = _obj({
     "run": _obj({"commit": _S, "domain": _S, "model": _S, "mode": {"enum": ["bfs", "muse"]}, "started": _S,
-                 "budget": _I, "goals_commit": _S}),
+                 "budget": _I, "goals_commit": _S, "context_tokens": _I}),
     **{name: {"type": "array", "items": {**_ENTRY, "properties": {**_ENTRY["properties"], "class": {"const": cls}}}}
        for name, cls in (("holes", "A"), ("contradictions", "B"), ("ambiguities", "C"))},
     "stats": _obj({"chains_tried": _I, "tool_calls": _I, "llm_calls": _I, "tokens": _I, "seconds": {"type": "number", "minimum": 0}}),
@@ -108,22 +110,33 @@ def _steered(search_gen, proven: list, tool_calls):
         feedback, n, done = (tool_calls() - done, len(proven) > n), len(proven), tool_calls()
 
 
-def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "", llm=None) -> dict:
+def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "", llm=None,
+          long_context: bool = False) -> dict:
     """`llm` replaces bylaw.llm.structured (tests script Muse with it). llm_calls counts the requests the search
-    made; tokens counts what the API billed for them (0 for a reply served from the disk cache)."""
+    made; tokens counts what the API billed for them in this audit only (0 for a reply served from the disk cache);
+    run.context_tokens is the prompt size of the largest of them. `long_context` adds every tool schema and the
+    gold task list to each proposer prompt (REQ-LC1-1)."""
     t0 = time.monotonic()
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     db = domain.snapshot(domain.fresh_env())
     entries, chains_tried, tool_calls = {}, 0, 0
-    asked, errors, billed_from, found, proven = [], [], len(muse.CALLS), {}, []
+    asked, errors, billed, found, proven = [], [], [], {}, []
+    extra = long_context and {"role": "user", "content": json.dumps(
+        {"tools": domain.tools, "gold_tasks": load_gold(domain),
+         "note": "every tool of the domain, and the benchmark's gold tasks: action sequences graded as correct"})}
 
-    def counted(*a, **kw):
+    def counted(messages, *a, **kw):
         asked.append(1)
+        if extra:  # one prompt: the context goes just before the goal message
+            messages = [*messages[:-1], extra, messages[-1]]
+        token = muse.TALLY.set(billed)  # the requests made in this thread are this audit's (REQ-LC1-2)
         try:
-            return (llm or muse.structured)(*a, **kw)
+            return (llm or muse.structured)(messages, *a, **kw)
         except Exception:
             errors.append(1)  # the search leaves that goal to the BFS (C6 v1.8)
             raise
+        finally:
+            muse.TALLY.reset(token)
 
     gen = search(domain, ruleset, budget, use_llm, llm=counted) if use_llm else search(domain, ruleset, budget, use_llm)
     for proposal in _steered(gen, proven, lambda: tool_calls):
@@ -157,11 +170,12 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         "run": {"commit": _commit(), "domain": domain.name,
                 "model": model or (muse.model() if use_llm else ""),
                 "mode": "muse" if use_llm else "bfs", "started": started, "budget": budget,
-                "goals_commit": _git("log", "-1", "--format=%h", "--", GOALS_FILES.get(domain.name, ""))},
+                "goals_commit": _git("log", "-1", "--format=%h", "--", GOALS_FILES.get(domain.name, "")),
+                "context_tokens": max((c["prompt_tokens"] for c in billed), default=0)},
         "holes": lists["A"], "contradictions": lists["B"], "ambiguities": lists["C"],
         "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": len(asked),
                   "llm_errors": len(errors),
-                  "tokens": sum(c["prompt_tokens"] + c["completion_tokens"] for c in muse.CALLS[billed_from:]),
+                  "tokens": sum(c["prompt_tokens"] + c["completion_tokens"] for c in billed),
                   "seconds": round(time.monotonic() - t0, 2),
                   "found": [found[h["key"]] for h in lists["A"]]},  # C5 v1.6: when each hole was first proved
     }

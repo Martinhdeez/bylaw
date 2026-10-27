@@ -28,11 +28,12 @@ export type Hole = {
   backtest?: Backtest;
 };
 export type Report = {
-  run: { commit: string; domain: string; model: string; mode: "bfs" | "muse"; started: string; budget: number; goals_commit: string };
+  // 01 v1.9: "bfs-fallback" = Muse was requested and every call failed; model is null unless a Muse call succeeded.
+  run: { commit: string; domain: string; model: string | null; mode: "bfs" | "muse" | "bfs-fallback"; effort?: string; started: string; budget: number; goals_commit: string };
   holes: Hole[]; // Class A
   contradictions?: Hole[]; // Class B, 01 v1.7
   ambiguities: Hole[];
-  stats: { chains_tried: number; tool_calls: number; llm_calls: number; tokens: number; seconds: number };
+  stats: { chains_tried: number; tool_calls: number; llm_calls: number; llm_errors?: number; tokens: number; seconds: number };
 };
 export type Phase = "compile" | "search" | "verify" | "amend" | "backtest" | "done" | "error";
 export type ProgressEvent = {
@@ -56,6 +57,7 @@ export type Policy = { domain: Domain; lines: string[] };
 export type Bench = {
   domain: Domain;
   budget: number;
+  model?: string | null; // 01 v1.9
   rows: {
     mode: "bfs" | "muse"; holes: number; hole_keys: string[]; tool_calls: number; llm_calls: number; tokens: number; seconds: number;
     found?: { key: string; tool_calls: number; seconds: number }[]; // C5 v1.6
