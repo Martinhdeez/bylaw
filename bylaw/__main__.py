@@ -64,6 +64,36 @@ def cmd_compile(a):
     return 0
 
 
+def cmd_amend(a):
+    from bylaw.amend import apply, closes, draft
+    from bylaw.backtest import backtest
+
+    report = json.loads(Path(a.report).read_text())
+    name = report["run"]["domain"]
+    domain = get_domain(name)
+    hand = json.loads((HAND_RULESETS / f"{name}.json").read_text())
+    base = None if a.no_backtest else backtest(domain, hand)
+    entries = report["holes"] + report.get("contradictions", [])  # Class A and Class B (01 v1.7)
+    for h in entries:
+        try:
+            am = draft(domain, hand, h)
+        except ValueError as e:  # the model failed twice: record it, never pass an invalid amendment through
+            h.update(amendment=None, closes=False, error=str(e))
+            print(f"  {h['id']} {h['key']} no amendment: {e}")
+            continue
+        patched = apply(hand, am)
+        h["amendment"], h["closes"] = am, closes(domain, patched, h, report["run"].get("budget", 2000))
+        line = f"  {h['id']} {h['class']} {h['key']} closes {h['closes']}"
+        if base is not None:
+            res = backtest(domain, patched)
+            h["backtest"] = {"tasks": res["tasks"], "blocked": res["blocked"], "baseline_blocked": base["blocked"],
+                             "blocked_tasks": [r["id"] for r in res["results"] if r["blocked"]]}
+            line += f" blocked {res['blocked']}/{res['tasks']} (baseline {base['blocked']})"
+        print(f"{line}: {am['policy_text']}", flush=True)
+    Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
+    print(f"wrote {a.output}: {sum(bool(h.get('closes')) for h in entries)}/{len(entries)} closed")
+
+
 def cmd_proxy(a):
     from bylaw.proxy.core import Proxy
     from bylaw.proxy.mcp_server import serve
@@ -139,6 +169,11 @@ def main(argv=None):
     c.add_argument("--domain", required=True)
     c.add_argument("-o", "--output", required=True)
     c.set_defaults(fn=cmd_compile)
+    am = sub.add_parser("amend", help="draft, prove and backtest one amendment per hole of a report")
+    am.add_argument("report")
+    am.add_argument("-o", "--output", default="amended.json")
+    am.add_argument("--no-backtest", action="store_true", help="skip the gold-task backtest")
+    am.set_defaults(fn=cmd_amend)
     px = sub.add_parser("proxy", help="MCP stdio server enforcing the effective RuleSet and the goal monitor")
     px.add_argument("--domain", required=True)
     px.set_defaults(fn=cmd_proxy)
