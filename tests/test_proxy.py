@@ -1,0 +1,78 @@
+"""PX1: the proxy checks every call against the RuleSet and a session goal monitor before it touches the DB (C11)."""
+import json
+
+from bylaw.domain import get_domain
+from bylaw.env.tau2_airline import RULESET
+from bylaw.proxy.core import Proxy
+
+DOMAIN = get_domain("airline")
+HAND = json.loads(RULESET.read_text())
+# T1QOBS: basic economy, uninsured, booked 2024-05-09 (>24h before the clock), paid with credit_card_9875103.
+CANCEL = ("cancel_reservation", {"reservation_id": "T1QOBS", "reason": "change of plan"})
+UPGRADE = ("update_reservation_flights", {
+    "reservation_id": "T1QOBS", "cabin": "business",
+    "flights": [{"flight_number": "HAT060", "date": "2024-05-26"}], "payment_id": "credit_card_9875103"})
+
+
+def test_a_call_a_rule_denies_is_blocked_with_rule_and_policy_line_and_db_unchanged():
+    p = Proxy(DOMAIN, ruleset=HAND)
+    before = p.snapshot()
+    out = p.call(*CANCEL)
+    assert out["blocked"] and not out["ok"]
+    assert out["rule_id"] == "R-cancel-ground"
+    policy = next(r["policy_ref"] for r in HAND["tool_rules"] if r["id"] == "R-cancel-ground")
+    assert out["reason"] == f"BLOCKED R-cancel-ground: {policy}"
+    assert p.snapshot() == before
+
+
+def test_goal_monitor_blocks_the_write_that_makes_a_class_a_goal_true_from_session_start():
+    # Upgrade to business (allowed), then cancel (allowed for business): refunds a non-refundable fare, G2.
+    p = Proxy(DOMAIN, ruleset=HAND)
+    assert p.call(*UPGRADE)["ok"]
+    upgraded = p.snapshot()
+    out = p.call(*CANCEL)
+    assert out["blocked"] and not out["ok"] and out["goal"] == "G2" and out["rule_id"] is None
+    assert out["reason"] == "BLOCKED G2: " + DOMAIN.goals["G2"].name
+    assert p.snapshot() == upgraded  # the cancel was not applied
+
+
+def test_without_monitor_the_same_chain_goes_through():
+    p = Proxy(DOMAIN, ruleset=HAND, monitor=False)
+    assert p.call(*UPGRADE)["ok"]
+    out = p.call(*CANCEL)
+    assert out["ok"] and not out["blocked"]
+    assert p.snapshot()["reservations"]["T1QOBS"]["status"] == "cancelled"
+
+
+def test_a_conversation_fact_is_read_by_the_rules_and_not_passed_to_tau2():
+    # tau2 cancel_reservation takes no `reason`; the call only succeeds if the proxy strips it.
+    p = Proxy(DOMAIN, ruleset=HAND, monitor=False)
+    p.call(*UPGRADE)
+    assert p.call("cancel_reservation", {"reservation_id": "T1QOBS"})["rule_id"] == "R-cancel-reason"
+    assert p.call(*CANCEL)["ok"]
+
+
+def test_each_proxy_is_a_fresh_session():
+    first = Proxy(DOMAIN, ruleset=HAND, monitor=False)
+    first.call(*UPGRADE)
+    assert Proxy(DOMAIN, ruleset=HAND).snapshot()["reservations"]["T1QOBS"]["cabin"] == "basic_economy"
+
+
+def test_tools_expose_every_tau2_tool_with_its_schema():
+    tools = Proxy(DOMAIN, ruleset=HAND).tools()
+    assert {t["name"] for t in tools} == {t["function"]["name"] for t in DOMAIN.tools}
+    cancel = next(t for t in tools if t["name"] == "cancel_reservation")
+    assert "reservation_id" in cancel["input_schema"]["properties"] and cancel["description"]
+
+
+def test_replay_cli_prints_one_line_per_step_and_blocks_the_goal_step(tmp_path, capsys):
+    from bylaw.__main__ import main
+
+    chain = [{"tool": t, "args": a} for t, a in (UPGRADE, CANCEL)]
+    report = tmp_path / "r.json"
+    report.write_text(json.dumps({"holes": [{"key": "G2:T1QOBS", "chain": chain}], "ambiguities": []}))
+    main(["replay", "--domain", "airline", "--hole", "G2:T1QOBS", "--report", str(report)])
+    lines = capsys.readouterr().out.splitlines()
+    assert lines[0] == "0 ALLOWED update_reservation_flights"
+    assert lines[1] == "1 BLOCKED cancel_reservation BLOCKED G2: " + DOMAIN.goals["G2"].name
+    assert len(lines) == 2
