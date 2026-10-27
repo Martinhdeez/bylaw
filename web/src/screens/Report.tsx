@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
-import { ArrowRight, Check, FileSearch, ShieldCheck } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
+import { ArrowRight, FileSearch, ShieldCheck } from "lucide-react";
 import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Load, type Ratified, type Report } from "../api";
-import { Crumbs, Failure, Loading, Muse, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
+import { Crumbs, Failure, Loading, Muse, Ticker, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
 
 const CLASS_C_NOTE = "Cancel and rebook inside a permitted cancel ground is the method the policy allows. Listed for review, not counted.";
 
@@ -16,9 +16,10 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
       <Page domain={domain}>
         <h1 className="title">No {domain} report yet</h1>
         <section className="panel empty-state">
-          <span className="shield"><FileSearch size={30} aria-hidden="true" /></span>
+          <span className="shield"><FileSearch aria-hidden="true" /></span>
           <h2 className="h2">Run an audit to see which chains of allowed calls break the {domain} policy</h2>
-          <a className="btn primary" href="#/">Run an audit</a>
+          <p>An audit compiles the policy, searches up to the budget and proves every hit five times.</p>
+          <a className="btn primary" href="#/">Run an audit<span className="ic"><ArrowRight aria-hidden="true" /></span></a>
         </section>
       </Page>
     );
@@ -44,28 +45,28 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
             {contradictions.length > 0 && ` ${contradictions.length} ${contradictions.length === 1 ? "finding is" : "findings are"} a contradiction instead: the policy text forbids the outcome, but τ²'s own gold tasks reach it.`}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="tags">
           {run.mode === "muse" ? (
             <>
               <Muse>Rules compiled by Muse Spark</Muse>
               <Muse>Chains proposed by Muse Spark</Muse>
             </>
           ) : (
-            <span className="tag">Offline run · hand RuleSet, blind BFS</span>
+            <span className="tag">Offline run: hand RuleSet, blind BFS</span>
           )}
           {all.some((h) => h.amendment) && <Muse>Amendments drafted by Muse Spark</Muse>}
         </div>
       </div>
 
       <div className="summary">
-        <div>
+        <div className="panel stat">
           <span className="label">Run</span>
-          <span className="mono" style={{ fontSize: 13 }}>{when(run.started)}{run.commit && ` · ${run.commit.slice(0, 7)}`}</span>
-          <span className="s">mode {run.mode}{run.model && ` · model ${run.model}`} · {int(stats.tokens)} tokens</span>
+          <span className="mono" style={{ fontSize: 13 }}>{when(run.started)}{run.commit && `, ${run.commit.slice(0, 7)}`}</span>
+          <span className="s">mode {run.mode}{run.model && `, model ${run.model}`}, {int(stats.tokens)} tokens</span>
         </div>
-        <div><span className="label">Class A holes</span><span className={`v ${holes.length ? "r" : ""}`}>{holes.length}</span><span className="s">{goalCount} forbidden {goalCount === 1 ? "goal" : "goals"} reached</span></div>
-        <div><span className="label">Policy vs practice</span><span className={`v ${contradictions.length ? "b" : ""}`}>{contradictions.length}</span><span className="s">class B, gold tasks do it too</span></div>
-        <div><span className="label">Search</span><span className="v num">{int(stats.tool_calls)}</span><span className="s">tool calls of {int(run.budget)} · {Math.round(stats.seconds)} s</span></div>
+        <div className="panel stat"><span className="label">Class A holes</span><Ticker className={`v ${holes.length ? "r" : ""}`} value={holes.length} /><span className="s">{goalCount} forbidden {goalCount === 1 ? "goal" : "goals"} reached</span></div>
+        <div className="panel stat"><span className="label">Policy vs practice</span><Ticker className={`v ${contradictions.length ? "b" : ""}`} value={contradictions.length} /><span className="s">class B, gold tasks do it too</span></div>
+        <div className="panel stat"><span className="label">Search</span><Ticker className="v" value={stats.tool_calls} /><span className="s">tool calls of {int(run.budget)} in {Math.round(stats.seconds)} s</span></div>
       </div>
 
       {holes.length > 0 && (
@@ -77,7 +78,7 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
 
       {!holes.length && !contradictions.length && (
         <section className="panel empty-state">
-          <span className="shield"><ShieldCheck size={32} aria-hidden="true" /></span>
+          <span className="shield"><ShieldCheck aria-hidden="true" /></span>
           <h2 className="h2">The search spent its budget without reaching a forbidden outcome</h2>
           <p>{int(stats.chains_tried)} chains over every write tool. This is not a proof that no hole exists. Raise the budget or add forbidden goals, then run the audit again.</p>
           <a className="btn" href="#/">Run another audit</a>
@@ -86,8 +87,8 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
 
       {contradictions.length > 0 && (
         <section className="practice" aria-labelledby="pvp-h">
-          <div className="practice-h">
-            <h2 id="pvp-h" className="title sm">Policy vs practice</h2>
+          <div>
+            <h2 id="pvp-h" className="title sm">Policy vs <span className="b">practice</span></h2>
             <p className="lede">The written policy forbids these outcomes, yet the benchmark's gold tasks reach them and τ² grades them as correct. They are not counted as holes. Each needs a decision: amend the text to match practice, or ratify the rule and accept the gold tasks it blocks.</p>
           </div>
           <Groups domain={domain} entries={contradictions} goals={goals} fixed={fixed} />
@@ -95,12 +96,12 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
       )}
 
       {ambiguities.length > 0 && (
-        <section className="panel" aria-labelledby="amb-h">
+        <section className="panel amb-panel" aria-labelledby="amb-h">
           <div className="panel-h">
-            <h2 id="amb-h">Ambiguities · class C, not counted</h2>
+            <h2 id="amb-h">Ambiguities, class C, not counted</h2>
             <span className="label">{ambiguities.length} listed for review</span>
           </div>
-          <p style={{ padding: "12px 18px 4px", color: "var(--muted)", fontSize: 14 }}>{CLASS_C_NOTE}</p>
+          <p className="amb-note">{CLASS_C_NOTE}</p>
           <ul className="amb">
             {ambiguities.map((a) => {
               const t = humanize(a.title, a.key);
@@ -113,7 +114,7 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
                       <br />
                       <span className="c">{a.chain.map((s) => s.tool).join(" → ")}</span>
                     </span>
-                    <span className="tag">{a.goal} · {a.replays}</span>
+                    <span className="tag">{a.goal}, {a.replays}</span>
                   </a>
                 </li>
               );
@@ -137,29 +138,32 @@ function Groups({ domain, entries, goals, fixed }: { domain: Domain; entries: Ho
         const tasks = [...new Set(list.flatMap((h) => h.gold?.tasks ?? []))];
         return (
           <section key={gid} className={`goal-group ${b ? "cls-b" : ""}`} aria-labelledby={`g-${gid}-${list[0].class}`}>
-            <div className="hcard goal-card">
+            <div className="panel gcard">
               <div className="top">
                 <span className="id">{gid} · class {list[0].class} · {list.length} {list.length === 1 ? "booking" : "bookings"}</span>
                 <i className={b ? "b-mark" : "hole-mark"} aria-hidden="true" />
               </div>
-              <h3 id={`g-${gid}-${list[0].class}`} className="h3">{g ? humanize(g.name).name : humanize(list[0].title).name}</h3>
+              <h3 id={`g-${gid}-${list[0].class}`}>{g ? humanize(g.name).name : humanize(list[0].title).name}</h3>
               {g && <p className="quote">{quote(g.policy_ref)}</p>}
               {b && tasks.length > 0 && <p className="gold">{goldLine(tasks)}</p>}
             </div>
-            <ul className="instances">
-              {list.map((h) => (
-                <li key={h.key}>
-                  <a href={holeHref(domain, h.key)}>
-                    <span className="mono k">{h.id}</span>
-                    <span className="mono t" translate="no">{humanize(h.title, h.key).target}</span>
-                    <span className="mono c">{h.chain.map((s) => s.tool).join(" → ")}</span>
-                    <span className={`m ${!b && h.money_delta > 0 ? "out" : ""}`}>{usd(h.money_delta)}</span>
-                    <span className="rep">{h.replays}</span>
-                    {fixed.has(h.key) ? <span className="tag green"><Check size={13} aria-hidden="true" />{b ? "Ratified" : "Fixed"}</span> : h.amendment ? <span className="tag muse">Amendment ready</span> : <span />}
-                    <ArrowRight size={15} aria-hidden="true" />
-                  </a>
-                </li>
-              ))}
+            <ul className="panel instances">
+              {list.map((h, i) => {
+                const chain = h.chain.map((s) => s.tool).join(" → ");
+                return (
+                  <li key={h.key} style={{ "--i": i } as CSSProperties}>
+                    <a href={holeHref(domain, h.key)}>
+                      <span className="mono k">{h.id}</span>
+                      <span className="mono t" translate="no">{humanize(h.title, h.key).target}</span>
+                      <span className="mono c" title={chain}>{chain}</span>
+                      <span className={`m ${!b && h.money_delta > 0 ? "out" : ""}`}>{usd(h.money_delta)}</span>
+                      <span className="rep">{h.replays}</span>
+                      {fixed.has(h.key) ? <span className="tag stamped">{b ? "Ratified" : "Fixed"}</span> : h.amendment ? <span className="tag muse">Amendment ready</span> : <span />}
+                      <ArrowRight aria-hidden="true" />
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         );
