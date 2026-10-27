@@ -27,10 +27,12 @@ REQ-SR1-1 requires that `audit --domain retail --no-llm` runs and proves the R6 
   - `_target` takes the first `reservation_id` or `order_id` the chain names, else the user.
   - `money_delta` also reads retail orders: a `refund` line counts as paid out, any other line as charged.
   - `classify` tolerates a DB without reservations.
+- `tests/test_api.py` (scope added by the orchestrator): the error-event test used retail as its "no move set" domain. It now patches `bylaw.report.search` to raise.
+- `tests/acceptance/test_v17_gold.py`: the test author's file (origin/test/03-product 074e75e), brought in unchanged. It holds both the REQ-GA1 and the REQ-SR1-1 tests.
 
 ## Before / after
 
-| Check | Before (GA1, feat/ga1-gold-v18 210cbf6) | After |
+| Check | Before (GA1, PR #16, ab6eeaa) | After |
 |---|---|---|
 | `audit --domain retail --no-llm` | `NotImplementedError` (`.scratch/after/sr1-retail-search/red.txt`) | 1 Class A hole, `R6:#W1068289`: payment switch then cancel, 5/5, money_delta 10359.84; 1 Class C (R5) (`.scratch/after/sr1-retail-search/audit-retail-stdout.txt`) |
 | Retail wall-clock, budget 2000 | n/a | 73.38 s real; 741 chains, 309 executed tool calls (the budget is charged on yielded steps until PR1's v1.8 feedback lands) (`audit-retail-stderr.txt`, `audit-retail-stdout.txt`) |
@@ -46,7 +48,7 @@ REQ-SR1-1 requires that `audit --domain retail --no-llm` runs and proves the R6 
 
 ## Out of scope
 
-- Stacked on GA1 (`feat/ga1-gold-v18`), which is not merged.
+- Stacked on GA1 (PR #16), which is not merged.
 - Dead-prefix pruning (no new chain starting with a prefix that already stopped) was tried and dropped. It needs the search feedback that v1.8 gives to PR1. No evidence of that run is kept.
 - The 5 `test_wave2_audit.py` failures from GA1 remain (v1.7 makes the airline holes Class B).
 - Retail moves use the first item only and a fixed test address; no move picks a cheaper or dearer variant on purpose.

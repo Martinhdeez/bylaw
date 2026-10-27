@@ -236,8 +236,15 @@ def test_audit_becomes_latest_for_its_domain(stores):
     assert list((stores / "CACHE").glob("airline-*.json"))
 
 
-def test_failing_audit_ends_in_error_event_and_error_status():
-    r = client.post("/api/audits", json={"domain": "retail", "use_llm": False, "budget": 5})  # no retail BFS move set
+def test_failing_audit_ends_in_error_event_and_error_status(monkeypatch):
+    import bylaw.report
+
+    def broken_search(*a, **k):
+        raise RuntimeError("search failed")
+        yield
+
+    monkeypatch.setattr(bylaw.report, "search", broken_search)
+    r = client.post("/api/audits", json={"domain": "retail", "use_llm": False, "budget": 5})
     evs = events(r.json()["id"])
     assert evs[-1]["phase"] == "error" and evs[-1]["message"]
     st = client.get(f"/api/audits/{r.json()['id']}").json()
