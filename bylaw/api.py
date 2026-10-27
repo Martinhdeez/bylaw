@@ -103,14 +103,10 @@ class _Counted:
         return self._d.call(env, tool, **args)
 
 
-def _amend(job: Job, domain, ruleset: dict, report: dict):
-    """C7 per hole: draft (Muse), backtest against the unpatched baseline, closes = the hole's chain is now blocked."""
-    try:
-        from bylaw import amend
-    except ImportError:
-        return job.emit("amend", "amend skipped: bylaw.amend is not available")
+def _amend(job: Job, domain, ruleset: dict, report: dict, budget: int):
+    """C7 per hole: draft (Muse), backtest against the unpatched baseline, closes = re-audit of the goal (03 v1.3)."""
+    from bylaw import amend
     from bylaw.backtest import backtest
-    from bylaw.executor import run
 
     base = backtest(domain, ruleset)
     for hole in report["holes"] + report.get("contradictions", []):  # C4 v1.7: Class B is amended too
@@ -119,9 +115,7 @@ def _amend(job: Job, domain, ruleset: dict, report: dict):
         patched = amend.apply(ruleset, am)
         job.emit("backtest", f"backtesting {am['id']} on the gold tasks")
         bt = backtest(domain, patched)
-        # ponytail: closes = this chain is blocked; C7's "re-audit finds 0 holes" lands with AM1's report helper
-        r = run(domain, hole["chain"], patched)
-        hole.update(amendment=am, closes=len(r["results"]) < len(hole["chain"]),
+        hole.update(amendment=am, closes=amend.closes(domain, patched, hole, budget),
                     backtest={"tasks": bt["tasks"], "blocked": bt["blocked"], "baseline_blocked": base["blocked"],
                               "blocked_tasks": [x["id"] for x in bt["results"] if x["blocked"]]})
 
@@ -144,7 +138,7 @@ def _run(job: Job):
         if req.amend and not req.use_llm:
             job.emit("amend", "amend skipped: drafting needs Muse (use_llm=false)")
         elif req.amend:
-            _amend(job, domain, ruleset, report)
+            _amend(job, domain, ruleset, report, req.budget)
         path = cache_dir() / f"{req.domain}-{job.id}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
