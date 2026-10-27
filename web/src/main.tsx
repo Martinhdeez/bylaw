@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Database, FileWarning, Gauge, PlayCircle, Sparkles } from "lucide-react";
+import { Database, FileWarning, Gauge, PanelLeftClose, PanelLeftOpen, PlayCircle, Sparkles } from "lucide-react";
 import { DOMAINS, api, useGet, type Domain, type Report } from "./api";
 import { Logo, int, when } from "./ui";
 import { Audit } from "./screens/Audit";
@@ -21,6 +21,18 @@ const useHash = () => {
     return () => removeEventListener("hashchange", on);
   }, []);
   return h;
+};
+
+const COLLAPSED = "bylaw.sidebar.collapsed";
+const useCollapsed = () => {
+  const [c, set] = useState(() => {
+    try { return localStorage.getItem(COLLAPSED) === "1"; } catch { return false; }
+  });
+  const toggle = () => set((v) => {
+    try { localStorage.setItem(COLLAPSED, v ? "0" : "1"); } catch { /* storage blocked: keep it in memory */ }
+    return !v;
+  });
+  return [c, toggle] as const;
 };
 
 // Routes: #/ (audit), #/<domain>/report, #/<domain>/holes/<key>[/amendment], #/<domain>/bench
@@ -47,21 +59,28 @@ function App() {
     { href: `#/${domain}/bench`, icon: Gauge, label: "Bench", on: section === "bench" },
   ];
   const r = report.data;
+  const [collapsed, toggle] = useCollapsed();
 
   return (
-    <div className="shell">
+    <div className={collapsed ? "shell collapsed" : "shell"}>
       {/* The hash is the router, so the skip link moves focus itself. */}
       <a className="skip" href="#/" onClick={(e) => { e.preventDefault(); document.getElementById("main")?.focus(); }}>Skip to content</a>
       <aside className="rail">
-        <a className="lockup" href="#/" aria-label="Bylaw home">
-          <Logo />
-          <b>bylaw</b>
-        </a>
+        <div className="rail-head">
+          <a className="lockup" href="#/" aria-label="Bylaw home">
+            <Logo />
+            <b>bylaw</b>
+          </a>
+          {/* Collapsed, the button sits over the logo and shows itself on hover or keyboard focus. */}
+          <button className="rail-toggle" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={toggle}>
+            {collapsed ? <PanelLeftOpen size={18} aria-hidden="true" /> : <PanelLeftClose size={18} aria-hidden="true" />}
+          </button>
+        </div>
         <nav className="nav" aria-label="Main">
           {nav.map((n) => (
-            <a key={n.label} href={n.href} aria-current={n.on ? "page" : undefined}>
+            <a key={n.label} href={n.href} aria-current={n.on ? "page" : undefined} title={collapsed ? n.label : undefined}>
               <n.icon size={17} aria-hidden="true" />
-              {n.label}
+              <span className="lbl">{n.label}</span>
               {!!n.count && <span className="count" aria-label={`${n.count} proven holes`}>{n.count}</span>}
             </a>
           ))}
