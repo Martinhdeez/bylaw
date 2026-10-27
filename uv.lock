@@ -146,27 +146,35 @@ name = "bylaw"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "fastapi" },
     { name = "mcp" },
     { name = "openai" },
     { name = "python-dotenv" },
     { name = "tau2" },
+    { name = "uvicorn" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "httpx" },
     { name = "pytest" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "fastapi", specifier = ">=0.162.0" },
     { name = "mcp", specifier = ">=2.3.0" },
     { name = "openai", specifier = ">=1.50" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "tau2", editable = ".context/tau2-bench" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8" }]
+dev = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pytest", specifier = ">=8" },
+]
 
 [[package]]
 name = "cachebox"
