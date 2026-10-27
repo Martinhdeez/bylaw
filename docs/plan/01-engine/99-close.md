@@ -21,10 +21,10 @@ Integration branch at `1198d7a`; gate: `make check` (via `harness-gate`) green o
 
 | What | Value | Command | Output |
 |---|---|---|---|
-| Compiler match rate vs hand airline RuleSet | 0.643 by parts / 0.607 strict (one live compile, 28 hand rules) | `python -m bylaw compile --domain airline` + `match_rate` | CP1 evidence `live-compile-v4.txt` |
+| Compiler match rate vs hand airline RuleSet | 0.643 by parts / 0.607 strict (one live compile, 28 hand rules) | `python -m bylaw compile --domain airline -o <file>` + `match_rate` | CP1 evidence `live-compile-v4.txt` |
 | Hand RuleSet vs airline gold | 0/43 blocked, 1 unknown (task 39) | `python -m bylaw backtest --domain airline` | EN2 review |
 | Blind BFS audit, airline, budget 2000 | 15 findings (pre-v1.7 all "Class A"; G1, G2, G5), 2 Class C, ~170–210 s | `python -m bylaw audit --domain airline --no-llm` | EX1/GA1 reviews |
-| Bench Muse vs BFS (one run per budget, c4c136f) | Class A count Muse ≥ BFS at 25/50/100/200/2000 (2/1, 4/4, 8/7, 38/9, 18/15); ~185k tokens, 7 LLM calls per Muse run | `python -m bylaw bench --domain airline --modes bfs,muse` | PR1 evidence `bench-summary.txt` |
+| Bench Muse vs BFS (one run per budget, c4c136f) | Class A count Muse ≥ BFS at 25/50/100/200/2000 (2/1, 4/4, 8/7, 38/9, 18/15); ~185k tokens, 7 LLM calls per Muse run | `python -m bylaw bench --domain airline --budget <n> --modes bfs,muse` | PR1 evidence `bench-summary.txt` |
 
 ## Not measured
 
