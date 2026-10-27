@@ -27,13 +27,27 @@ def test_a_call_a_rule_denies_is_blocked_with_rule_and_policy_line_and_db_unchan
 
 def test_goal_monitor_blocks_the_write_that_makes_a_class_a_goal_true_from_session_start():
     # Upgrade to business (allowed), then cancel (allowed for business): refunds a non-refundable fare, G2.
-    p = Proxy(DOMAIN, ruleset=HAND)
+    p = Proxy(DOMAIN, ruleset=HAND, monitor_goals=["G2"])
     assert p.call(*UPGRADE)["ok"]
     upgraded = p.snapshot()
     out = p.call(*CANCEL)
     assert out["blocked"] and not out["ok"] and out["goal"] == "G2" and out["rule_id"] is None
     assert out["reason"] == "BLOCKED G2: " + DOMAIN.goals["G2"].name
     assert p.snapshot() == upgraded  # the cancel was not applied
+
+
+def test_monitor_enforces_only_the_goals_it_is_given():
+    p = Proxy(DOMAIN, ruleset=HAND, monitor_goals=["G1"])
+    p.call(*UPGRADE)
+    assert p.call(*CANCEL)["ok"]
+
+
+def test_with_nothing_ratified_the_default_monitor_blocks_no_goal(tmp_path, monkeypatch):
+    # C1 v1.7: monitor_goals=None means the goals of the domain's ratified amendments; an empty store gives none.
+    monkeypatch.setenv("BYLAW_RATIFIED_DIR", str(tmp_path))
+    p = Proxy(DOMAIN, ruleset=HAND)
+    p.call(*UPGRADE)
+    assert p.call(*CANCEL)["ok"]
 
 
 def test_without_monitor_the_same_chain_goes_through():
@@ -65,14 +79,15 @@ def test_tools_expose_every_tau2_tool_with_its_schema():
     assert "reservation_id" in cancel["input_schema"]["properties"] and cancel["description"]
 
 
-def test_replay_cli_prints_one_line_per_step_and_blocks_the_goal_step(tmp_path, capsys):
+def test_replay_cli_prints_one_line_per_step(tmp_path, capsys, monkeypatch):
     from bylaw.__main__ import main
 
-    chain = [{"tool": t, "args": a} for t, a in (UPGRADE, CANCEL)]
+    monkeypatch.setenv("BYLAW_RATIFIED_DIR", str(tmp_path))  # nothing ratified: rules only
+    chain = [{"tool": t, "args": a} for t, a in (CANCEL, UPGRADE)]
     report = tmp_path / "r.json"
     report.write_text(json.dumps({"holes": [{"key": "G2:T1QOBS", "chain": chain}], "ambiguities": []}))
     main(["replay", "--domain", "airline", "--hole", "G2:T1QOBS", "--report", str(report)])
     lines = capsys.readouterr().out.splitlines()
-    assert lines[0] == "0 ALLOWED update_reservation_flights"
-    assert lines[1] == "1 BLOCKED cancel_reservation BLOCKED G2: " + DOMAIN.goals["G2"].name
-    assert len(lines) == 2
+    policy = next(r["policy_ref"] for r in HAND["tool_rules"] if r["id"] == "R-cancel-ground")
+    assert lines == ["0 BLOCKED cancel_reservation BLOCKED R-cancel-ground: " + policy,
+                     "1 ALLOWED update_reservation_flights"]
