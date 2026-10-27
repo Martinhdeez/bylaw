@@ -72,7 +72,8 @@ def cmd_amend(a):
     domain = get_domain(name)
     hand = json.loads((HAND_RULESETS / f"{name}.json").read_text())
     base = None if a.no_backtest else backtest(domain, hand)
-    for h in report["holes"]:
+    entries = report["holes"] + report.get("contradictions", [])  # Class A and Class B (01 v1.7)
+    for h in entries:
         try:
             am = draft(domain, hand, h)
         except ValueError as e:  # the model failed twice: record it, never pass an invalid amendment through
@@ -81,7 +82,7 @@ def cmd_amend(a):
             continue
         patched = apply(hand, am)
         h["amendment"], h["closes"] = am, closes(domain, patched, h, report["run"].get("budget", 2000))
-        line = f"  {h['id']} {h['key']} closes {h['closes']}"
+        line = f"  {h['id']} {h['class']} {h['key']} closes {h['closes']}"
         if base is not None:
             res = backtest(domain, patched)
             h["backtest"] = {"tasks": res["tasks"], "blocked": res["blocked"], "baseline_blocked": base["blocked"],
@@ -89,7 +90,7 @@ def cmd_amend(a):
             line += f" blocked {res['blocked']}/{res['tasks']} (baseline {base['blocked']})"
         print(f"{line}: {am['policy_text']}", flush=True)
     Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
-    print(f"wrote {a.output}: {sum(bool(h.get('closes')) for h in report['holes'])}/{len(report['holes'])} holes closed")
+    print(f"wrote {a.output}: {sum(bool(h.get('closes')) for h in entries)}/{len(entries)} closed")
 
 
 def main(argv=None):

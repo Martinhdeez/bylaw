@@ -30,7 +30,7 @@ allow_if is a Python expression over these names only:
 - args: the call's arguments (dict); res: the reservation named by args['reservation_id'] (or None); \
 user: the user named by args['user_id'] or by res (or None); db: the whole database snapshot \
 ({"users": {id: ...}, "reservations": {id: ...}, "flights": {number: {"dates": {date: ...}}}}); now: ISO time string.
-- literals, and/or/not, comparisons, in, arithmetic (+ - * / // %, no **), x if c else y, subscripts, slices, \
+- literals, and/or/not, comparisons, in, arithmetic (+ - * / // %, no **; * on numbers only), x if c else y, subscripts, slices, \
 list/set/dict displays and comprehensions, dict .get(...).
 - functions: len any all sum min max abs zip hours_between(iso_a, iso_b) (absolute hours).
 Nothing else: no other names, methods, attributes, imports or lambdas. A rule that raises denies the call."""
@@ -75,7 +75,9 @@ def _hole_text(domain, hole: dict) -> str:
     goal = domain.goals[hole["goal"]]
     return json.dumps({"hole_id": hole["id"], "goal": {"id": goal.id, "name": goal.name, "policy_ref": goal.policy_ref},
                        "chain": [{"tool": s["tool"], "args": s["args"]} for s in hole["chain"]],
-                       "diff": hole.get("diff", {})}, indent=1, default=str)
+                       "diff": hole.get("diff", {}),
+                       # Class B (01 v1.7): benchmark gold tasks also reach this goal; blocking them is the trade-off
+                       **{k: hole[k] for k in ("class", "gold") if k in hole}}, indent=1, default=str)
 
 
 def draft(domain, ruleset: dict, hole: dict, model=None, llm=None) -> dict:
@@ -89,7 +91,7 @@ def draft(domain, ruleset: dict, hole: dict, model=None, llm=None) -> dict:
         ans = ask(messages, ANSWER_SCHEMA, "amendment", effort="high", **opts)
         problem = _problem(domain, ruleset, ans) if isinstance(ans, dict) else "the answer must be a JSON object"
         if problem is None:
-            return {"id": "A" + hole["id"].lstrip("H"), "hole_id": hole["id"], "policy_text": ans["policy_text"],
+            return {"id": "A" + hole["id"].removeprefix("H"), "hole_id": hole["id"], "policy_text": ans["policy_text"],
                     "rule_patch": ans["rule_patch"], "rationale": ans["rationale"]}
         messages = [*messages, {"role": "assistant", "content": json.dumps(ans, default=str)},
                     {"role": "user", "content": f"That amendment was rejected: {problem}. Reply with a corrected one."}]
@@ -102,9 +104,11 @@ def blocked(domain, ruleset: dict, chain: list[dict]) -> bool:
 
 
 def closes(domain, ruleset: dict, hole: dict, budget: int) -> bool:
-    """REQ-AM1-3: the hole's own chain is blocked and a re-audit of its goal finds no Class A hole left."""
+    """REQ-AM1-3: the hole's own chain is blocked and a re-audit of its goal finds nothing left: no Class A hole and
+    no Class B contradiction (01 v1.7)."""
     if not blocked(domain, ruleset, hole["chain"]):
         return False
     one_goal = copy.copy(domain)
     one_goal.goals = {hole["goal"]: domain.goals[hole["goal"]]}
-    return not audit(one_goal, ruleset, budget)["holes"]
+    found = audit(one_goal, ruleset, budget)
+    return not found["holes"] + found.get("contradictions", [])

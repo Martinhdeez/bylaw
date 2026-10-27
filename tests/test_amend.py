@@ -80,6 +80,28 @@ def test_closes_needs_the_chain_blocked_and_no_hole_left_for_the_goal(monkeypatc
     assert amend.closes(DOMAIN, patched, HOLE, budget=40) is True
 
 
+def test_a_class_b_contradiction_left_for_the_goal_keeps_it_open(monkeypatch):
+    # 01 v1.7: gold-sanctioned findings go to "contradictions"; closing means none of either class is left.
+    monkeypatch.setattr(amend, "audit", lambda d, rs, budget: {"holes": [], "contradictions": [{"goal": "G1"}]})
+    assert amend.closes(DOMAIN, amend.apply(HAND, {"rule_patch": [DOWNGRADE]}), HOLE, budget=40) is False
+
+
+def test_amend_cli_amends_holes_and_contradictions(tmp_path, monkeypatch):
+    from bylaw import __main__ as cli
+    from bylaw import llm
+
+    monkeypatch.setattr(llm, "structured", Scripted(answer(DOWNGRADE)))
+    monkeypatch.setattr(amend, "closes", lambda d, rs, h, budget: True)
+    contradiction = dict(HOLE, id="B1", **{"class": "B"})
+    report = {"run": {"domain": "airline", "budget": 40}, "holes": [HOLE], "contradictions": [contradiction],
+              "ambiguities": []}
+    (tmp_path / "r.json").write_text(json.dumps(report))
+    cli.main(["amend", str(tmp_path / "r.json"), "-o", str(tmp_path / "out.json"), "--no-backtest"])
+    out = json.loads((tmp_path / "out.json").read_text())
+    assert [(e["amendment"]["hole_id"], e["closes"]) for e in out["holes"] + out["contradictions"]] == [("H3", True), ("B1", True)]
+    assert len({e["amendment"]["id"] for e in out["holes"] + out["contradictions"]}) == 2
+
+
 def test_the_reaudit_searches_only_the_holes_goal(monkeypatch):
     seen = []
     monkeypatch.setattr(amend, "audit", lambda d, rs, budget: seen.append(set(d.goals)) or {"holes": []})
