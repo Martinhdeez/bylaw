@@ -11,3 +11,4 @@ Plan: `docs/plan/03-product/00-plan.md`. Progress: 4 / 9.
 - [x] **DP1** Container image + compose (no deploy) — devops — PR #19
 - [x] **RM1** Submission README — assistant — PR #17
 - [x] **UI3** Sidebar collapse toggle (Gemini/Lovable style), approved by the user — designer — PR #20
+- [ ] **DP2** Deploy hardening before VPS: bind 127.0.0.1:8000 behind auth reverse proxy (API has no auth; open port lets anyone spend Muse budget or ratify), `**/.env*` in .dockerignore, create `reports/` — devops — PR #
