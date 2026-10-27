@@ -15,5 +15,5 @@ Plan: `docs/plan/01-engine/00-plan.md`. Progress: 5 / 8.
   - [x] RT1 part (`test_wave1_retail.py`, 7 passed) — merged with PR #5
   - [x] CP1 part (`test_wave1_compiler.py`, 7 passed offline, 2 live not run by the reviewer) — merged with PR #1
 - [ ] **TA2** Acceptance tests wave 2 — test-author — PR #
-- [ ] **UI1** Web UI prototype → implementation — designer — PR #
+- [x] **UI1** Web UI prototype → implementation — designer — PR #2 (prototype), PR #15 (implementation)
   - [x] Prototype on fixtures — PR #2

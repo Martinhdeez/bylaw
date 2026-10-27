@@ -1,93 +1,77 @@
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, ArrowRight, Check, Loader2, Play, RotateCcw } from "lucide-react";
-import { AIRLINE, PHASES, RETAIL, type Report } from "../fixtures";
+import { AlertTriangle, ArrowRight, Check, Loader2, Minus, Play, RotateCcw } from "lucide-react";
+import { DOMAINS, api, type ApiError, type Domain, type Phase, type ProgressEvent } from "../api";
 import { Muse, int } from "../ui";
 
-const DOMAINS = {
+const ABOUT: Record<Domain, { label: string; desc: string; tools: string[] }> = {
   airline: {
     label: "τ² Airline",
-    desc: "Flight bookings, cabin changes, bags, cancellations and refunds. 50 tasks, 2,000 reservations.",
+    desc: "Flight bookings, cabin changes, bags, cancellations and refunds.",
     tools: ["book_reservation", "update_reservation_flights", "update_reservation_baggages", "cancel_reservation", "send_certificate"],
-    report: AIRLINE,
   },
   retail: {
     label: "τ² Retail",
-    desc: "Orders, exchanges, returns and address changes for an online store. 114 tasks, 1,000 orders.",
+    desc: "Orders, exchanges, returns and address changes for an online store.",
     tools: ["cancel_pending_order", "exchange_delivered_order_items", "return_delivered_order_items", "modify_pending_order_items"],
-    report: RETAIL,
   },
-} as const;
-type DomainKey = keyof typeof DOMAINS;
+};
 
-// Ticks of 100 ms each; the real run takes minutes, the prototype compresses it.
-const LENGTH = [22, 34, 26, 16];
-const LOG: [number, string, string][] = [
-  [2, "mu", "muse.compile  policy.md  effort=high"],
-  [12, "", "rules  23 tool rules · 7 forbidden goals"],
-  [20, "ok", "validate  RuleSet ok  match 0.91 vs hand"],
-  [25, "mu", "muse.propose  G1 basic_economy_flights_changed"],
-  [32, "mu", "muse.propose  G2 non_refundable_fare_refunded"],
-  [40, "mu", "muse.propose  G5 free_bags_exceed_allowance"],
-  [48, "", "bfs  depth ≤ 4 · write tools only · budget 2,000"],
-  [60, "", "exec  T1QOBS  update_reservation_flights ×3"],
-  [64, "bad", "hit  G1  H1 basic economy flights changed"],
-  [70, "bad", "hit  G2  H2 non-refundable fare refunded"],
-  [76, "bad", "hit  G5  H3 free bags kept after downgrade"],
-  [80, "", "class C  H4 H5 H6  cancel+rebook ambiguities"],
-  [86, "ok", "replay  H1 5/5 · H2 5/5 · H3 5/5"],
-  [96, "ok", "report  3 class A · 3 class C"],
+const PHASES: { key: Phase; label: string; detail: string; effort: string }[] = [
+  { key: "compile", label: "Compiling policy", detail: "policy text → tool rules and forbidden goals", effort: "high reasoning" },
+  { key: "search", label: "Searching", detail: "chains of allowed write calls, depth ≤ 4", effort: "high reasoning" },
+  { key: "verify", label: "Verifying", detail: "every hit replayed 5 times on a fresh DB", effort: "" },
+  { key: "amend", label: "Amending", detail: "one policy sentence and a rule patch per hole", effort: "high reasoning" },
+  { key: "backtest", label: "Backtesting", detail: "gold tasks replayed through the patched rules", effort: "" },
 ];
 
-const RETAIL_LOG: [number, string, string][] = [
-  [2, "mu", "muse.compile  policy.md  effort=high"],
-  [12, "", "rules  19 tool rules · 5 forbidden goals"],
-  [20, "ok", "validate  RuleSet ok"],
-  [26, "mu", "muse.propose  R1 refund_exceeds_paid"],
-  [34, "mu", "muse.propose  R2 exchange_after_return"],
-  [48, "", "bfs  depth ≤ 4 · write tools only · budget 2,000"],
-  [70, "", "exec  2,000 chains · no forbidden goal reached"],
-  [96, "ok", "report  0 class A · 0 class C · budget spent"],
-];
+type Run = { id?: string; events: ProgressEvent[]; status: "idle" | "starting" | "running" | "done" | "error"; error?: string; useLlm: boolean };
 
-export function Audit({ onDone }: { onDone: (r: Report) => void }) {
-  const [domain, setDomain] = useState<DomainKey>("airline");
-  const [tick, setTick] = useState(-1);
-  const [failed, setFailed] = useState(false);
-  const timer = useRef<number>();
-  const total = LENGTH.reduce((a, b) => a + b, 0);
-  const report = DOMAINS[domain].report;
-  const fail = location.hash.includes("fail");
+export function Audit({ domain, onDomain, onDone }: { domain: Domain; onDomain: (d: Domain) => void; onDone: () => void }) {
+  const [useLlm, setUseLlm] = useState(true);
+  const [amend, setAmend] = useState(true);
+  const [budget, setBudget] = useState(2000);
+  const [run, setRun] = useState<Run>({ events: [], status: "idle", useLlm: true });
+  const es = useRef<EventSource>();
+  useEffect(() => () => es.current?.close(), []);
 
-  useEffect(() => () => clearInterval(timer.current), []);
-  useEffect(() => {
-    if (tick === total) onDone(report);
-    if (fail && tick === 12) {
-      clearInterval(timer.current);
-      setFailed(true);
+  const start = async (llm = useLlm) => {
+    es.current?.close();
+    setUseLlm(llm);
+    setRun({ events: [], status: "starting", useLlm: llm });
+    let id: string;
+    try {
+      ({ id } = await api.startAudit({ domain, use_llm: llm, budget, amend }));
+    } catch (e) {
+      const err = e as ApiError;
+      return setRun({ events: [], status: "error", useLlm: llm, error: err.status ? `The API refused the audit (${err.status}): ${err.message.slice(0, 200)}` : err.message });
     }
-  }, [tick]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const run = () => {
-    setFailed(false);
-    setTick(0);
-    clearInterval(timer.current);
-    timer.current = window.setInterval(() => setTick((t) => (t >= total ? (clearInterval(timer.current), t) : t + 1)), 100);
+    setRun({ id, events: [], status: "running", useLlm: llm });
+    const src = api.events(id);
+    es.current = src;
+    src.onmessage = (m) => {
+      const ev = JSON.parse(m.data) as ProgressEvent;
+      const end = ev.phase === "done" || ev.phase === "error";
+      if (end) src.close();
+      setRun((r) => ({ ...r, events: [...r.events, ev], status: ev.phase === "done" ? "done" : ev.phase === "error" ? "error" : r.status, error: ev.phase === "error" ? ev.message : r.error }));
+      if (ev.phase === "done") onDone();
+    };
+    src.onerror = () => {
+      if (src.readyState === EventSource.CLOSED) setRun((r) => (r.status === "running" ? { ...r, status: "error", error: "The progress stream closed before the audit finished." } : r));
+    };
   };
 
-  const running = tick >= 0 && tick < total && !failed;
-  const done = tick === total;
-  let start = 0;
-  const phases = PHASES.map((p, i) => {
-    const s = start;
-    start += LENGTH[i];
-    const progress = tick < 0 ? 0 : Math.min(1, Math.max(0, (tick - s) / LENGTH[i]));
-    return { ...p, progress, state: progress >= 1 ? "done" : tick >= s ? "active" : "idle" };
+  const busy = run.status === "starting" || run.status === "running";
+  const last = run.events.at(-1);
+  const seen = new Set(run.events.map((e) => e.phase));
+  const order = PHASES.map((p) => p.key);
+  const current = [...run.events].reverse().find((e) => order.includes(e.phase))?.phase;
+  const phases = PHASES.map((p) => {
+    const i = order.indexOf(p.key);
+    const reached = seen.has(p.key);
+    const passed = run.status === "done" || (current !== undefined && order.indexOf(current) > i);
+    const state = reached && passed ? "done" : reached ? (run.status === "error" ? "stopped" : "active") : run.status === "done" || passed ? "skipped" : "idle";
+    return { ...p, state, muse: run.events.some((e) => e.phase === p.key && e.muse) };
   });
-  const share = Math.max(0, tick) / total;
-  const tokens = Math.round(report.stats.tokens * Math.min(1, share * 1.6));
-  const calls = Math.round(report.stats.tool_calls * Math.max(0, (share - 0.25) / 0.75));
-  const found = domain === "airline" ? LOG.filter(([t, k]) => k === "bad" && t <= tick).length : 0;
-  const log = (domain === "airline" ? LOG : RETAIL_LOG).filter(([t]) => t <= tick).slice(-9);
 
   return (
     <div className="page">
@@ -98,43 +82,49 @@ export function Audit({ onDone }: { onDone: (r: Report) => void }) {
         </div>
       </div>
 
-      {tick < 0 && <div className="domains" role="radiogroup" aria-label="Domain">
-        {(Object.keys(DOMAINS) as DomainKey[]).map((k) => (
-          <button key={k} className="domain" role="radio" aria-checked={domain === k} disabled={running} onClick={() => { setDomain(k); setTick(-1); setFailed(false); }}>
-            <span className="n">{DOMAINS[k].label}{domain === k && <Check size={22} aria-hidden="true" />}</span>
-            <span className="d">{DOMAINS[k].desc}</span>
-            <span className="tools">{DOMAINS[k].tools.map((t) => <code key={t}>{t}</code>)}</span>
-          </button>
-        ))}
-      </div>}
+      {run.status === "idle" && (
+        <div className="domains" role="radiogroup" aria-label="Domain">
+          {DOMAINS.map((k) => (
+            <button key={k} className="domain" role="radio" aria-checked={domain === k} onClick={() => onDomain(k)}>
+              <span className="n">{ABOUT[k].label}{domain === k && <Check size={22} aria-hidden="true" />}</span>
+              <span className="d">{ABOUT[k].desc}</span>
+              <span className="tools">{ABOUT[k].tools.map((t) => <code key={t} translate="no">{t}</code>)}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="panel runbar">
         <div className="opts">
-          {tick >= 0 && <span>Domain <b>{DOMAINS[domain].label}</b>{!running && <> · <button className="link" onClick={() => { setTick(-1); setFailed(false); }}>change</button></>}</span>}
-          <span>Budget <b>2,000</b> tool calls</span>
-          <span>Depth <b>≤ 4</b></span>
-          <span>Replays <b>5</b> per hole</span>
-          <Muse>Muse Spark · high reasoning</Muse>
+          {run.status !== "idle" && (
+            <span>Domain <b>{ABOUT[domain].label}</b>{!busy && <> · <button className="link" onClick={() => setRun({ events: [], status: "idle", useLlm })}>change</button></>}</span>
+          )}
+          <label className="opt"><input type="checkbox" checked={useLlm} disabled={busy} onChange={(e) => setUseLlm(e.target.checked)} /> Use Muse Spark</label>
+          <label className="opt"><input type="checkbox" checked={amend} disabled={busy} onChange={(e) => setAmend(e.target.checked)} /> Draft amendments</label>
+          <label className="opt">Budget
+            <input className="num-in" type="number" name="budget" inputMode="numeric" min={10} max={20000} step={100} value={budget} disabled={busy} onChange={(e) => setBudget(Math.max(10, Number(e.target.value) || 0))} />
+            tool calls
+          </label>
         </div>
-        {done ? (
-          <a className="btn primary" href="#/report">Open report <ArrowRight size={16} aria-hidden="true" /></a>
+        {run.status === "done" ? (
+          <a className="btn primary" href={`#/${domain}/report`}>Open report <ArrowRight size={16} aria-hidden="true" /></a>
         ) : (
-          <button className="btn primary" onClick={run} disabled={running}>
-            {running ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
-            {running ? "Auditing…" : "Run audit"}
+          <button className="btn primary" onClick={() => start()} disabled={busy}>
+            {busy ? <Loader2 size={16} className="spin" aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
+            {busy ? "Auditing…" : "Run audit"}
           </button>
         )}
       </div>
 
-      {failed && (
+      {run.status === "error" && (
         <div className="notice" role="alert">
           <AlertTriangle size={18} aria-hidden="true" />
           <div>
-            <b>Muse Spark did not answer (HTTP 429, rate limited).</b>
-            <p>The policy was not compiled. Retry in a minute, or run without Muse: the hand-written RuleSet and blind BFS still find and prove holes.</p>
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <button className="btn" onClick={run}><RotateCcw size={15} aria-hidden="true" />Retry</button>
-              <button className="btn" onClick={() => { location.hash = "/"; run(); }}>Run without Muse</button>
+            <b>The audit stopped.</b>
+            <p>{run.error}</p>
+            <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+              <button className="btn" onClick={() => start(run.useLlm)}><RotateCcw size={15} aria-hidden="true" />Retry</button>
+              {run.useLlm && <button className="btn" onClick={() => start(false)}>Run without Muse</button>}
             </div>
           </div>
         </div>
@@ -145,13 +135,13 @@ export function Audit({ onDone }: { onDone: (r: Report) => void }) {
           {phases.map((p, i) => (
             <div key={p.key} className={`phase ${p.state}`} aria-current={p.state === "active" ? "step" : undefined}>
               <span className="st">
-                {p.state === "done" ? <Check size={14} aria-hidden="true" /> : p.state === "active" && !failed ? <Loader2 size={14} className="spin" aria-hidden="true" /> : <span>{i + 1}</span>}
-                {p.state === "done" ? "done" : p.state === "active" ? (failed ? "stopped" : "running") : "waiting"}
+                {p.state === "done" ? <Check size={14} aria-hidden="true" /> : p.state === "active" ? <Loader2 size={14} className="spin" aria-hidden="true" /> : p.state === "skipped" ? <Minus size={14} aria-hidden="true" /> : <span>{i + 1}</span>}
+                {p.state === "idle" ? "waiting" : p.state === "active" ? "running" : p.state}
               </span>
               <span className="nm">{p.label}</span>
               <span className="dt">{p.detail}</span>
-              {p.muse && <span><Muse>{p.muse}</Muse></span>}
-              <span className="bar"><i style={{ transform: `scaleX(${p.progress})` }} /></span>
+              {p.muse && <span><Muse>{p.effort ? `Muse Spark · ${p.effort}` : "Muse Spark"}</Muse></span>}
+              <span className="bar"><i style={{ transform: `scaleX(${p.state === "done" ? 1 : p.state === "active" ? 0.5 : 0})` }} /></span>
             </div>
           ))}
         </div>
@@ -159,22 +149,23 @@ export function Audit({ onDone }: { onDone: (r: Report) => void }) {
 
       <div className="live">
         <section className="panel" aria-label="Run log">
-          <div className="panel-h"><h2>Run log</h2><span className="label">{tick < 0 ? "idle" : done ? "finished" : failed ? "stopped" : "live"}</span></div>
+          <div className="panel-h"><h2>Run log</h2><span className="label">{run.status === "idle" ? "idle" : run.status === "running" || run.status === "starting" ? "live" : run.status === "done" ? "finished" : "stopped"}</span></div>
           <div className="log" aria-live="polite">
-            {tick < 0 && <span>Pick a domain and run the audit. Progress shows here.</span>}
-            {log.map(([t, k, line]) => <span key={t} className={k}>{line}</span>)}
+            {run.status === "idle" && <span>Pick a domain and run the audit. Progress shows here.</span>}
+            {run.status === "starting" && <span>Starting the audit…</span>}
+            {run.events.slice(-9).map((e, i) => (
+              <span key={run.events.length - i} className={e.phase === "error" ? "bad" : e.phase === "done" ? "ok" : e.muse ? "mu" : ""}>
+                {e.t.toFixed(1).padStart(6)}s  {e.phase.padEnd(8)} {e.message}
+              </span>
+            ))}
           </div>
         </section>
         <section className="panel tokens" aria-label="Counters">
           <Muse>Muse Spark tokens</Muse>
-          <span className="big">{int(tokens)}</span>
-          <span className="row">Tool calls <b className="num">{int(calls)} / 2,000</b></span>
-          <span className="row">LLM calls <b className="num">{Math.round(report.stats.llm_calls * Math.min(1, share * 1.6))}</b></span>
-          <span className="row">Holes proven
-            <span className="found" aria-label={`${found} holes`}>
-              {[0, 1, 2].map((i) => (i < found ? <i key={i} className="hole-mark" /> : <i key={i} className="empty" />))}
-            </span>
-          </span>
+          <span className="big" data-testid="tokens">{int(last?.tokens ?? 0)}</span>
+          <span className="row">Tool calls <b className="num">{int(last?.tool_calls ?? 0)} / {int(budget)}</b></span>
+          <span className="row">LLM calls <b className="num">{int(last?.llm_calls ?? 0)}</b></span>
+          <span className="row">Holes proven <b className="num" style={{ color: last?.holes ? "var(--red)" : undefined }}>{int(last?.holes ?? 0)}</b></span>
         </section>
       </div>
     </div>
