@@ -1,4 +1,7 @@
 """GA1 (C4 v1.7): a goal is gold-sanctioned when a tau2 gold task, replayed on a fresh env, makes it true."""
+import copy
+
+from bylaw import gold
 from bylaw.domain import get_domain
 from bylaw.gold import goal_of, gold_goals
 
@@ -14,6 +17,16 @@ def test_airline_gold_tasks_sanction_exactly_g1_g2_g4_g5():
 
 def test_gold_goals_is_computed_once_per_domain():
     assert gold_goals(DOMAIN) is gold_goals(DOMAIN)
+
+
+def test_gold_goals_on_a_goal_restricted_copy_does_not_shrink_the_full_domain_map(monkeypatch):
+    # FX2: amend.closes() audits a one-goal copy of the domain under the same name; if that copy fills the cache
+    # first, the full domain must still get every sanctioned goal.
+    one_goal = copy.copy(DOMAIN)
+    one_goal.goals = {"G7": DOMAIN.goals["G7"]}
+    monkeypatch.setattr(gold, "_GOLD_GOALS", {})
+    assert gold_goals(one_goal) == {}
+    assert set(gold_goals(DOMAIN)) == {"G1", "G2", "G4", "G5"}
 
 
 def test_the_goal_of_a_hole_key_is_its_prefix():
