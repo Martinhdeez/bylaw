@@ -35,7 +35,7 @@ REQ-SR1-1 requires that `audit --domain retail --no-llm` runs and proves the R6 
 | Check | Before (GA1, PR #16, ab6eeaa) | After |
 |---|---|---|
 | `audit --domain retail --no-llm` | `NotImplementedError` (`.scratch/after/sr1-retail-search/red.txt`) | 1 Class A hole, `R6:#W1068289`: payment switch then cancel, 5/5, money_delta 10359.84; 1 Class C (R5) (`.scratch/after/sr1-retail-search/audit-retail-stdout.txt`) |
-| Retail wall-clock, budget 2000 | n/a | 73.38 s real; 741 chains, 309 executed tool calls (the budget is charged on yielded steps until PR1's v1.8 feedback lands) (`audit-retail-stderr.txt`, `audit-retail-stdout.txt`) |
+| Retail wall-clock, budget 2000 | n/a | 77.02 s real; 741 chains, 309 executed tool calls (the budget is charged on yielded steps until PR1's v1.8 feedback lands) (`audit-retail-stderr.txt`, `audit-retail-stdout.txt`) |
 | Blind `test_v17_gold.py` REQ-SR1-1 tests (local only) | 2 errors on GA1 (`.scratch/after/ga1-gold/acceptance-v17.txt`) | 10 passed (`.scratch/after/sr1-retail-search/acceptance-v17.txt`) |
 
 ## Tests added
