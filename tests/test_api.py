@@ -80,11 +80,14 @@ def test_hole_lookup_by_key(stores):
     assert client.get("/api/holes/G9:NOPE", params={"domain": "airline"}).status_code == 404
 
 
-def test_hole_lookup_finds_class_c_ambiguities(stores):
+def test_hole_lookup_finds_class_b_contradictions_and_class_c_ambiguities(stores):
     amb = {**BARE, "id": "C1", "key": "G7:ABC123", "class": "C", "goal": "G7"}
-    (stores / "REPORTS" / "airline.json").write_text(json.dumps({**REPORT, "ambiguities": [amb]}))
-    got = client.get("/api/holes/G7:ABC123", params={"domain": "airline"}).json()
-    assert got == amb and got["class"] == "C"
+    con = {**AMENDED, "id": "B1", "key": "G2:DEF456", "class": "B", "goal": "G2", "gold": {"sanctioned": True, "tasks": ["7"]}}
+    (stores / "REPORTS" / "airline.json").write_text(json.dumps({**REPORT, "contradictions": [con], "ambiguities": [amb]}))
+    for key, want in (("G7:ABC123", amb), ("G2:DEF456", con)):
+        got = client.get(f"/api/holes/{key}", params={"domain": "airline"}).json()
+        assert got == want and got["class"] == want["class"]
+    assert client.post("/api/holes/G2:DEF456/ratify", params={"domain": "airline"}).json()["amendment_id"] == "A1"
 
 
 def test_ratify_appends_once_and_the_ratified_view_shows_base_plus_patch(stores):

@@ -113,7 +113,7 @@ def _amend(job: Job, domain, ruleset: dict, report: dict):
     from bylaw.executor import run
 
     base = backtest(domain, ruleset)
-    for hole in report["holes"]:
+    for hole in report["holes"] + report.get("contradictions", []):  # C4 v1.7: Class B is amended too
         job.emit("amend", f"drafting the amendment for {hole['key']}", muse=True)
         am = amend.draft(domain, ruleset, hole)
         patched = amend.apply(ruleset, am)
@@ -139,7 +139,8 @@ def _run(job: Job):
         report = audit(_Counted(domain, job, req.use_llm), ruleset, req.budget, use_llm=req.use_llm,
                        model=llm.model() if req.use_llm else "")
         job.holes = len(report["holes"])
-        job.emit("verify", f"{job.holes} Class A holes and {len(report['ambiguities'])} ambiguities proven 5/5")
+        job.emit("verify", f"{job.holes} Class A holes, {len(report.get('contradictions', []))} contradictions and "
+                           f"{len(report['ambiguities'])} ambiguities proven 5/5")
         if req.amend and not req.use_llm:
             job.emit("amend", "amend skipped: drafting needs Muse (use_llm=false)")
         elif req.amend:
@@ -215,7 +216,7 @@ def audit_events(audit_id: str):
 
 def _hole(domain: str, key: str) -> dict:
     report = latest_report(domain) or {}
-    for h in report.get("holes", []) + report.get("ambiguities", []):
+    for h in report.get("holes", []) + report.get("contradictions", []) + report.get("ambiguities", []):  # A, B, C
         if h["key"] == key:
             return h
     raise HTTPException(404, f"no hole {key} in the latest {domain} report")
