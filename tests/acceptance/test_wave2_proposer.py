@@ -127,6 +127,12 @@ def test_REQ_PR1_2_bench_bfs_runs_offline_and_writes_the_table(tmp_path):
     assert_table_printed(stdout, ["bfs"])
 
 
+def test_C5_v19_bench_json_has_top_level_model_and_commit(tmp_path):
+    _, data = bench(tmp_path, "bfs")
+    assert "model" in data and (data["model"] is None or isinstance(data["model"], str)), data.get("model")
+    assert isinstance(data.get("commit"), str) and data["commit"], data.get("commit")
+
+
 @pytest.mark.live
 def test_REQ_PR1_2_bench_prints_and_writes_bfs_and_muse_table(tmp_path):
     stdout, data = bench(tmp_path, "bfs,muse")

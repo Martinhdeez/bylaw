@@ -10,6 +10,8 @@ Helpers live in this file on purpose: the wave-1 conftest is on another unmerged
 import copy
 import importlib
 import json
+import os
+import re
 import subprocess
 import sys
 from datetime import datetime
@@ -102,9 +104,17 @@ def expected_diff(before: dict, after: dict) -> dict:
 def assert_c4_shape(r: dict) -> None:
     """C4 field by field, independent of REPORT_SCHEMA."""
     run = r["run"]
-    for key in ("commit", "domain", "model", "mode", "started", "goals_commit"):
+    for key in ("commit", "domain", "mode", "started", "goals_commit"):
         assert isinstance(run[key], str), key
-    assert run["mode"] in ("bfs", "muse")
+    # v1.9: bfs-fallback mode, model null unless a Muse call succeeded, optional effort.
+    assert run["mode"] in ("bfs", "muse", "bfs-fallback")
+    assert run["model"] is None or isinstance(run["model"], str)
+    if run["mode"] in ("bfs", "bfs-fallback"):
+        assert run["model"] is None, run["model"]
+    if run["mode"] == "bfs":
+        assert "effort" not in run, run.get("effort")
+    elif "effort" in run:
+        assert isinstance(run["effort"], str) and run["effort"]
     assert isinstance(run["budget"], int)
     assert isinstance(r["holes"], list)
     assert isinstance(r["ambiguities"], list)
@@ -338,7 +348,57 @@ def test_REQ_PR1_1_llm_audit_finds_at_least_the_no_llm_holes(report, tmp_path):
     muse = audit(tmp_path, "--budget", str(DEFAULT_BUDGET))
     assert_c4_shape(muse)
     assert muse["run"]["mode"] == "muse"
+    assert isinstance(muse["run"]["model"], str) and muse["run"]["model"]  # v1.9: a call succeeded
     assert muse["run"]["budget"] == DEFAULT_BUDGET
     assert muse["stats"]["tool_calls"] <= DEFAULT_BUDGET
     assert muse["stats"]["llm_calls"] > 0
     assert {h["key"] for h in findings(report)} <= {h["key"] for h in findings(muse)}
+
+
+# ---------- 01 v1.9 (FX1): run.model, run.effort, bfs-fallback ----------
+# Muse requested but unreachable: a dummy key, an unroutable local base URL (README: MODEL_BASE_URL)
+# and no reply cache, so every Muse call fails and no real call is made.
+UNREACHABLE_ENV = {"MODEL_API_KEY": "acceptance-dummy-key", "MODEL_BASE_URL": "http://127.0.0.1:9/v1",
+                   "BYLAW_NO_CACHE": "1"}
+
+
+def test_C4_v19_no_llm_run_has_null_model_and_no_effort(report):
+    assert report["run"]["mode"] == "bfs"
+    assert report["run"]["model"] is None
+    assert "effort" not in report["run"]
+
+
+@pytest.fixture(scope="module")
+def fallback(tmp_path_factory):
+    """`audit --domain airline --budget SMALL_BUDGET` (Muse requested) with every Muse call failing."""
+    out = tmp_path_factory.mktemp("audit_fallback") / "report.json"
+    proc = subprocess.run(
+        [sys.executable, "-m", "bylaw", "audit", "--domain", "airline", "--budget", str(SMALL_BUDGET),
+         "-o", str(out)],
+        cwd=ROOT, capture_output=True, text=True, timeout=1800, env={**os.environ, **UNREACHABLE_ENV})
+    assert proc.returncode == 0, "failed Muse calls must never abort the audit\n" + proc.stderr[-4000:]
+    return proc, json.loads(out.read_text())
+
+
+def test_C4_v19_all_muse_calls_failing_gives_mode_bfs_fallback(fallback):
+    _, r = fallback
+    assert_c4_shape(r)
+    assert r["run"]["mode"] == "bfs-fallback"
+    assert r["run"]["model"] is None
+    assert r["stats"]["llm_calls"] > 0
+    assert isinstance(r["stats"]["llm_errors"], int) and r["stats"]["llm_errors"] > 0
+    assert r["stats"]["tokens"] == 0
+
+
+def test_C4_v19_bfs_fallback_runs_the_whole_search_as_bfs(fallback, small_report):
+    # Same budget, every goal fell back to BFS: the findings are those of the --no-llm run.
+    _, r = fallback
+    assert r["run"]["budget"] == SMALL_BUDGET
+    assert 0 < r["stats"]["tool_calls"] <= SMALL_BUDGET
+    for lst in ("holes", "contradictions", "ambiguities"):
+        assert sorted(e["key"] for e in r[lst]) == sorted(e["key"] for e in small_report[lst]), lst
+
+
+def test_C5_v19_cli_warns_on_stderr_when_the_mode_is_bfs_fallback(fallback):
+    proc, _ = fallback
+    assert re.search(r"warn|fallback|unavailable", proc.stderr, re.I), proc.stderr[-2000:]
