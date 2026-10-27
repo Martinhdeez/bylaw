@@ -1,13 +1,13 @@
-// REQ-UI2-2: open /, run an offline audit on airline, open the first Class A hole, step the trace replay,
+// REQ-UI2-2: open /, run an offline audit on airline, open the first finding, step the trace replay,
 // open its amendment, ratify, see the ratified state.
 // C9 v1.2: an offline audit drafts no amendments, so after it the test places a stored report that carries
-// them in its own BYLAW_REPORTS_DIR, newer than the audit's, and ratifies on that one.
+// them in its own BYLAW_REPORTS_DIR, newer than the audit's, and ratifies on that one. Under 01 v1.7 the airline
+// findings are Class B (gold tasks take them), so "first Class A hole" reads as the first finding: Class A when the
+// report has one, else Class B.
 import { expect, test } from "@playwright/test";
-import { readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { mockApi, withAmendments } from "./mock";
-
-const storedReport = () => withAmendments(JSON.parse(readFileSync(new URL("./fixtures/airline.report.json", import.meta.url), "utf8")));
+import { utimesSync, writeFileSync } from "node:fs";
+import { mockApi, storedReport } from "./mock";
 
 test("offline audit to ratified amendment", async ({ page }) => {
   const mock = process.env.E2E_MOCK ? await mockApi(page, { stored: false }) : null;
@@ -22,7 +22,7 @@ test("offline audit to ratified amendment", async ({ page }) => {
   await page.getByRole("button", { name: "Run audit" }).click();
   await expect(page.getByRole("link", { name: "Open report" })).toBeVisible({ timeout: 540_000 });
   await page.getByRole("link", { name: "Open report" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("proven");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("holes in the airline policy");
   expect(await page.locator(".instances a").count()).toBeGreaterThan(0);
   await expect(page.locator(".instances a").first()).not.toContainText("Amendment ready");
 
@@ -37,7 +37,7 @@ test("offline audit to ratified amendment", async ({ page }) => {
   await page.reload();
   const first = page.locator(".instances a").first();
   await expect(first).toContainText("Amendment ready");
-  await expect(first.locator(".k")).toHaveText("H1");
+  await expect(first.locator(".k")).toHaveText(/^[HB]1$/);
   await first.click();
 
   // 3. Step the trace: let the autoplay reach the outcome, rewind to the first call, step through by hand.
@@ -64,6 +64,6 @@ test("offline audit to ratified amendment", async ({ page }) => {
   await expect(page.getByTestId("ratified")).toContainText("Enforced by MCP proxy");
 
   await page.getByRole("link", { name: "Back to report" }).click();
-  await expect(page.locator(".instances a").first()).toContainText("Fixed");
+  await expect(page.locator(".instances a").first()).toContainText(/Fixed|Ratified/);
   expect(errors).toEqual([]);
 });

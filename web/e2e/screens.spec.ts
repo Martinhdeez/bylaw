@@ -23,7 +23,8 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
       await expect(page.locator(".instances a").first()).toBeVisible();
       await shot(page, "2-report");
 
-      const key = (await page.locator(".instances a", { has: page.locator(".k", { hasText: /^H5$/ }) }).getAttribute("href"))!;
+      // A two-step chain: the first G1 finding (Class B under 01 v1.7).
+      const key = (await page.locator('[aria-labelledby="g-G1-B"] .instances a').first().getAttribute("href"))!;
       await page.goto("/" + key);
       await expect(page.getByTestId("outcome")).toContainText("forbidden", { timeout: 10_000 });
       await shot(page, "3-hole");

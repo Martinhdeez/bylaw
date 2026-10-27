@@ -13,6 +13,8 @@
   --green-soft: rgba(43, 227, 160, 0.1);
   --blue: #5b8cff;
   --blue-soft: rgba(91, 140, 255, 0.12);
+  --amber: #ffb02e;
+  --amber-soft: rgba(255, 176, 46, 0.12);
   --paper: #eef1f5;
   --paper-ink: #0b0f17;
   --paper-muted: #5b6576;
@@ -218,6 +220,7 @@ code, pre, .mono { font-family: var(--mono); }
 .money { display: flex; align-items: baseline; gap: 10px; }
 .money b { font: 900 48px/0.9 var(--display); font-stretch: 64%; color: var(--red); font-variant-numeric: tabular-nums; }
 .money span { color: var(--muted); font-size: 13px; }
+.money.neutral b { color: var(--ink); }
 
 /* amendment */
 .amend { display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 18px; align-items: start; }
@@ -289,6 +292,23 @@ code, pre, .mono { font-family: var(--mono); }
 .link { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; font: inherit; }
 
 /* UI2: live data */
+/* Class B (01 v1.7): amber, never red. Red only ever marks a hole. */
+.summary .v.b { color: var(--amber); }
+.practice { display: flex; flex-direction: column; gap: 14px; padding-top: 10px; border-top: 1px solid var(--line); }
+.practice-h { display: flex; flex-direction: column; gap: 4px; }
+.title.sm { font-size: 36px; }
+.section-note { color: var(--muted); font-size: 14px; }
+.section-note b { color: var(--ink); }
+.b-mark { width: 34px; height: 34px; border-radius: 50%; border: 4px dashed var(--amber); flex: none; }
+.cls-b .goal-card .id { color: #a86a00; }
+.cls-b .instances .k { color: var(--amber); }
+.goal-card .gold { font: 700 13px var(--mono); color: #7a4d00; background: rgba(255, 176, 46, 0.22); padding: 8px 10px; border-radius: 8px; }
+.ratify-box .tradeoff { border: 1px solid rgba(255, 176, 46, 0.5); background: var(--amber-soft); border-radius: 10px; padding: 10px 12px; color: var(--ink); }
+.tradeoff b { color: var(--amber); }
+.tag.amber { color: var(--amber); border-color: rgba(255, 176, 46, 0.45); background: var(--amber-soft); }
+.outcome.b { border-color: var(--amber); background: var(--amber-soft); }
+.outcome.b .eq, .outcome.b .verdict { color: var(--amber); }
+
 .opt { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .opt input[type="checkbox"] { accent-color: var(--blue); width: 15px; height: 15px; }
 .num-in { width: 76px; height: 28px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--sunk); color: var(--ink); font: 700 13px var(--mono); }

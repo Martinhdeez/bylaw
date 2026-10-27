@@ -1,7 +1,9 @@
 // Stand-in for the Bylaw API (contract C9) while AP1 is not merged: `E2E_MOCK=1 npx playwright test`.
 // fixtures/airline.report.json is a real `python -m bylaw audit --domain airline --no-llm` report (EX1 branch);
 // airline.policy.json is the tau2 policy text; airline.ratified.json carries the hand RuleSet.
-// The amendments, backtests and bench below are hand-written placeholders, not engine output.
+// The report predates 01 v1.7, so adjudicate() applies the gold classification here, with the gold tasks named in
+// docs/plan/decisions-2026-10-27-gold-adjudication.md. The amendments, backtests and bench below are hand-written
+// placeholders, not engine output; money figures only ever come from the report itself.
 import { readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
 
@@ -26,17 +28,32 @@ const AMENDMENTS: Record<string, object> = {
   },
 };
 
+const GOLD: Record<string, string[]> = { G1: ["32"], G2: ["7"], G4: ["25"], G5: ["18"] };
+
+export function adjudicate(report: any) {
+  const gold = (h: any) => ({ ...h, gold: { sanctioned: h.goal in GOLD, tasks: GOLD[h.goal] ?? [] } });
+  const found = report.holes.map(gold);
+  report.holes = found.filter((h: any) => !h.gold.sanctioned).map((h: any, i: number) => ({ ...h, id: `H${i + 1}` }));
+  report.contradictions = found.filter((h: any) => h.gold.sanctioned).map((h: any, i: number) => ({ ...h, class: "B", id: `B${i + 1}` }));
+  report.ambiguities = report.ambiguities.map(gold);
+  return report;
+}
+
 export function withAmendments(report: any) {
   let n = 0;
-  for (const h of report.holes) {
+  for (const h of [...report.holes, ...report.contradictions]) {
     const a = AMENDMENTS[h.goal];
     if (!a) continue;
     h.amendment = { id: `A${++n}`, hole_id: h.id, ...a };
     h.closes = true;
-    h.backtest = { tasks: 43, blocked: 0, baseline_blocked: 0, blocked_tasks: [] };
+    // A Class B rule blocks the gold tasks that take the chain: that is the trade-off the human ratifies.
+    const blocked = h.class === "B" ? h.gold.tasks : [];
+    h.backtest = { tasks: 43, blocked: blocked.length, baseline_blocked: 0, blocked_tasks: blocked };
   }
   return report;
 }
+
+export const storedReport = () => withAmendments(adjudicate(fx("airline.report.json")));
 
 const found = (calls: number[]) => calls.map((c, i) => ({ key: `H${i + 1}`, tool_calls: c, seconds: c / 8.5 }));
 const BENCH = {
@@ -52,7 +69,7 @@ export const EVENTS = [
   { phase: "search", message: "hand RuleSet, 28 tool rules · 7 forbidden goals", muse: false },
   { phase: "search", message: "bfs depth ≤ 4 · write tools only · budget 2000", muse: false },
   { phase: "search", message: "706 chains tried · 1486 tool calls", muse: false },
-  { phase: "verify", message: "15 class A holes replayed 5/5", muse: false },
+  { phase: "verify", message: "15 findings replayed 5/5 · 0 class A, 15 class B (gold tasks 7, 18, 32)", muse: false },
   { phase: "done", message: "report stored as latest for airline", muse: false },
 ].map((e, i) => ({ ...e, tokens: 0, llm_calls: 0, tool_calls: Math.min(1486, 500 * i), holes: i >= 3 ? 15 : 0, t: [0.2, 1.1, 172.4, 174.1, 174.6][i] }));
 
@@ -61,7 +78,7 @@ const json = (body: unknown, status = 200) => ({ status, contentType: "applicati
 // `partial` stops the event stream before `done`, to show a running audit. `stored: false` starts from the
 // offline audit result (no amendments, C9 v1.2); place() then swaps in a stored report that carries them.
 export async function mockApi(page: Page, { partial = false, stored = true } = {}) {
-  let report = stored ? withAmendments(fx("airline.report.json")) : fx("airline.report.json");
+  let report = stored ? storedReport() : adjudicate(fx("airline.report.json"));
   const ratified = fx("airline.ratified.json");
   const policy = fx("airline.policy.json");
 
@@ -86,7 +103,7 @@ export async function mockApi(page: Page, { partial = false, stored = true } = {
       return route.fulfill({ status: 200, contentType: "text/event-stream", body: "retry: 600000\n\n" + evs.map((e) => `data: ${JSON.stringify(e)}\n\n`).join("") });
     }
     if (hole && p.endsWith("/ratify") && method === "POST") {
-      const h = report.holes.find((x: any) => x.key === hole);
+      const h = [...report.holes, ...report.contradictions].find((x: any) => x.key === hole);
       if (!h) return route.fulfill(json({ detail: "unknown hole" }, 404));
       if (!h.amendment) return route.fulfill(json({ detail: "no amendment" }, 409));
       if (!ratified.amendments.some((a: any) => a.hole_key === hole))
@@ -94,10 +111,10 @@ export async function mockApi(page: Page, { partial = false, stored = true } = {
       return route.fulfill(json({ ratified: true, amendment_id: h.amendment.id, rule_ids: h.amendment.rule_patch.map((r: any) => r.id) }));
     }
     if (hole) {
-      const h = [...report.holes, ...report.ambiguities].find((x: any) => x.key === hole);
+      const h = [...report.holes, ...report.contradictions, ...report.ambiguities].find((x: any) => x.key === hole);
       return route.fulfill(h ? json(h) : json({ detail: "not found" }, 404));
     }
     return route.fulfill(json({ detail: `mock has no ${method} ${p}` }, 404));
   });
-  return { place: () => void (report = withAmendments(fx("airline.report.json"))) };
+  return { place: () => void (report = storedReport()) };
 }

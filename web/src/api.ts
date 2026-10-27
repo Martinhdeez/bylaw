@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 export type Domain = "airline" | "retail";
 export const DOMAINS: Domain[] = ["airline", "retail"];
 
-// C4 v1.2 report, with the C7 amendment fields a hole may carry.
+// C4 v1.2 report (01 v1.7 classes), with the C7 amendment fields a hole may carry.
 export type Verdict = { rule_id: string; ok: boolean; policy_ref: string; error?: string | null };
 export type Step = { tool: string; args: Record<string, unknown>; ok: boolean; verdicts: Verdict[] };
 export type Change = { before: Record<string, unknown> | null; after: Record<string, unknown> | null };
@@ -14,7 +14,8 @@ export type Backtest = { tasks: number; blocked: number; baseline_blocked: numbe
 export type Hole = {
   id: string;
   key: string;
-  class: "A" | "C";
+  class: "A" | "B" | "C";
+  gold?: { sanctioned: boolean; tasks: string[] }; // 01 v1.7
   goal: string;
   title: string;
   money_delta: number;
@@ -28,7 +29,8 @@ export type Hole = {
 };
 export type Report = {
   run: { commit: string; domain: string; model: string; mode: "bfs" | "muse"; started: string; budget: number; goals_commit: string };
-  holes: Hole[];
+  holes: Hole[]; // Class A
+  contradictions?: Hole[]; // Class B, 01 v1.7
   ambiguities: Hole[];
   stats: { chains_tried: number; tool_calls: number; llm_calls: number; tokens: number; seconds: number };
 };

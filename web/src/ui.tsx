@@ -121,6 +121,12 @@ export function changedFields(c: Change): [string, string, string][] {
   return [...new Set([...b.keys(), ...a.keys()])].filter((k) => b.get(k) !== a.get(k)).map((k) => [k, b.get(k) ?? "—", a.get(k) ?? "—"]);
 }
 
+// Class B evidence: the gold tasks that reach the goal (01 v1.7).
+export function goldLine(tasks: string[], lead = "τ² grades this as correct in") {
+  const t = tasks.length > 1 ? `tasks ${tasks.slice(0, -1).join(", ")} and ${tasks.at(-1)}` : `task ${tasks[0]}`;
+  return `${lead} ${t}.`;
+}
+
 // Policy refs quote list items joined as " - "; show them one per line.
 export const quote = (ref: string) => ref.replace(/ - /g, "\n– ");
 

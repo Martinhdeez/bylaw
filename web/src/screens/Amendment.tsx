@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AlertTriangle, ArrowRight, Bot, Check, Gavel, Loader2, ShieldCheck, Wrench } from "lucide-react";
 import { api, useGet, type ApiError, type Domain, type Hole, type Policy, type Ratified } from "../api";
-import { Crumbs, Failure, Loading, Muse, holeHref, humanize, int, lineOf, quote, when } from "../ui";
+import { Crumbs, Failure, Loading, Muse, goldLine, holeHref, humanize, int, lineOf, quote, when } from "../ui";
 
 export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }) {
   const hole = useGet<Hole>(`/api/holes/${encodeURIComponent(hkey)}?domain=${domain}`);
@@ -37,6 +37,8 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
 
   const bt = h.backtest;
   const newlyBlocked = bt ? Math.max(0, bt.blocked - bt.baseline_blocked) : 0;
+  const isB = h.class === "B";
+  const goldTasks = h.gold?.tasks ?? [];
   const ln = goal ? lineOf(policy.data?.lines, goal.policy_ref) : 0;
 
   const ratify = async () => {
@@ -57,7 +59,11 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
       <div className="head">
         <div>
           <h1 className="title">{done ? <>Hole {h.id} <span className="g">closed</span></> : <>Amendment {a.id} for {h.id}</>}</h1>
-          <p className="lede">A sentence for the policy and the rule that enforces it, so that the trace for {name.toLowerCase()} no longer passes. Past gold tasks were replayed to count the honest customers it would also stop.</p>
+          <p className="lede">
+            {isB
+              ? `This finding is a contradiction: the policy text forbids ${name.toLowerCase()}, but ${goldLine(goldTasks, "the benchmark's gold does it in").slice(0, -1)}. Ratifying the rule makes the written policy win over practice; the backtest shows the gold tasks that decision blocks.`
+              : `A sentence for the policy and the rule that enforces it, so that the trace for ${name.toLowerCase()} no longer passes. Past gold tasks were replayed to count the honest customers it would also stop.`}
+          </p>
         </div>
         <Muse>Drafted by Muse Spark · max reasoning</Muse>
       </div>
@@ -86,8 +92,8 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
         <aside className="side">
           <div className="metrics">
             <div className="metric"><span>gold tasks replayed</span><b>{bt ? int(bt.tasks) : "—"}</b></div>
-            <div className="metric"><span>honest customers blocked</span><b className={newlyBlocked ? "w" : "g"}>{bt ? int(newlyBlocked) : "—"}</b>{bt && bt.baseline_blocked > 0 && <span>{bt.baseline_blocked} already blocked before</span>}</div>
-            <div className="metric"><span>closes the hole</span><b className={h.closes ? "g" : "w"}>{h.closes === undefined ? "—" : h.closes ? "yes" : "no"}</b></div>
+            <div className="metric"><span>{isB ? "gold tasks blocked" : "honest customers blocked"}</span><b className={newlyBlocked ? "w" : "g"}>{bt ? int(newlyBlocked) : "—"}</b>{bt && bt.baseline_blocked > 0 && <span>{bt.baseline_blocked} already blocked before</span>}</div>
+            <div className="metric"><span>{isB ? "stops the chain" : "closes the hole"}</span><b className={h.closes ? "g" : "w"}>{h.closes === undefined ? "—" : h.closes ? "yes" : "no"}</b></div>
             <div className="metric"><span>rules added</span><b>{a.rule_patch.length}</b></div>
           </div>
 
@@ -109,14 +115,19 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
           ) : (
             <section className="panel ratify-box">
               <h2 className="h2">Ratify this amendment</h2>
-              <p>
+              {isB && (
+                <p className="tradeoff">
+                  <b>Trade-off.</b> {goldLine(goldTasks)} Ratifying forbids it from now on{bt && bt.blocked_tasks.length ? `, and the proxy will refuse gold task${bt.blocked_tasks.length > 1 ? "s" : ""} ${bt.blocked_tasks.join(", ")}` : ""}. Ratify only if the written policy should win.
+                </p>
+              )}
+              {!isB && <p>
                 {!bt
                   ? "This amendment was not backtested. Ratify only after reading the rule."
                   : newlyBlocked === 0
                     ? `None of the ${bt.tasks} gold tasks is newly blocked. Ratifying adds the rule to the proxy, which refuses matching tool calls from now on.`
                     : `${newlyBlocked} of ${bt.tasks} gold tasks would be newly blocked. Read them before you ratify.`}
-              </p>
-              {bt && newlyBlocked > 0 && <p className="blocked">Blocked tasks: {bt.blocked_tasks.join(", ")}</p>}
+              </p>}
+              {!isB && bt && newlyBlocked > 0 && <p className="blocked">Blocked tasks: {bt.blocked_tasks.join(", ")}</p>}
               {h.closes === false && <p className="blocked"><b>The trace still passes with this rule.</b> Ratifying will not close the hole.</p>}
               {fail && (
                 <p className="blocked" role="alert">

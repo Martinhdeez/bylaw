@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Play, ShieldCheck, X } from "lucide-react";
 import { api, useGet, type Domain, type Hole, type Policy, type Ratified } from "../api";
-import { Call, Crumbs, Failure, Loading, Muse, changedFields, holeHref, humanize, lineOf, quote, usd } from "../ui";
+import { Call, Crumbs, Failure, Loading, Muse, changedFields, goldLine, holeHref, humanize, lineOf, quote, usd } from "../ui";
 
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -60,12 +60,15 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
         <div>
           <h1 className="title">{name} <span className="mono-t">{target}</span></h1>
           <p className="lede">
-            {h.class === "C"
+            {h.class === "B"
+              ? `Policy vs practice, not counted as a hole: each step passes every rule and together they reach goal ${h.goal}, which the policy text forbids. ${goldLine(h.gold?.tasks ?? [])}`
+              : h.class === "C"
               ? `Class C ambiguity, not counted: each step passes every rule and together they reach goal ${h.goal}, but cancel and rebook inside a permitted cancel ground is the method the policy allows.`
               : `Each step below passes every rule of the policy. Together they reach goal ${h.goal}, an outcome the policy forbids.`}
           </p>
         </div>
         <div className="replay-ctl">
+          {h.class === "B" && <span className="tag amber">Class B · contradiction</span>}
           {isFixed ? (
             <span className="tag green"><ShieldCheck size={13} aria-hidden="true" />Fixed and enforced</span>
           ) : h.amendment ? (
@@ -126,10 +129,10 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
                 </li>
               );
             })}
-            <li className={`outcome ${at >= n ? "" : "pending"}`} data-testid="outcome">
+            <li className={`outcome ${h.class === "B" ? "b" : ""} ${at >= n ? "" : "pending"}`} data-testid="outcome">
               <span className="eq">=</span>
               <code translate="no">{h.goal} {goal?.name ?? name}</code>
-              {at >= n && <span className="verdict"><X size={15} aria-hidden="true" />forbidden</span>}
+              {at >= n && <span className="verdict"><X size={15} aria-hidden="true" />{h.class === "B" ? "forbidden by the text, done by gold" : "forbidden"}</span>}
             </li>
           </ol>
         </section>
@@ -142,7 +145,7 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
                 {Array.from({ length: total || 0 }, (_, i) => <i key={i} className={i < ok ? "" : "miss"}>{i < ok ? <Check size={13} aria-hidden="true" /> : <X size={13} aria-hidden="true" />}</i>)}
                 <span className="label" style={{ marginLeft: 6 }}>same DB diff on a fresh env</span>
               </div>
-              <div className="money">
+              <div className={`money ${h.class === "A" ? "" : "neutral"}`}>
                 <b>{usd(h.money_delta)}</b>
                 <span>{h.money_delta > 0 ? "net paid out to the customer by this chain" : h.money_delta < 0 ? "net charged to the customer; the forbidden change itself is the harm" : "no money moves; the forbidden change itself is the harm"}</span>
               </div>
