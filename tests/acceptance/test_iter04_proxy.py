@@ -253,6 +253,23 @@ def test_REQ_PX1_3_default_monitor_enforces_the_goal_of_a_ratified_amendment(air
     assert second["blocked"] is True and second["goal"] == "G1" and second["rule_id"] is None
 
 
+def ratify_on(ratified_dir, hole_key):
+    (ratified_dir / "airline.json").write_text(json.dumps({"domain": "airline", "amendments": [
+        {"id": "A1", "hole_key": hole_key, "policy_text": "t.", "rule_patch": [NOOP_G1], "rationale": "",
+         "ratified_at": "2026-10-27T00:00:00+00:00"}]}))
+
+
+def test_REQ_GA1_3_ratified_goal_is_the_hole_key_prefix(airline, ratified_dir):
+    ratify_on(ratified_dir, "G1:T1QOBS")
+    assert [o["blocked"] for o in run_hop(Proxy(airline))] == [False, True]
+    assert run_hop(Proxy(airline))[1]["goal"] == "G1"
+
+
+def test_REQ_GA1_3_another_goal_prefix_does_not_monitor_G1(airline, ratified_dir):
+    ratify_on(ratified_dir, "G2:T1QOBS")  # same target, other goal: G1 stays unmonitored
+    assert [o["blocked"] for o in run_hop(Proxy(airline))] == [False, False]
+
+
 def test_REQ_PX1_3_monitor_off_ignores_ratified_goals(airline, ratified_dir):
     write_ratified(ratified_dir, "airline", NOOP_G1, goal="G1")
     assert [o["blocked"] for o in run_hop(Proxy(airline, monitor=False))] == [False, False]
