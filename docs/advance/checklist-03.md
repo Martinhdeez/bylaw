@@ -1,6 +1,6 @@
 # Checklist 03 — Product: API + web UI
 
-Plan: `docs/plan/03-product/00-plan.md`. Progress: 2 / 8.
+Plan: `docs/plan/03-product/00-plan.md`. Progress: 4 / 9.
 
 - [x] **AP1** FastAPI app + report and ratify stores — builder — PR #11
 - [x] **UI2** Prototype wired to API + Playwright smoke — designer — PR #15
@@ -9,4 +9,5 @@ Plan: `docs/plan/03-product/00-plan.md`. Progress: 2 / 8.
 - [ ] **GA1** Gold adjudication (Class B) + search fixes — builder — PR #
 - [ ] **SR1** Retail BFS search — builder — PR #
 - [ ] **DP1** Container image + compose (no deploy) — devops — PR #
-- [ ] **RM1** Submission README — assistant — PR #
+- [x] **RM1** Submission README — assistant — PR #17
+- [x] **UI3** Sidebar collapse toggle (Gemini/Lovable style), approved by the user — designer — PR #20
