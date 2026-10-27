@@ -175,3 +175,19 @@ def test_a_failed_muse_call_is_counted_and_never_aborts_the_audit():
     r = audit(DOMAIN, RULES, budget=30, use_llm=True, llm=flaky)
     assert r["stats"]["llm_errors"] == 2 and r["stats"]["llm_calls"] == len(DOMAIN.goals)
     assert any(e["goal"] == "G7" for e in r["ambiguities"])
+
+
+def test_a_hole_that_takes_the_key_from_an_ambiguity_is_fed_back_as_a_hit(monkeypatch):
+    # C6 v1.8: hit means the chain proved a finding. The Class A chain to G1:1KUOX2 replaces the cancel+rebook
+    # ambiguity under the same key: the entry count does not grow, but the chain still proved a finding.
+    rid, log = "1KUOX2", []
+
+    def search(*a, **k):
+        for chain in _only(rid):
+            log.append((chain, (yield chain)))
+
+    monkeypatch.setattr(report_mod, "search", search)
+    monkeypatch.setattr(report_mod, "gold_goals", lambda domain: {})
+    hole = next(h for h in audit(DOMAIN, RULES, budget=20)["holes"] if h["key"] == "G1:" + rid)
+    calls = [(s["tool"], s["args"]) for s in hole["chain"]]
+    assert [fb[1] for chain, fb in log if chain == calls] == [True]

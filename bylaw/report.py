@@ -95,17 +95,18 @@ def _git(*args) -> str:
         return ""
 
 
-def _steered(search_gen, entries: dict, tool_calls):
+def _steered(search_gen, proven: list, tool_calls):
     """Yields the search's chains and, after each one is tried, sends back the C6 v1.8 feedback
-    (write steps it executed, whether it added a proven entry). `tool_calls()` is the running total."""
-    n, done, feedback = len(entries), tool_calls(), None
+    (write steps it executed, whether it wrote a proven entry, new or replacing one). `proven` grows by one per write;
+    `tool_calls()` is the running total."""
+    n, done, feedback = len(proven), tool_calls(), None
     while True:
         try:
             proposal = search_gen.send(feedback)
         except StopIteration:
             return
         yield proposal
-        feedback, n, done = (tool_calls() - done, len(entries) > n), len(entries), tool_calls()
+        feedback, n, done = (tool_calls() - done, len(proven) > n), len(proven), tool_calls()
 
 
 def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "", llm=None) -> dict:
@@ -115,7 +116,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     db = domain.snapshot(domain.fresh_env())
     entries, chains_tried, tool_calls = {}, 0, 0
-    asked, errors, billed_from, found = [], [], len(muse.CALLS), {}
+    asked, errors, billed_from, found, proven = [], [], len(muse.CALLS), {}, []
 
     def counted(*a, **kw):
         asked.append(1)
@@ -126,7 +127,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             raise
 
     gen = search(domain, ruleset, budget, use_llm, llm=counted) if use_llm else search(domain, ruleset, budget, use_llm)
-    for proposal in _steered(gen, entries, lambda: tool_calls):
+    for proposal in _steered(gen, proven, lambda: tool_calls):
         chain = [{"tool": t, "args": a} for t, a in proposal]
         r = run(domain, chain, ruleset)
         chains_tried += 1
@@ -146,6 +147,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             if replays != "5/5":
                 continue  # not reproducible: not a proven hole
             tasks = gold_goals(domain).get(gid, [])
+            proven.append(key)
             found[key] = {"key": key, "tool_calls": tool_calls, "seconds": round(time.monotonic() - t0, 2)}
             entries[key] = {"key": key, "class": cls, "goal": gid, "gold": {"sanctioned": bool(tasks), "tasks": tasks},
                             "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
