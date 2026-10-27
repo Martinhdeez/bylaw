@@ -1,29 +1,22 @@
-"""Acceptance tests for AP1: the HTTP API (C9) and the ratified store (C10).
+"""Acceptance tests for AP1: the HTTP API (C9 v1.1) and the ratified store (C10).
 
 Written blind from docs/plan/03-product/requirements.md and contracts.md, with C1-C8 for the shapes.
-
-Store seams (the contract names paths, not a test override for the report store):
-- The committed report store is `reports/<domain>.json` and `reports/<domain>.bench.json` at the repo
-  root. The module fixture writes the airline fixtures there and hides the retail ones before the app
-  is imported, and restores every file afterwards. API-run audits land in `.cache/reports/`, which is
-  set aside for the module and restored too, so a previous run cannot make retail "latest".
-- `BYLAW_RATIFIED_DIR` points at a tmp dir for the whole module (set before import, in case it is read
-  then); each ratify test starts from a missing `<dir>/airline.json`, which C10 says loads as empty.
-Tests run in file order: the retail 404 checks come before the retail audit that makes retail latest.
+Every test gets its own tmp store dirs through BYLAW_REPORTS_DIR, BYLAW_CACHE_DIR and
+BYLAW_RATIFIED_DIR (read on every request, 03 v1.1): the reports dir holds the airline report and
+bench fixtures, nothing for retail; the cache and ratified dirs start empty.
 """
 import importlib
 import json
-import shutil
+import os
 import time
 from datetime import datetime
+from types import SimpleNamespace
 
 import pytest
 
 from conftest import (AMEND_RULE, AMENDMENT, HOP_KEY, NO_AMEND_KEY, ROOT, load_ruleset,
                       report_fixture)
 
-REPORTS = ROOT / "reports"
-CACHE_REPORTS = ROOT / ".cache" / "reports"
 BENCH = {"domain": "airline", "budget": 50, "rows": [
     {"mode": "bfs", "holes": 1, "hole_keys": [HOP_KEY], "tool_calls": 50, "llm_calls": 0, "tokens": 0,
      "seconds": 1.5},
@@ -35,53 +28,34 @@ COUNTERS = ("tokens", "llm_calls", "tool_calls", "holes")
 
 
 @pytest.fixture(scope="module")
-def ratified_dir(tmp_path_factory):
-    return tmp_path_factory.mktemp("ratified")
-
-
-@pytest.fixture(scope="module")
-def client(ratified_dir, tmp_path_factory):
-    from fastapi.testclient import TestClient
-
-    backup = tmp_path_factory.mktemp("store-backup")
-    store = {REPORTS / "airline.json": report_fixture(), REPORTS / "airline.bench.json": BENCH,
-             REPORTS / "retail.json": None, REPORTS / "retail.bench.json": None}
-    made_reports = not REPORTS.exists()
-    REPORTS.mkdir(exist_ok=True)
-    saved = {}
-    for path, content in store.items():
-        if path.exists():
-            saved[path] = backup / path.name
-            shutil.copy2(path, saved[path])
-            path.unlink()
-        if content is not None:
-            path.write_text(json.dumps(content))
-    cache_saved = backup / "cache-reports"
-    if CACHE_REPORTS.exists():
-        shutil.move(CACHE_REPORTS, cache_saved)
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setenv("BYLAW_RATIFIED_DIR", str(ratified_dir))
-        mp.delenv("MODEL_API_KEY", raising=False)
-        try:
-            api = importlib.import_module("bylaw.api")
-            with TestClient(api.app) as c:
-                yield c
-        finally:
-            for path in store:
-                path.unlink(missing_ok=True)
-            for path, src in saved.items():
-                shutil.copy2(src, path)
-            if made_reports and not any(REPORTS.iterdir()):
-                REPORTS.rmdir()
-            shutil.rmtree(CACHE_REPORTS, ignore_errors=True)
-            if cache_saved.exists():
-                shutil.move(cache_saved, CACHE_REPORTS)
+def app():
+    return importlib.import_module("bylaw.api").app
 
 
 @pytest.fixture
-def no_store(ratified_dir):
-    (ratified_dir / "airline.json").unlink(missing_ok=True)
-    return ratified_dir / "airline.json"
+def stores(tmp_path, monkeypatch):
+    dirs = SimpleNamespace(reports=tmp_path / "reports", cache=tmp_path / "cache", ratified=tmp_path / "ratified")
+    for d in vars(dirs).values():
+        d.mkdir()
+    (dirs.reports / "airline.json").write_text(json.dumps(report_fixture()))
+    (dirs.reports / "airline.bench.json").write_text(json.dumps(BENCH))
+    monkeypatch.setenv("BYLAW_REPORTS_DIR", str(dirs.reports))
+    monkeypatch.setenv("BYLAW_CACHE_DIR", str(dirs.cache))
+    monkeypatch.setenv("BYLAW_RATIFIED_DIR", str(dirs.ratified))
+    return dirs
+
+
+@pytest.fixture
+def client(app, stores):
+    from fastapi.testclient import TestClient
+
+    with TestClient(app) as c:
+        yield c
+
+
+@pytest.fixture
+def no_store(stores):
+    return stores.ratified / "airline.json"
 
 
 @pytest.fixture
@@ -172,11 +146,25 @@ def test_REQ_AP1_2_hole_by_key_is_the_hole_of_the_latest_report(client):
     assert r.status_code == 200 and r.json()["id"] == "H2"
 
 
+def test_REQ_AP1_2_latest_is_the_newest_file_by_mtime(client, stores):
+    committed = dict(report_fixture(), run=dict(report_fixture()["run"], domain="retail", commit="committed"))
+    audited = dict(committed, run=dict(committed["run"], commit="audited"))
+    (stores.reports / "retail.json").write_text(json.dumps(committed))
+    (stores.cache / "retail-x1.json").write_text(json.dumps(audited))
+    os.utime(stores.reports / "retail.json", (1_000_000, 1_000_000))
+    os.utime(stores.cache / "retail-x1.json", (2_000_000, 2_000_000))
+    assert client.get("/api/reports/latest", params={"domain": "retail"}).json() == audited
+    os.utime(stores.reports / "retail.json", (3_000_000, 3_000_000))
+    assert client.get("/api/reports/latest", params={"domain": "retail"}).json() == committed
+    # An airline cache file never shadows retail, and the reverse.
+    assert client.get("/api/reports/latest", params={"domain": "airline"}).json() == report_fixture()
+
+
 def test_REQ_AP1_2_absent_hole_key_is_404(client):
     assert client.get("/api/holes/G2:NOSUCH", params={"domain": "airline"}).status_code == 404
 
 
-# ---------- REQ-AP1-5 (bench 404 before the retail audit) ----------
+# ---------- REQ-AP1-5 ----------
 
 def test_REQ_AP1_5_bench_returns_the_stored_bench_json(client):
     r = client.get("/api/bench", params={"domain": "airline"})
@@ -253,6 +241,12 @@ def test_REQ_AP1_4_hole_without_amendment_is_409_and_stores_nothing(client, no_s
     assert client.get("/api/ratified", params={"domain": "airline"}).json()["amendments"] == []
 
 
+def test_REQ_AP1_4_ratify_unknown_hole_key_is_404(client, no_store):
+    r = client.post("/api/holes/G2:NOSUCH/ratify", params={"domain": "airline"})
+    assert r.status_code == 404
+    assert not no_store.exists() or json.loads(no_store.read_text())["amendments"] == []
+
+
 def test_REQ_AP1_4_ratified_store_module_matches_the_api(client, no_store):
     ratified = importlib.import_module("bylaw.ratified")
     assert ratified.load("airline")["amendments"] == []
@@ -263,9 +257,9 @@ def test_REQ_AP1_4_ratified_store_module_matches_the_api(client, no_store):
     assert eff["tool_rules"][-1] == AMEND_RULE
 
 
-# ---------- REQ-AP1-3 (runs last: it makes retail latest) ----------
+# ---------- REQ-AP1-3 ----------
 
-def test_REQ_AP1_3_offline_audit_streams_progress_and_becomes_latest(client, offline_llm):
+def test_REQ_AP1_3_offline_audit_streams_progress_and_becomes_latest(client, stores, offline_llm):
     r = client.post("/api/audits", json={"domain": "retail", "use_llm": False, "budget": 30, "amend": False})
     assert r.status_code == 202
     audit_id = r.json()["id"]
@@ -296,7 +290,7 @@ def test_REQ_AP1_3_offline_audit_streams_progress_and_becomes_latest(client, off
 
     latest = client.get("/api/reports/latest", params={"domain": "retail"})
     assert latest.status_code == 200 and latest.json() == report
-    saved = CACHE_REPORTS / f"retail-{audit_id}.json"
+    saved = stores.cache / f"retail-{audit_id}.json"
     assert saved.exists()
     assert json.loads(saved.read_text()) == report
 
@@ -323,7 +317,11 @@ def test_REQ_AP1_3_newest_audit_wins_latest(client, offline_llm):
     assert client.get("/api/reports/latest", params={"domain": "retail"}).json() == report
 
 
-def test_REQ_AP1_3_airline_latest_is_untouched_by_a_retail_audit(client):
+def test_REQ_AP1_3_airline_latest_is_untouched_by_a_retail_audit(client, offline_llm):
+    audit_id = client.post("/api/audits",
+                           json={"domain": "retail", "use_llm": False, "budget": 10, "amend": False}).json()["id"]
+    read_events(client, audit_id)
+    wait_finished(client, audit_id)
     assert client.get("/api/reports/latest", params={"domain": "airline"}).json() == report_fixture()
 
 

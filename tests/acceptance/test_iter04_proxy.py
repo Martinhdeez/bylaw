@@ -1,6 +1,6 @@
 """Acceptance tests for PX1: the enforcement proxy (C11) over the ratified RuleSet (C10).
 
-Written blind from docs/plan/04-proxy/requirements.md and contracts.md, with C1, C2, C7, C10.
+Written blind from docs/plan/04-proxy/requirements.md and contracts.md (v1.1), with C1, C2, C7, C10.
 Fixture facts come from the τ² airline DB and tasks.json in .context/tau2-bench (see conftest for the
 G1 cabin hop on T1QOBS). Every test points `BYLAW_RATIFIED_DIR` at its own tmp dir, so the default
 RuleSet is the hand RuleSet plus exactly the amendments the test stores.
@@ -25,7 +25,7 @@ DENY_BAGS = {"id": "A9-no-bags", "tool": "update_reservation_baggages", "allow_i
 ADD_BAG = {"reservation_id": HOP_RES, "total_baggages": 1, "nonfree_baggages": 1, "payment_id": HOP_PAY}
 # Gold tasks with update_reservation_baggages (tasks.json): 12, 17, 21, 22, 33.
 GOLD_BAG_TASKS = 5
-LINE = re.compile(r"^(ALLOWED|BLOCKED) (\S+)(.*)$")
+LINE = re.compile(r"^(\d+) (ALLOWED|BLOCKED) (\S+)(?: (.*))?$")  # 04 v1.1: <n> ALLOWED|BLOCKED <tool>[ <reason>]
 
 
 @pytest.fixture
@@ -62,7 +62,14 @@ def cli(*args, ratified_dir, timeout=600):
 
 
 def step_lines(stdout):
-    return [m for m in (LINE.match(line.strip()) for line in stdout.splitlines()) if m]
+    """(status, tool, reason) per step, after checking n runs 0, 1, 2, ..."""
+    found = [m for m in (LINE.match(line.strip()) for line in stdout.splitlines()) if m]
+    assert [int(m.group(1)) for m in found] == list(range(len(found))), stdout
+    return [(m.group(2), m.group(3), m.group(4) or "") for m in found]
+
+
+def last_line(stdout):
+    return [line.strip() for line in stdout.splitlines() if line.strip()][-1]
 
 
 # ---------- REQ-PX1-1 (Proxy.tools and the MCP server) ----------
@@ -121,7 +128,7 @@ def test_REQ_PX1_2_rule_deny_is_blocked_with_rule_id_and_db_unchanged(airline, r
     assert_result_shape(out)
     assert out["blocked"] is True and out["ok"] is False
     assert out["rule_id"] == "A9-no-bags" and out["goal"] is None
-    assert isinstance(out["reason"], str) and out["reason"]
+    assert out["reason"] == f"BLOCKED A9-no-bags: {DENY_REF}"
     assert p.snapshot() == before
 
 
@@ -131,7 +138,9 @@ def test_REQ_PX1_2_hand_rule_of_the_default_ruleset_denies(airline, ratified_dir
     p = Proxy(airline)
     before = p.snapshot()
     out = p.call("cancel_reservation", {"reservation_id": HOP_RES, "reason": "change of plan"})
-    assert out["blocked"] is True and out["rule_id"] == "R-cancel-ground"
+    assert out["blocked"] is True and out["ok"] is False and out["rule_id"] == "R-cancel-ground"
+    ground = next(r for r in load_ruleset("airline")["tool_rules"] if r["id"] == "R-cancel-ground")
+    assert out["reason"] == f"BLOCKED R-cancel-ground: {ground['policy_ref']}"
     assert p.snapshot() == before
     assert res(p.snapshot())["status"] != "cancelled"
 
@@ -179,7 +188,7 @@ def test_REQ_PX1_2_mcp_blocked_call_names_rule_and_policy_line(ratified_dir):
         return before, blocked, after
 
     before, blocked, after = mcp_run(ratified_dir, body)
-    assert blocked.startswith(f"BLOCKED A9-no-bags: {DENY_REF}"), blocked
+    assert blocked == f"BLOCKED A9-no-bags: {DENY_REF}", blocked
     assert HOP_RES in before
     assert after == before
 
@@ -208,6 +217,7 @@ def test_REQ_PX1_3_goal_monitor_blocks_the_hop_from_session_start(airline, ratif
     assert_result_shape(out)
     assert out["blocked"] is True and out["ok"] is False
     assert out["goal"] == "G1" and out["rule_id"] is None
+    assert out["reason"].startswith("BLOCKED G1: ")
     assert p.snapshot() == after_first  # not applied
     assert [(f["flight_number"], f["date"]) for f in res(p.snapshot())["flights"]] == [("HAT060", "2024-05-26")]
 
@@ -244,8 +254,9 @@ def test_REQ_PX1_4_replay_hole_prints_one_line_per_step_and_the_monitor_blocks(r
             ratified_dir=ratified_dir)
     assert r.returncode == 0, r.stderr
     lines = step_lines(r.stdout)
-    assert [m.group(2) for m in lines] == [s["tool"] for s in HOP_CHAIN], r.stdout
-    assert [m.group(1) for m in lines] == ["ALLOWED", "BLOCKED"], r.stdout
+    assert [tool for _, tool, _ in lines] == [s["tool"] for s in HOP_CHAIN], r.stdout
+    assert [status for status, _, _ in lines] == ["ALLOWED", "BLOCKED"], r.stdout
+    assert lines[1][2].startswith("BLOCKED G1: "), r.stdout
 
 
 def test_REQ_PX1_4_replay_with_ratified_amendment_blocks_before_the_goal_step(report_path, ratified_dir):
@@ -257,17 +268,18 @@ def test_REQ_PX1_4_replay_with_ratified_amendment_blocks_before_the_goal_step(re
     assert len(lines) == len(HOP_CHAIN), r.stdout
     # The amendment refuses the cabin upgrade itself: step 0, before the goal step.
     # Only the ratified rule can refuse step 0: the hand rules allow it and no goal is true yet.
-    assert lines[0].group(1) == "BLOCKED", r.stdout
+    assert lines[0][0] == "BLOCKED", r.stdout
+    assert lines[0][2] == f"BLOCKED {AMEND_RULE['id']}: {AMEND_RULE['policy_ref']}", r.stdout
 
 
 def test_REQ_PX1_4_replay_gold_blocks_none_of_43(ratified_dir):
     r = cli("replay", "--domain", "airline", "--gold", ratified_dir=ratified_dir)
     assert r.returncode == 0, r.stderr
-    assert re.search(r"blocked: 0/43\b", r.stdout), r.stdout
+    assert last_line(r.stdout) == "blocked: 0/43", r.stdout
 
 
 def test_REQ_PX1_4_replay_gold_counts_tasks_a_ratified_rule_blocks(ratified_dir):
     write_ratified(ratified_dir, "airline", DENY_BAGS)
     r = cli("replay", "--domain", "airline", "--gold", ratified_dir=ratified_dir)
     assert r.returncode == 0, r.stderr
-    assert re.search(rf"blocked: {GOLD_BAG_TASKS}/43\b", r.stdout), r.stdout
+    assert last_line(r.stdout) == f"blocked: {GOLD_BAG_TASKS}/43", r.stdout
