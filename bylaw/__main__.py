@@ -177,6 +177,24 @@ def cmd_bench(a):
         print(" | ".join(f"{row[c]!s:>14}" for c in cols))
 
 
+def cmd_coverage(a):
+    report = json.loads(Path(a.report).read_text())
+    entries = report.get("holes", []) + report.get("contradictions", []) + report.get("ambiguities", [])
+    per_goal = report["stats"].get("per_goal")
+    if per_goal is None:  # a report from before CV1: class counts only, no per-goal search counts
+        goals = set(get_domain(report["run"]["domain"]).goals) | {e["goal"] for e in entries}
+        per_goal = {g: {"chains": None, "executed": None, **{c: sum(e["goal"] == g and e["class"] == c
+                                                                    for e in entries) for c in "ABC"}} for g in goals}
+    rows = [{"goal": g, **per_goal[g]} for g in sorted(per_goal)]
+    cols = ("goal", "chains", "executed", "A", "B", "C")
+    print("| " + " | ".join(cols) + " |")
+    print("|" + "|".join("---" for _ in cols) + "|")
+    for r in rows:
+        print("| " + " | ".join("n/a" if r[c] is None else str(r[c]) for c in cols) + " |")
+    if a.json:
+        Path(a.json).write_text(json.dumps({"run": report["run"], "goals": rows}, indent=2) + "\n")
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="bylaw")
     sub = p.add_subparsers(required=True)
@@ -215,6 +233,10 @@ def main(argv=None):
     be.add_argument("--modes", default="bfs,muse", help="comma-separated: bfs, muse")
     be.add_argument("-o", "--output", default="bench.json")
     be.set_defaults(fn=cmd_bench)
+    cv = sub.add_parser("coverage", help="per forbidden goal: chains tried, executed write steps, findings by class")
+    cv.add_argument("report")
+    cv.add_argument("--json", help="also write the table as JSON to this path")
+    cv.set_defaults(fn=cmd_coverage)
     a = p.parse_args(argv)
     return a.fn(a)
 

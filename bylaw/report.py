@@ -24,12 +24,16 @@ _ENTRY = _obj({"id": _S, "key": _S, "class": {"enum": ["A", "C"]}, "goal": _S, "
                "chain": {"type": "array", "minItems": 1, "items": _STEP},
                "diff": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": _CHANGE}},
                "goal_true": _B, "replays": {"type": "string", "pattern": r"^\d+/\d+$"}})
+_STATS = _obj({"chains_tried": _I, "tool_calls": _I, "llm_calls": _I, "tokens": _I, "seconds": {"type": "number", "minimum": 0}})
+# C5 addition (CV1), optional so older reports stay valid: {goal_id: counts} for `python -m bylaw coverage`
+_STATS["properties"]["per_goal"] = {"type": "object", "additionalProperties": _obj(
+    {k: _I for k in ("chains", "executed", "A", "B", "C")}, additionalProperties=False)}
 REPORT_SCHEMA = _obj({
     "run": _obj({"commit": _S, "domain": _S, "model": _S, "mode": {"enum": ["bfs", "muse"]}, "started": _S,
                  "budget": _I, "goals_commit": _S}),
     "holes": {"type": "array", "items": {**_ENTRY, "properties": {**_ENTRY["properties"], "class": {"const": "A"}}}},
     "ambiguities": {"type": "array", "items": {**_ENTRY, "properties": {**_ENTRY["properties"], "class": {"const": "C"}}}},
-    "stats": _obj({"chains_tried": _I, "tool_calls": _I, "llm_calls": _I, "tokens": _I, "seconds": {"type": "number", "minimum": 0}}),
+    "stats": _STATS,
 })
 
 
@@ -92,6 +96,9 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     db = domain.snapshot(domain.fresh_env())
     entries, chains_tried, tool_calls = {}, 0, 0
     asked, errors, billed_from, found = [], [], len(muse.CALLS), {}
+    # a chain counts for every goal whose targets include the record it starts on (the target of the C4 key)
+    aimed = {gid: {t.get("reservation_id") or t.get("user_id") for t in domain.targets(gid)} for gid in domain.goals}
+    per_goal = {gid: {"chains": 0, "executed": 0, "A": 0, "B": 0, "C": 0} for gid in sorted(domain.goals)}
 
     def counted(*a, **kw):
         asked.append(1)
@@ -107,10 +114,14 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         r = run(domain, chain, ruleset)
         chains_tried += 1
         tool_calls += len(r["results"])
+        target = chain[0]["args"].get("reservation_id") or chain[0]["args"].get("user_id")
+        for gid in per_goal:
+            if target in aimed[gid]:
+                per_goal[gid]["chains"] += 1
+                per_goal[gid]["executed"] += len(r["results"])
         if len(r["results"]) < len(chain) or not all(s["ok"] for s in r["steps"]) or not r["diff"]:
             continue
         before, after = _touched(r["before"], r["diff"]), _touched(r["after"], r["diff"])
-        target = chain[0]["args"].get("reservation_id") or chain[0]["args"].get("user_id")
         for gid, goal in domain.goals.items():
             key, cls = f"{gid}:{target}", classify(domain, db, gid, chain)
             if key in entries or not goal.check(before, after, r["results"]):  # one entry per key, shortest chain first
@@ -122,6 +133,8 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             entries[key] = {"key": key, "class": cls, "goal": gid,
                             "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
                             "chain": r["steps"], "diff": r["diff"], "goal_true": True, "replays": replays}
+    for e in entries.values():
+        per_goal[e["goal"]][e["class"]] += 1
     holes = [{"id": f"H{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == "A"), 1)]
     ambiguities = [{"id": f"C{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == "C"), 1)]
     return {
@@ -134,5 +147,6 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
                   "llm_errors": len(errors),
                   "tokens": sum(c["prompt_tokens"] + c["completion_tokens"] for c in muse.CALLS[billed_from:]),
                   "seconds": round(time.monotonic() - t0, 2),
-                  "found": [found[h["key"]] for h in holes]},  # C5 v1.6: when each hole was first proved
+                  "found": [found[h["key"]] for h in holes],  # C5 v1.6: when each hole was first proved
+                  "per_goal": per_goal},
     }
