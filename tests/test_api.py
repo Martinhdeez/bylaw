@@ -80,6 +80,13 @@ def test_hole_lookup_by_key(stores):
     assert client.get("/api/holes/G9:NOPE", params={"domain": "airline"}).status_code == 404
 
 
+def test_hole_lookup_finds_class_c_ambiguities(stores):
+    amb = {**BARE, "id": "C1", "key": "G7:ABC123", "class": "C", "goal": "G7"}
+    (stores / "REPORTS" / "airline.json").write_text(json.dumps({**REPORT, "ambiguities": [amb]}))
+    got = client.get("/api/holes/G7:ABC123", params={"domain": "airline"}).json()
+    assert got == amb and got["class"] == "C"
+
+
 def test_ratify_appends_once_and_the_ratified_view_shows_base_plus_patch(stores):
     (stores / "REPORTS" / "airline.json").write_text(json.dumps(REPORT))
     for _ in range(2):
