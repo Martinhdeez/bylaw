@@ -17,6 +17,11 @@ def test_bench_compares_muse_with_blind_bfs_on_one_budget(tmp_path, monkeypatch,
     for r in rows.values():
         assert r["holes"] == len(r["hole_keys"]) == len(set(r["hole_keys"]))
         assert 0 < r["tool_calls"] <= 20 and r["seconds"] >= 0
+        # v1.6: when each hole was first proved, for holes-vs-budget curves
+        assert [f["key"] for f in r["found"]] == r["hole_keys"]
+        steps = [f["tool_calls"] for f in r["found"]]
+        assert steps == sorted(steps) and all(1 <= s <= r["tool_calls"] for s in steps)
+        assert all(0 <= f["seconds"] <= r["seconds"] for f in r["found"])
     assert rows["bfs"]["llm_calls"] == 0 and rows["muse"]["llm_calls"] == 7
     assert any(k.startswith("G7:") for k in rows["muse"]["ambiguity_keys"])
     printed = capsys.readouterr().out
