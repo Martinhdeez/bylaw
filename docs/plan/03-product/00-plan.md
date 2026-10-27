@@ -12,6 +12,8 @@ Iterations 01 and 02 (engine, report C4, amend C7, backtest C8, bench C5). The a
 
 | Id | Item | Type | Weight | Agent | Depends on | Requirements |
 |---|---|---|---|---|---|---|
+| GA1 | Gold adjudication (Class B) + search fixes | feature | full | builder | v1.7 | REQ-GA1-1..3 |
+| SR1 | Retail BFS search | feature | full | builder | C6 | REQ-SR1-1 |
 | AP1 | FastAPI app `bylaw/api.py` + demo report store + ratify store | feature | full | builder | C9, C10 | REQ-AP1-1..5 |
 | UI2 | Wire the prototype to the API; Playwright smoke test | view | full | designer | C9, UI1 | REQ-UI2-1..3 |
 | DM1 | Demo reports: live audit + amend + bench committed under `reports/` | data | light | assistant | PR1, AM1 merged | REQ-DM1-1 |

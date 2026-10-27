@@ -31,3 +31,12 @@ Live-API checks are marked `@pytest.mark.live`.
 ## Closed to the test author
 
 `bylaw/*.py` implementations, `bylaw/env/`, `spike/`, `tests/test_*.py` (unit tests). Readable: this plan folder, `contracts.md`, the spec, `bylaw/rulesets/*.json` once merged, and `.context/tau2-bench` (the simulator).
+
+## Added with contracts v1.7 (gold adjudication)
+
+| Id | Requirement | Checked through |
+|---|---|---|
+| REQ-GA1-1 | `bylaw.gold.gold_goals(domain)` returns `{goal_id: [task_id, ...]}` for every goal some gold task makes true (airline: G1←32, G2←7, G4←25, G5←18). | `bylaw.gold` |
+| REQ-GA1-2 | Every report entry carries `class` and `gold: {sanctioned, tasks}`; `holes` holds Class A only (no gold-sanctioned goal), gold-sanctioned findings go to `contradictions` (Class B); C entries keep their list and carry `sanctioned` for their goal. | `audit` report JSON |
+| REQ-GA1-3 | The goal of a ratified amendment is the goal prefix of its `hole_key` (`G1:T1QOBS` → `G1`). | `bylaw.ratified`, proxy |
+| REQ-SR1-1 | `audit --domain retail --no-llm` runs and proves the R6 payment-switch-then-cancel over-refund as Class A. | CLI + report |
