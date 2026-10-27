@@ -40,3 +40,11 @@ The feature is missing: `bylaw/executor.py`, `bylaw/verifier.py`, `bylaw/report.
 - Search order for retail: `search` raises for any domain other than airline.
 - EN2 (PR #8, removes R-flights-not-both) is not on `bylaw/build`. This run uses the current `airline.json`.
 - Goal screening on the cut-down snapshot depends on goals reading only the diff (as the `bylaw/goals.py` docstring says). A goal that read untouched records would be missed, never falsely reported, because `prove` checks on the full DB.
+
+## Review (PR #9)
+
+- Merged `bylaw/build` (CP1, contracts v1.5) into the branch. `bylaw/__main__.py` conflicted only because CP1 added `compile` next to `audit`; both subcommands were kept, no logic changed.
+- Brought `tests/acceptance/test_wave2_audit.py` from `origin/test/01-wave2` unchanged. `test_wave2_proposer.py` stays on the test branch until PR1: its `bench` test is PR1's (REQ-PR1-2).
+- Wave-2 acceptance on the combined code: 25 passed, 1 failed (`test_REQ_PR1_2_bench_bfs_runs_offline_and_writes_the_table`, PR1). `harness-trace`: only REQ-PR1-2 has no test in `tests/acceptance` (it is in the PR1 file).
+- All 17 report entries were replayed independently through raw τ² (`get_environment`, direct tool calls, `bylaw.rules.check` per step, frozen `GOALS` on the full DB): every step allowed and ok, goal true, diff equal to the report's.
+- Open for PR1: the search charges the budget on yielded steps, so a chain stopped by a rule is charged in full (1486 of 2000 executed); C6 v1.2 counts executed steps. The hole key takes its target from the first step's `reservation_id`.
