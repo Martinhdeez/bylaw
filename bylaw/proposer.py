@@ -1,8 +1,6 @@
 """Search (contract C6): bounded BFS over chains of WRITE tool calls, arguments instantiated from domain.targets.
 
-The budget counts executed write steps (C6 v1.2). A consumer that executes the chains sends back how many steps
-of each one ran (`gen.send(n)`); plain iteration charges the whole chain. A chain is only proposed if it fits in
-what is left, so the executed total never exceeds the budget.
+The budget counts write steps yielded (C6 v1.2); the executor never runs more steps than it is given.
 Muse-guided proposals (`use_llm=True`) arrive with PR1.
 """
 from datetime import date, datetime, timedelta
@@ -31,8 +29,8 @@ def search(domain, ruleset: dict, budget: int, use_llm: bool):
                 for chain in _chains(db, rid, _state(db, rid), depth, None):
                     if spent + len(chain) > budget:
                         return
-                    executed = yield chain
-                    spent += len(chain) if executed is None else executed
+                    spent += len(chain)
+                    yield chain
 
 
 def _pool(domain, db) -> list[list[str]]:
@@ -104,6 +102,8 @@ def _moves(db, rid, st):
                 "payment_methods": [{"payment_id": pid, "amount": total}], "total_baggages": st["total"],
                 "nonfree_baggages": nonfree, "insurance": r["insurance"]}, {**st, "booked": True}
         return
+    # cancel first: a cancel+rebook (Class C) claims its goal key before a Class A chain to the same outcome
+    yield "cancel", "cancel_reservation", {"reservation_id": rid, "reason": REASON}, {**st, "cancelled": True}
     for cabin in CABINS:
         if cabin != st["cabin"]:
             yield "cabin", "update_reservation_flights", {"reservation_id": rid, "cabin": cabin, "flights": st["flights"],
@@ -116,7 +116,6 @@ def _moves(db, rid, st):
     if free_cap > st["total"]:  # fill the free allowance of the current cabin
         yield "bags", "update_reservation_baggages", {"reservation_id": rid, "total_baggages": free_cap,
                                                       "nonfree_baggages": st["nonfree"], "payment_id": pid}, {**st, "total": free_cap}
-    yield "cancel", "cancel_reservation", {"reservation_id": rid, "reason": REASON}, {**st, "cancelled": True}
 
 
 def _chains(db, rid, st, depth, last):

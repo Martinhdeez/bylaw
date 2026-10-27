@@ -92,18 +92,12 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     t0 = time.monotonic()
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     db = domain.snapshot(domain.fresh_env())
-    entries, chains_tried, tool_calls, executed = {}, 0, 0, None
-    proposals = search(domain, ruleset, budget, use_llm)
-    while True:
-        try:
-            proposal = proposals.send(executed)
-        except StopIteration:
-            break
+    entries, chains_tried, tool_calls = {}, 0, 0
+    for proposal in search(domain, ruleset, budget, use_llm):
         chain = [{"tool": t, "args": a} for t, a in proposal]
         r = run(domain, chain, ruleset)
         chains_tried += 1
-        executed = len(r["results"])  # C6 v1.2: the budget is charged on executed write steps
-        tool_calls += executed
+        tool_calls += len(r["results"])
         if len(r["results"]) < len(chain) or not all(s["ok"] for s in r["steps"]) or not r["diff"]:
             continue
         before, after = _touched(r["before"], r["diff"]), _touched(r["after"], r["diff"])
