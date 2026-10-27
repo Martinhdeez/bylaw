@@ -1,0 +1,249 @@
+{
+ "domain": "airline",
+ "amendments": [],
+ "ruleset": {
+  "domain": "airline",
+  "tool_rules": [
+   {
+    "id": "R-cancel-active",
+    "tool": "cancel_reservation",
+    "allow_if": "res is not None and res.get('status') != 'cancelled'",
+    "policy_ref": "The agent must first obtain the user id and reservation id.",
+    "note": "M0: reservation exists and is active."
+   },
+   {
+    "id": "R-cancel-reason",
+    "tool": "cancel_reservation",
+    "allow_if": "args.get('reason') is not None",
+    "policy_ref": "The agent must also obtain the reason for cancellation (change of plan, airline cancelled flight, or other reasons)",
+    "note": "The reason is a conversation fact passed as args['reason'] (C2 v1.1)."
+   },
+   {
+    "id": "R-cancel-not-flown",
+    "tool": "cancel_reservation",
+    "allow_if": "not any(db['flights'].get(f['flight_number'], {}).get('dates', {}).get(f['date'], {}).get('status') in ['flying', 'landed'] for f in res['flights'])",
+    "policy_ref": "If any portion of the flight has already been flown, the agent cannot help and transfer is needed.",
+    "note": ""
+   },
+   {
+    "id": "R-cancel-ground",
+    "tool": "cancel_reservation",
+    "allow_if": "hours_between(res['created_at'], now) <= 24 or (args.get('reason') == 'airline cancelled flight' and 'cancelled' in [db['flights'].get(f['flight_number'], {}).get('dates', {}).get(f['date'], {}).get('status') for f in res['flights']]) or res['cabin'] == 'business' or (res['insurance'] == 'yes' and args.get('reason') in ['health', 'weather'])",
+    "policy_ref": "Otherwise, flight can be cancelled if any of the following is true: - The booking was made within the last 24 hrs - The flight is cancelled by airline - It is a business flight - The user has travel insurance and the reason for cancellation is covered by insurance.",
+    "note": "Insurance covers 'health or weather reasons' (Book flight > Travel insurance)."
+   },
+   {
+    "id": "R-flights-active",
+    "tool": "update_reservation_flights",
+    "allow_if": "res is not None and res.get('status') != 'cancelled'",
+    "policy_ref": "The agent must first obtain the user id and reservation id.",
+    "note": ""
+   },
+   {
+    "id": "R-flights-not-both",
+    "tool": "update_reservation_flights",
+    "allow_if": "not (args['cabin'] != res['cabin'] and {(f['flight_number'], f['date']) for f in args['flights']} != {(f['flight_number'], f['date']) for f in res['flights']})",
+    "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+    "note": "M0 reading: a cabin change and a flight change are never made in the same call."
+   },
+   {
+    "id": "R-flights-cabin-not-flown",
+    "tool": "update_reservation_flights",
+    "allow_if": "not args['cabin'] != res['cabin'] or not any(db['flights'].get(f['flight_number'], {}).get('dates', {}).get(f['date'], {}).get('status') in ['flying', 'landed'] for f in res['flights'])",
+    "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+    "note": ""
+   },
+   {
+    "id": "R-flights-not-basic",
+    "tool": "update_reservation_flights",
+    "allow_if": "not ({(f['flight_number'], f['date']) for f in args['flights']} != {(f['flight_number'], f['date']) for f in res['flights']}) or res['cabin'] != 'basic_economy'",
+    "policy_ref": "Basic economy flights cannot be modified.",
+    "note": ""
+   },
+   {
+    "id": "R-flights-route",
+    "tool": "update_reservation_flights",
+    "allow_if": "not ({(f['flight_number'], f['date']) for f in args['flights']} != {(f['flight_number'], f['date']) for f in res['flights']}) or all(len(legs) > 0 and None not in legs and all(a['destination'] == b['origin'] for a, b in zip(legs, legs[1:])) and legs[0]['origin'] == res['origin'] and (legs[-1]['destination'] == res['destination'] if res['flight_type'] == 'one_way' else legs[-1]['destination'] == res['origin'] and any(l['destination'] == res['destination'] for l in legs[:-1])) for legs in [[db['flights'].get(f['flight_number']) for f in args['flights']]])",
+    "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+    "note": ""
+   },
+   {
+    "id": "R-flights-payment",
+    "tool": "update_reservation_flights",
+    "allow_if": "user['payment_methods'].get(args['payment_id'], {}).get('source') in ['credit_card', 'gift_card']",
+    "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+    "note": "M0 applies this to every call of the tool, cabin-only changes included."
+   },
+   {
+    "id": "R-bags-active",
+    "tool": "update_reservation_baggages",
+    "allow_if": "res is not None and res.get('status') != 'cancelled'",
+    "policy_ref": "The agent must first obtain the user id and reservation id.",
+    "note": ""
+   },
+   {
+    "id": "R-bags-no-remove",
+    "tool": "update_reservation_baggages",
+    "allow_if": "args['total_baggages'] >= res['total_baggages']",
+    "policy_ref": "The user can add but not remove checked bags.",
+    "note": ""
+   },
+   {
+    "id": "R-bags-paid-stay-paid",
+    "tool": "update_reservation_baggages",
+    "allow_if": "args['nonfree_baggages'] >= res['nonfree_baggages']",
+    "policy_ref": "The user can add but not remove checked bags.",
+    "note": "M0: paid bags are not turned into free ones."
+   },
+   {
+    "id": "R-bags-free-allowance",
+    "tool": "update_reservation_baggages",
+    "allow_if": "args['total_baggages'] - args['nonfree_baggages'] <= {'regular': {'basic_economy': 0, 'economy': 1, 'business': 2}, 'silver': {'basic_economy': 1, 'economy': 2, 'business': 3}, 'gold': {'basic_economy': 2, 'economy': 3, 'business': 4}}[user['membership']][res['cabin']] * len(res['passengers'])",
+    "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+    "note": ""
+   },
+   {
+    "id": "R-bags-payment",
+    "tool": "update_reservation_baggages",
+    "allow_if": "args['payment_id'] in user['payment_methods']",
+    "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+    "note": ""
+   },
+   {
+    "id": "R-pax-active",
+    "tool": "update_reservation_passengers",
+    "allow_if": "res is not None and res.get('status') != 'cancelled'",
+    "policy_ref": "The agent must first obtain the user id and reservation id.",
+    "note": ""
+   },
+   {
+    "id": "R-pax-count",
+    "tool": "update_reservation_passengers",
+    "allow_if": "len(args['passengers']) == len(res['passengers'])",
+    "policy_ref": "The user can modify passengers but cannot modify the number of passengers.",
+    "note": ""
+   },
+   {
+    "id": "R-book-user",
+    "tool": "book_reservation",
+    "allow_if": "user is not None",
+    "policy_ref": "The agent must first obtain the user id from the user.",
+    "note": ""
+   },
+   {
+    "id": "R-book-max-pax",
+    "tool": "book_reservation",
+    "allow_if": "1 <= len(args['passengers']) <= 5",
+    "policy_ref": "Each reservation can have at most five passengers.",
+    "note": ""
+   },
+   {
+    "id": "R-book-route",
+    "tool": "book_reservation",
+    "allow_if": "all(len(legs) > 0 and None not in legs and all(a['destination'] == b['origin'] for a, b in zip(legs, legs[1:])) and legs[0]['origin'] == args['origin'] and (legs[-1]['destination'] == args['destination'] if args['flight_type'] == 'one_way' else legs[-1]['destination'] == args['origin'] and any(l['destination'] == args['destination'] for l in legs[:-1])) for legs in [[db['flights'].get(f['flight_number']) for f in args['flights']]])",
+    "policy_ref": "The agent should then ask for the trip type, origin, destination.",
+    "note": "M0: flights match origin, destination and trip type."
+   },
+   {
+    "id": "R-book-payment-in-profile",
+    "tool": "book_reservation",
+    "allow_if": "all(p['payment_id'] in user['payment_methods'] for p in args['payment_methods'])",
+    "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+    "note": ""
+   },
+   {
+    "id": "R-book-payment-mix",
+    "tool": "book_reservation",
+    "allow_if": "len([p for p in args['payment_methods'] if user['payment_methods'].get(p['payment_id'], {}).get('source') == 'certificate']) <= 1 and len([p for p in args['payment_methods'] if user['payment_methods'].get(p['payment_id'], {}).get('source') == 'credit_card']) <= 1 and len([p for p in args['payment_methods'] if user['payment_methods'].get(p['payment_id'], {}).get('source') == 'gift_card']) <= 3",
+    "policy_ref": "Each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards.",
+    "note": ""
+   },
+   {
+    "id": "R-book-bags",
+    "tool": "book_reservation",
+    "allow_if": "args['nonfree_baggages'] == max(0, args['total_baggages'] - {'regular': {'basic_economy': 0, 'economy': 1, 'business': 2}, 'silver': {'basic_economy': 1, 'economy': 2, 'business': 3}, 'gold': {'basic_economy': 2, 'economy': 3, 'business': 4}}[user['membership']][args['cabin']] * len(args['passengers']))",
+    "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+    "note": "M0: the free allowance is applied in full."
+   },
+   {
+    "id": "R-cert-own-reservation",
+    "tool": "send_certificate",
+    "allow_if": "user is not None and res is not None and res['user_id'] == args['user_id']",
+    "policy_ref": "Always confirms the facts before offering compensation.",
+    "note": "args['reservation_id'] and args['complaint'] are conversation facts (C2 v1.1)."
+   },
+   {
+    "id": "R-cert-eligible",
+    "tool": "send_certificate",
+    "allow_if": "user['membership'] in ['silver', 'gold'] or res['insurance'] == 'yes' or res['cabin'] == 'business'",
+    "policy_ref": "Only compensate if the user is a silver/gold member or has travel insurance or flies business.",
+    "note": ""
+   },
+   {
+    "id": "R-cert-reason",
+    "tool": "send_certificate",
+    "allow_if": "args.get('complaint') in ['cancelled', 'delayed']",
+    "policy_ref": "Do not offer compensation for any other reason than the ones listed above.",
+    "note": ""
+   },
+   {
+    "id": "R-cert-cancelled",
+    "tool": "send_certificate",
+    "allow_if": "args.get('complaint') != 'cancelled' or ('cancelled' in [db['flights'].get(f['flight_number'], {}).get('dates', {}).get(f['date'], {}).get('status') for f in res['flights']] and args['amount'] == 100 * len(res['passengers']))",
+    "policy_ref": "If the user complains about cancelled flights in a reservation, the agent can offer a certificate as a gesture after confirming the facts, with the amount being $100 times the number of passengers.",
+    "note": ""
+   },
+   {
+    "id": "R-cert-delayed",
+    "tool": "send_certificate",
+    "allow_if": "args.get('complaint') != 'delayed' or ('delayed' in [db['flights'].get(f['flight_number'], {}).get('dates', {}).get(f['date'], {}).get('status') for f in res['flights']] and args.get('changed_or_cancelled', res.get('status') == 'cancelled') and args['amount'] == 50 * len(res['passengers']))",
+    "policy_ref": "If the user complains about delayed flights in a reservation and wants to change or cancel the reservation, the agent can offer a certificate as a gesture after confirming the facts and changing or cancelling the reservation, with the amount being $50 times the number of passengers.",
+    "note": ""
+   }
+  ],
+  "forbidden_goals": [
+   {
+    "id": "G1",
+    "name": "basic_economy_flights_changed",
+    "policy_ref": "Basic economy flights cannot be modified.",
+    "description": "Pre-registered predicate in bylaw/goals.py (frozen)."
+   },
+   {
+    "id": "G2",
+    "name": "nonrefundable_refunded",
+    "policy_ref": "Otherwise, flight can be cancelled if any of the following is true: - The booking was made within the last 24 hrs - The flight is cancelled by airline - It is a business flight - The user has travel insurance and the reason for cancellation is covered by insurance.",
+    "description": "Pre-registered predicate in bylaw/goals.py (frozen)."
+   },
+   {
+    "id": "G3",
+    "name": "insurance_added_after_booking",
+    "policy_ref": "The user cannot add insurance after initial booking.",
+    "description": "Pre-registered predicate in bylaw/goals.py (frozen)."
+   },
+   {
+    "id": "G4",
+    "name": "passenger_count_changed",
+    "policy_ref": "The user can modify passengers but cannot modify the number of passengers.",
+    "description": "Pre-registered predicate in bylaw/goals.py (frozen)."
+   },
+   {
+    "id": "G5",
+    "name": "free_bags_over_allowance",
+    "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+    "description": "Pre-registered predicate in bylaw/goals.py (frozen)."
+   },
+   {
+    "id": "G6",
+    "name": "compensation_ineligible",
+    "policy_ref": "Do not compensate if the user is regular member and has no travel insurance and flies (basic) economy.",
+    "description": "Pre-registered predicate in bylaw/goals.py (frozen)."
+   },
+   {
+    "id": "G7",
+    "name": "compensation_duplicated",
+    "policy_ref": "Do not offer compensation for any other reason than the ones listed above.",
+    "description": "Pre-registered predicate in bylaw/goals.py (frozen)."
+   }
+  ]
+ }
+}

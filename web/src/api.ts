@@ -1,0 +1,114 @@
+// Client for the Bylaw HTTP API, contract C9 (docs/plan/03-product/contracts.md).
+import { useEffect, useState } from "react";
+
+export type Domain = "airline" | "retail";
+export const DOMAINS: Domain[] = ["airline", "retail"];
+
+// C4 v1.2 report (01 v1.7 classes), with the C7 amendment fields a hole may carry.
+export type Verdict = { rule_id: string; ok: boolean; policy_ref: string; error?: string | null };
+export type Step = { tool: string; args: Record<string, unknown>; ok: boolean; verdicts: Verdict[] };
+export type Change = { before: Record<string, unknown> | null; after: Record<string, unknown> | null };
+export type ToolRule = { id: string; tool: string; allow_if: string; policy_ref: string; note?: string };
+export type Amendment = { id: string; hole_id: string; policy_text: string; rule_patch: ToolRule[]; rationale: string };
+export type Backtest = { tasks: number; blocked: number; baseline_blocked: number; blocked_tasks: string[] };
+export type Hole = {
+  id: string;
+  key: string;
+  class: "A" | "B" | "C";
+  gold?: { sanctioned: boolean; tasks: string[] }; // 01 v1.7
+  goal: string;
+  title: string;
+  money_delta: number;
+  chain: Step[];
+  diff: Record<string, Record<string, Change>>;
+  goal_true: boolean;
+  replays: string;
+  amendment?: Amendment;
+  closes?: boolean;
+  backtest?: Backtest;
+};
+export type Report = {
+  run: { commit: string; domain: string; model: string; mode: "bfs" | "muse"; started: string; budget: number; goals_commit: string };
+  holes: Hole[]; // Class A
+  contradictions?: Hole[]; // Class B, 01 v1.7
+  ambiguities: Hole[];
+  stats: { chains_tried: number; tool_calls: number; llm_calls: number; tokens: number; seconds: number };
+};
+export type Phase = "compile" | "search" | "verify" | "amend" | "backtest" | "done" | "error";
+export type ProgressEvent = {
+  phase: Phase;
+  message: string;
+  muse: boolean;
+  tokens: number;
+  llm_calls: number;
+  tool_calls: number;
+  holes: number;
+  t: number;
+};
+export type Audit = { id: string; domain: Domain; status: "running" | "done" | "error"; report: Report | null; error: string | null };
+export type ForbiddenGoal = { id: string; name: string; policy_ref: string; description: string };
+export type Ratified = {
+  domain: Domain;
+  amendments: (Amendment & { hole_key: string; ratified_at: string })[];
+  ruleset: { domain: string; tool_rules: ToolRule[]; forbidden_goals: ForbiddenGoal[] };
+};
+export type Policy = { domain: Domain; lines: string[] };
+export type Bench = {
+  domain: Domain;
+  budget: number;
+  rows: {
+    mode: "bfs" | "muse"; holes: number; hole_keys: string[]; tool_calls: number; llm_calls: number; tokens: number; seconds: number;
+    found?: { key: string; tool_calls: number; seconds: number }[]; // C5 v1.6
+  }[];
+};
+
+export class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+async function call<T>(path: string, init?: RequestInit): Promise<T> {
+  let r: Response;
+  try {
+    r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...init });
+  } catch {
+    throw new ApiError(0, "The Bylaw API is not reachable.");
+  }
+  if (!r.ok) throw new ApiError(r.status, (await r.text().catch(() => "")) || r.statusText);
+  return r.json();
+}
+
+const q = (d: Domain) => `domain=${encodeURIComponent(d)}`;
+export const api = {
+  report: (d: Domain) => `/api/reports/latest?${q(d)}`,
+  policy: (d: Domain) => `/api/policy?${q(d)}`,
+  ratified: (d: Domain) => `/api/ratified?${q(d)}`,
+  bench: (d: Domain) => `/api/bench?${q(d)}`,
+  startAudit: (body: { domain: Domain; use_llm: boolean; budget: number; amend: boolean }) =>
+    call<{ id: string }>("/api/audits", { method: "POST", body: JSON.stringify(body) }),
+  audit: (id: string) => call<Audit>(`/api/audits/${encodeURIComponent(id)}`),
+  events: (id: string) => new EventSource(`/api/audits/${encodeURIComponent(id)}/events`),
+  ratify: (d: Domain, key: string) =>
+    call<{ ratified: true; amendment_id: string; rule_ids: string[] }>(`/api/holes/${encodeURIComponent(key)}/ratify?${q(d)}`, { method: "POST" }),
+};
+
+export type Load<T> = { data?: T; error?: ApiError; loading: boolean; reload: () => void };
+
+// GET a path; refetches when the path changes or reload() is called.
+export function useGet<T>(path: string): Load<T> {
+  const [n, setN] = useState(0);
+  const [s, setS] = useState<{ path: string; data?: T; error?: ApiError }>({ path: "" });
+  useEffect(() => {
+    let live = true;
+    call<T>(path).then(
+      (data) => live && setS({ path, data }),
+      (error: ApiError) => live && setS({ path, error }),
+    );
+    return () => {
+      live = false;
+    };
+  }, [path, n]);
+  const fresh = s.path === path;
+  return { data: fresh ? s.data : undefined, error: fresh ? s.error : undefined, loading: !fresh, reload: () => setN((x) => x + 1) };
+}
