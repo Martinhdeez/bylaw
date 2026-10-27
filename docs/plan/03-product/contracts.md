@@ -36,3 +36,8 @@ Run: `uv run uvicorn bylaw.api:app`. All JSON. Domain is `airline` | `retail`.
 - **Store locations, overridable, read on every request:** reports dir = env `BYLAW_REPORTS_DIR` (default `reports/` at the repo root); API-run audits dir = env `BYLAW_CACHE_DIR` (default `.cache/reports/`); ratified dir = env `BYLAW_RATIFIED_DIR` (default `ratified/` at the repo root — not `bylaw/ratified/`, which would clash with the module `bylaw/ratified.py`). "Latest" for a domain = the newest file by mtime among `<reports>/<domain>.json` and `<cache>/<domain>-*.json`; no in-memory latest.
 - **Ratify an unknown hole key:** 404. No amendment: 409 (as before).
 - Relative default paths resolve from the repo root (the parent of the `bylaw/` package), not the working directory.
+
+## v1.2 (2026-10-27, from UI2 asks), binding on AP1 and UI2
+
+- `GET /api/holes/{key}` also finds Class C entries (`ambiguities`); the object carries its `class`.
+- An audit with `use_llm=false` drafts no amendments (amend needs Muse); its holes have no `amendment`, and ratify on them gives 409. The Playwright smoke ratifies on a stored report with amendments (the test places it in its own `BYLAW_REPORTS_DIR` with a newer mtime after the offline audit run), not on the offline audit result.
