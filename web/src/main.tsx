@@ -120,7 +120,9 @@ function App() {
             <div className="meter" aria-label={`Muse Spark usage in the latest ${domain} report`}>
               <span className="k">Muse Spark tokens</span>
               <Ticker className="v" value={r.stats.tokens} />
-              <span className="s">{r.stats.llm_calls ? `${r.stats.llm_calls} calls, ${r.run.model || "muse"}` : "offline run, no Muse calls"}</span>
+              <span className="s">
+                {r.run.mode === "bfs-fallback" ? "Muse unavailable, ran offline" : r.stats.llm_calls ? `${r.stats.llm_calls} calls${r.run.model ? `, ${r.run.model}` : ""}` : "offline run, no Muse calls"}
+              </span>
             </div>
           )}
           <span className="source" data-testid="data-source">

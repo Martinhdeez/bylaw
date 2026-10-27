@@ -643,3 +643,5 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .blocked { display: flex; gap: 8px; align-items: baseline; color: var(--ink) !important; background: var(--red-soft); border: 1px solid var(--red-edge); border-radius: 8px; padding: 8px 12px; }
 .source span { overflow-wrap: anywhere; }
 .diffdoc ins { text-decoration-color: var(--green-ink); }
+.notice.warn { border-color: var(--amber-edge); background: var(--amber-soft); }
+.notice.warn > svg { color: var(--amber); }

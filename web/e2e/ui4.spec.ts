@@ -15,6 +15,20 @@ test.beforeEach(async ({ page }) => {
   await mockApi(page);
 });
 
+// Routes registered later win, so this report replaces the stored one from beforeEach.
+test("bfs-fallback reads as an offline run with Muse unavailable (01 v1.9)", async ({ page }) => {
+  await mockApi(page, { fallback: true });
+  await page.goto("/#/airline/report");
+  await expect(page.getByTestId("muse-unavailable")).toContainText("Muse unavailable");
+  await expect(page.getByText("Offline run: hand RuleSet, blind BFS")).toBeVisible();
+  await expect(page.getByText("Rules compiled by Muse Spark")).toHaveCount(0);
+  await expect(page.locator(".summary")).not.toContainText("model");
+  await expect(page.locator(".meter")).toContainText("Muse unavailable");
+  await page.locator(".instances a").first().click();
+  await expect(page.getByTestId("outcome")).toBeVisible();
+  await expect(page.getByText("Hand RuleSet", { exact: true })).toBeVisible();
+});
+
 test("ratify lands the stamp once, and the record keeps it", async ({ page }) => {
   await page.goto((await firstFinding(page)) + "/amendment");
   await expect(page.getByTestId("stamp")).toHaveCount(0);

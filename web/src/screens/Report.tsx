@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { ArrowRight, FileSearch, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, FileSearch, ShieldCheck } from "lucide-react";
 import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Load, type Ratified, type Report } from "../api";
 import { Crumbs, Failure, Loading, Muse, Ticker, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
 
@@ -58,11 +58,21 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
         </div>
       </div>
 
+      {run.mode === "bfs-fallback" && (
+        <div className="notice warn" role="note" data-testid="muse-unavailable">
+          <AlertTriangle aria-hidden="true" />
+          <div>
+            <b>Muse unavailable.</b>
+            <p>This audit asked for Muse Spark, but {stats.llm_calls === 1 ? "its one call" : `all ${int(stats.llm_calls)} calls`} failed{stats.llm_errors ? ` (${int(stats.llm_errors)} errors)` : ""}, so it ran offline: the hand RuleSet and blind BFS. Check the Meta Model API and run the audit again for Muse-guided results.</p>
+          </div>
+        </div>
+      )}
+
       <div className="summary">
         <div className="panel stat">
           <span className="label">Run</span>
           <span className="mono" style={{ fontSize: 13 }}>{when(run.started)}{run.commit && `, ${run.commit.slice(0, 7)}`}</span>
-          <span className="s">mode {run.mode}{run.model && `, model ${run.model}`}, {int(stats.tokens)} tokens</span>
+          <span className="s">mode {run.mode}{run.model ? `, model ${run.model}` : ""}{run.effort ? `, effort ${run.effort}` : ""}, {int(stats.tokens)} tokens</span>
         </div>
         <div className="panel stat"><span className="label">Class A holes</span><Ticker className={`v ${holes.length ? "r" : ""}`} value={holes.length} /><span className="s">{goalCount} forbidden {goalCount === 1 ? "goal" : "goals"} reached</span></div>
         <div className="panel stat"><span className="label">Policy vs practice</span><Ticker className={`v ${contradictions.length ? "b" : ""}`} value={contradictions.length} /><span className="s">class B, gold tasks do it too</span></div>
