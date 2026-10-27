@@ -12,19 +12,19 @@ const fx = (name: string) => JSON.parse(readFileSync(new URL(`./fixtures/${name}
 const allowance = "{'basic_economy': [0, 1, 2], 'economy': [1, 2, 3], 'business': [2, 3, 4]}[args['cabin']][{'regular': 0, 'silver': 1, 'gold': 2}[user['membership']]]";
 const AMENDMENTS: Record<string, object> = {
   G5: {
-    policy_text: "A cabin change recomputes the free bag allowance; bags above the new allowance are charged at 50 dollars each.",
+    policy_text: "Placeholder: A cabin change recomputes the free bag allowance; bags above the new allowance are charged at 50 dollars each.",
     rule_patch: [{ id: "R-flights-bags-allowance", tool: "update_reservation_flights", allow_if: `res['total_baggages'] - res['nonfree_baggages'] <= ${allowance} * len(res['passengers'])`, policy_ref: "A cabin change recomputes the free bag allowance.", note: "" }],
-    rationale: "Downgrading after bags were added keeps free bags the new cabin does not include.",
+    rationale: "Placeholder: Downgrading after bags were added keeps free bags the new cabin does not include.",
   },
   G1: {
-    policy_text: "A cabin change does not unlock flight changes: a reservation booked in basic economy keeps that fare's rules.",
+    policy_text: "Placeholder: A cabin change does not unlock flight changes: a reservation booked in basic economy keeps that fare's rules.",
     rule_patch: [{ id: "R-flights-booked-basic", tool: "update_reservation_flights", allow_if: "res.get('booked_cabin', res['cabin']) != 'basic_economy' or args['flights'] == [{'flight_number': f['flight_number'], 'date': f['date']} for f in res['flights']]", policy_ref: "A cabin change does not unlock flight changes.", note: "" }],
-    rationale: "Upgrading to economy, moving the flights and downgrading again modifies a basic economy itinerary.",
+    rationale: "Placeholder: Upgrading to economy, moving the flights and downgrading again modifies a basic economy itinerary.",
   },
   G2: {
-    policy_text: "A business cancellation ground applies only to reservations booked in business; an upgrade refunds only the upgrade difference.",
+    policy_text: "Placeholder: A business cancellation ground applies only to reservations booked in business; an upgrade refunds only the upgrade difference.",
     rule_patch: [{ id: "R-cancel-booked-business", tool: "cancel_reservation", allow_if: "res.get('booked_cabin', res['cabin']) == 'business' or hours_between(res['created_at'], now) <= 24 or res['insurance'] == 'yes'", policy_ref: "A business cancellation ground applies only to reservations booked in business.", note: "" }],
-    rationale: "An upgrade to business followed by a cancellation refunds a non-refundable fare.",
+    rationale: "Placeholder: An upgrade to business followed by a cancellation refunds a non-refundable fare.",
   },
 };
 
@@ -45,10 +45,7 @@ export function withAmendments(report: any) {
     const a = AMENDMENTS[h.goal];
     if (!a) continue;
     h.amendment = { id: `A${++n}`, hole_id: h.id, ...a };
-    h.closes = true;
-    // A Class B rule blocks the gold tasks that take the chain: that is the trade-off the human ratifies.
-    const blocked = h.class === "B" ? h.gold.tasks : [];
-    h.backtest = { tasks: 43, blocked: blocked.length, baseline_blocked: 0, blocked_tasks: blocked };
+    // No closes/backtest: hand-written placeholders, so the UI shows "not backtested" (real ones come with DM1).
   }
   return report;
 }

@@ -61,11 +61,11 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
           <h1 className="title">{done ? <>Hole {h.id} <span className="g">closed</span></> : <>Amendment {a.id} for {h.id}</>}</h1>
           <p className="lede">
             {isB
-              ? `This finding is a contradiction: the policy text forbids ${name.toLowerCase()}, but ${goldLine(goldTasks, "the benchmark's gold does it in").slice(0, -1)}. Ratifying the rule makes the written policy win over practice; the backtest shows the gold tasks that decision blocks.`
+              ? `This finding is a contradiction: the policy text forbids ${name.toLowerCase()}, but ${goldLine(goldTasks, "the benchmark's gold does it in").slice(0, -1)}. Ratifying the rule makes the written policy win over practice${bt ? "; the backtest shows the gold tasks that decision blocks" : ""}.`
               : `A sentence for the policy and the rule that enforces it, so that the trace for ${name.toLowerCase()} no longer passes. Past gold tasks were replayed to count the honest customers it would also stop.`}
           </p>
         </div>
-        <Muse>Drafted by Muse Spark · max reasoning</Muse>
+        <Muse>Drafted by Muse Spark · high reasoning</Muse>
       </div>
 
       <div className="amend">
@@ -92,8 +92,8 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
         <aside className="side">
           <div className="metrics">
             <div className="metric"><span>gold tasks replayed</span><b>{bt ? int(bt.tasks) : "—"}</b></div>
-            <div className="metric"><span>{isB ? "gold tasks blocked" : "honest customers blocked"}</span><b className={newlyBlocked ? "w" : "g"}>{bt ? int(newlyBlocked) : "—"}</b>{bt && bt.baseline_blocked > 0 && <span>{bt.baseline_blocked} already blocked before</span>}</div>
-            <div className="metric"><span>{isB ? "stops the chain" : "closes the hole"}</span><b className={h.closes ? "g" : "w"}>{h.closes === undefined ? "—" : h.closes ? "yes" : "no"}</b></div>
+            <div className="metric"><span>{isB ? "gold tasks blocked" : "honest customers blocked"}</span><b className={!bt ? "" : newlyBlocked ? "w" : "g"}>{bt ? int(newlyBlocked) : "—"}</b>{bt && bt.baseline_blocked > 0 && <span>{bt.baseline_blocked} already blocked before</span>}</div>
+            <div className="metric"><span>{isB ? "stops the chain" : "closes the hole"}</span><b className={h.closes === undefined ? "" : h.closes ? "g" : "w"}>{h.closes === undefined ? "—" : h.closes ? "yes" : "no"}</b></div>
             <div className="metric"><span>rules added</span><b>{a.rule_patch.length}</b></div>
           </div>
 
@@ -120,10 +120,9 @@ export function AmendmentView({ domain, hkey }: { domain: Domain; hkey: string }
                   <b>Trade-off.</b> {goldLine(goldTasks)} Ratifying forbids it from now on{bt && bt.blocked_tasks.length ? `, and the proxy will refuse gold task${bt.blocked_tasks.length > 1 ? "s" : ""} ${bt.blocked_tasks.join(", ")}` : ""}. Ratify only if the written policy should win.
                 </p>
               )}
-              {!isB && <p>
-                {!bt
-                  ? "This amendment was not backtested. Ratify only after reading the rule."
-                  : newlyBlocked === 0
+              {!bt && <p>This amendment was not backtested. Ratify only after reading the rule.</p>}
+              {!isB && bt && <p>
+                {newlyBlocked === 0
                     ? `None of the ${bt.tasks} gold tasks is newly blocked. Ratifying adds the rule to the proxy, which refuses matching tool calls from now on.`
                     : `${newlyBlocked} of ${bt.tasks} gold tasks would be newly blocked. Read them before you ratify.`}
               </p>}

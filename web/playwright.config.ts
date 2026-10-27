@@ -27,6 +27,7 @@ const uvicorn = {
 
 export default defineConfig({
   testDir: "e2e",
+  workers: 1, // the specs share one set of API stores
   timeout: mock ? 30_000 : 600_000,
   use: { baseURL: "http://localhost:5173", channel: "chrome", trace: "retain-on-failure" },
   webServer: mock ? [vite] : [uvicorn, vite],

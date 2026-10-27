@@ -20,7 +20,7 @@ const PHASES: { key: Phase; label: string; detail: string; effort: string }[] = 
   { key: "compile", label: "Compiling policy", detail: "policy text → tool rules and forbidden goals", effort: "high reasoning" },
   { key: "search", label: "Searching", detail: "chains of allowed write calls, depth ≤ 4", effort: "high reasoning" },
   { key: "verify", label: "Verifying", detail: "every hit replayed 5 times on a fresh DB", effort: "" },
-  { key: "amend", label: "Amending", detail: "one policy sentence and a rule patch per hole", effort: "max reasoning" },
+  { key: "amend", label: "Amending", detail: "one policy sentence and a rule patch per hole", effort: "high reasoning" },
   { key: "backtest", label: "Backtesting", detail: "gold tasks replayed through the patched rules", effort: "" },
 ];
 
