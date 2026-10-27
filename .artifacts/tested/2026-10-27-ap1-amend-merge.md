@@ -48,3 +48,12 @@
 
 - No live Muse run.
 - Ratified stores written before v1.3 keep their un-namespaced ids. None are committed.
+
+## Review (PR #14)
+
+- Gate GREEN at 3af1243: 315 passed. This includes `tests/acceptance` and `test_iter02_amend.py`.
+- Mutations on `tests/test_ratified.py` and `tests/test_api.py`:
+  - No namespace: 5 tests red.
+  - Namespacing by amendment id instead of hole key: 5 tests red.
+  - Dropping the apply pre-check in `ratify`: 1 test red.
+  - Replacing `amend.closes` in `bylaw/api.py` with the chain-only `amend.blocked`: no test goes red. The Muse API test's patch blocks every flight update, so both give `closes: true`. This is a follow-up: add an API case whose patch blocks the chain but leaves another hole for the goal. `amend.closes` itself is covered by `tests/test_amend.py`.
