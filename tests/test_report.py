@@ -99,3 +99,17 @@ def _only(rid, depths=(1, 2)):
     db = DOMAIN.snapshot(DOMAIN.fresh_env())
     for depth in depths:
         yield from proposer._chains(db, rid, proposer._state(db, rid), depth, None)
+
+
+def test_run_block_names_the_commit_and_the_goals_commit(report):
+    import re
+    import subprocess
+
+    def git(*a):
+        return subprocess.run(["git", *a], capture_output=True, text=True, check=True).stdout.strip()
+
+    run = report["run"]
+    assert re.fullmatch(r"[0-9a-f]{7,}(-dirty)?", run["commit"]), run["commit"]
+    assert run["commit"].split("-")[0] == git("rev-parse", "--short", "HEAD")
+    assert run["commit"].endswith("-dirty") == bool(git("status", "--porcelain", "--untracked-files=no"))
+    assert run["goals_commit"] == git("log", "-1", "--format=%h", "--", "bylaw/goals.py") != ""

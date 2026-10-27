@@ -72,6 +72,15 @@ def _extends(chain: list[dict], key: str, entries: dict) -> bool:
     return any(e["key"] == key and calls[:len(e["chain"])] == [(s["tool"], s["args"]) for s in e["chain"]] for e in entries.values())
 
 
+GOALS_FILES = {"airline": "bylaw/goals.py", "retail": "bylaw/goals_retail.py"}
+
+
+def _commit() -> str:
+    """Short HEAD, with "-dirty" when tracked files differ from it; "" without git."""
+    head = _git("rev-parse", "--short", "HEAD")
+    return head + "-dirty" if head and _git("status", "--porcelain", "--untracked-files=no") else head
+
+
 def _git(*args) -> str:
     try:
         return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
@@ -117,9 +126,9 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     lists = {cls: [{"id": f"{prefix}{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == cls), 1)]
              for cls, prefix in (("A", "H"), ("B", "B"), ("C", "C"))}
     return {
-        "run": {"commit": _git("rev-parse", "HEAD"), "domain": domain.name, "model": model,
+        "run": {"commit": _commit(), "domain": domain.name, "model": model,
                 "mode": "muse" if use_llm else "bfs", "started": started, "budget": budget,
-                "goals_commit": _git("log", "-1", "--format=%H", "--", "bylaw/goals.py")},
+                "goals_commit": _git("log", "-1", "--format=%h", "--", GOALS_FILES.get(domain.name, ""))},
         "holes": lists["A"], "contradictions": lists["B"], "ambiguities": lists["C"],
         "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": 0, "tokens": 0,
                   "seconds": round(time.monotonic() - t0, 2)},
