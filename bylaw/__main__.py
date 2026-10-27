@@ -27,6 +27,21 @@ def cmd_backtest(a):
     }, indent=2))
 
 
+def cmd_audit(a):
+    from bylaw.domain import get_domain
+    from bylaw.report import audit
+
+    domain = get_domain(a.domain)
+    report = audit(domain, json.loads((HAND_RULESETS / f"{a.domain}.json").read_text()), a.budget, use_llm=not a.no_llm)
+    Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
+    s = report["stats"]
+    print(f"wrote {a.output}: {len(report['holes'])} Class A holes, {len(report['ambiguities'])} ambiguities; "
+          f"{s['chains_tried']} chains, {s['tool_calls']} tool calls, {s['seconds']}s")
+    for e in report["holes"] + report["ambiguities"]:
+        print(f"  {e['id']} {e['class']} {e['key']} replays {e['replays']} money_delta {e['money_delta']} "
+              f"{' -> '.join(st['tool'] for st in e['chain'])}")
+
+
 def cmd_compile(a):
     domain = get_domain(a.domain)
     ruleset = compiler.compile_policy(domain)
@@ -55,6 +70,12 @@ def main(argv=None):
     b.add_argument("--domain", required=True)
     b.add_argument("--ruleset", help="RuleSet JSON to test; default: the hand RuleSet (the baseline)")
     b.set_defaults(fn=cmd_backtest)
+    au = sub.add_parser("audit", help="search, execute and prove policy holes")
+    au.add_argument("--domain", required=True)
+    au.add_argument("--no-llm", action="store_true", help="blind BFS search, no Muse calls")
+    au.add_argument("--budget", type=int, default=2000, help="write tool calls the search may execute")
+    au.add_argument("-o", "--output", default="report.json")
+    au.set_defaults(fn=cmd_audit)
     c = sub.add_parser("compile", help="compile a domain policy into a RuleSet with Muse")
     c.add_argument("--domain", required=True)
     c.add_argument("-o", "--output", required=True)
