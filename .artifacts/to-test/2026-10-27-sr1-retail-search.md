@@ -54,3 +54,9 @@ REQ-SR1-1 requires that `audit --domain retail --no-llm` runs and proves the R6 
 - Muse templates stay airline-only: `search` raises `NotImplementedError` for `use_llm` on retail.
 - Merged into this branch: bylaw/build (via GA1 edd6a66) and the GA1 hit fix 2fa9fac. `search` and `_bfs` dispatch through `DOMAINS`. The old remote head 7c05abc (same SR1 change on an older base) is merged with `-s ours`, so there is no force-push.
 - Retail moves use the first item only and a fixed test address; no move picks a cheaper or dearer variant on purpose.
+
+## Review (reconciliation with TA4)
+
+- Merged bylaw/build after GA1's squash (5bec5b1). The only conflict was SR1's own `_target` in `bylaw/report.py`, which was kept. The stale GA1 to-test note was removed: bylaw/build already moved it to tested/.
+- `tests/acceptance/test_v17_gold.py` and `tests/acceptance/test_iter03_api.py` came in from origin/test/03-product (53e7b22) unchanged, except for one test fault, which the reviewer fixed. The four REQ-AP1-4 ratify tests expected raw rule ids (`A1-basic-cabin-locked`). 03 contracts v1.3 says ratified `rule_patch` ids are namespaced as `<hole_key>/<rule_id>`, and that applies to the ratify response `rule_ids`, the store and the effective ruleset. The tests now compare against `RATIFIED_RULE = {**AMEND_RULE, "id": f"{HOP_KEY}/{AMEND_RULE['id']}"}`. The implementation (`bylaw/ratified.py`) was not changed.
+- With SR1, the three retail REQ-AP1-3 tests pass. On the GA1 base they failed with `NotImplementedError`.
