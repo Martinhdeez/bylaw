@@ -90,7 +90,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     db = domain.snapshot(domain.fresh_env())
     entries, chains_tried, tool_calls = {}, 0, 0
-    asked, billed_from = [], len(muse.CALLS)
+    asked, billed_from, found = [], len(muse.CALLS), {}
 
     def counted(*a, **kw):
         asked.append(1)
@@ -107,11 +107,14 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         target = chain[0]["args"].get("reservation_id") or chain[0]["args"].get("user_id")
         for gid, goal in domain.goals.items():
             key, cls = f"{gid}:{target}", classify(domain, db, gid, chain)
-            if key in entries or not goal.check(before, after, r["results"]):  # one entry per key, shortest chain first
+            # one entry per key, shortest chain first; a Class A proof replaces a Class C one (REQ-PR1-1)
+            if (key in entries and not (cls == "A" and entries[key]["class"] == "C")) or not goal.check(before, after, r["results"]):
                 continue
             replays = prove(domain, ruleset, gid, chain, r["diff"])
             if replays != "5/5":
                 continue  # not reproducible: not a proven hole
+            entries.pop(key, None)
+            found[key] = {"key": key, "tool_calls": tool_calls, "seconds": round(time.monotonic() - t0, 2)}
             entries[key] = {"key": key, "class": cls, "goal": gid,
                             "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
                             "chain": r["steps"], "diff": r["diff"], "goal_true": True, "replays": replays}
@@ -125,5 +128,6 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         "holes": holes, "ambiguities": ambiguities,
         "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": len(asked),
                   "tokens": sum(c["prompt_tokens"] + c["completion_tokens"] for c in muse.CALLS[billed_from:]),
-                  "seconds": round(time.monotonic() - t0, 2)},
+                  "seconds": round(time.monotonic() - t0, 2),
+                  "found": [found[h["key"]] for h in holes]},  # C5 v1.6: when each hole was first proved
     }

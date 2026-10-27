@@ -13,7 +13,7 @@ from itertools import groupby
 
 from bylaw import llm as muse
 from bylaw.goals import allowance
-from bylaw.rules import _compile, _scope, allowed, check
+from bylaw.rules import _compile, _run, _scope, allowed, check
 
 MAX_DEPTH = 4
 CABINS = ("basic_economy", "economy", "business")
@@ -237,7 +237,7 @@ def _ask(domain, ruleset, llm, db, goal) -> dict:
 
 
 def _eval(expr: str, scope: dict):
-    return eval(_compile(expr), dict(scope))  # whitelisted AST (bylaw.rules), no builtins: Muse output is untrusted
+    return _run(_compile(expr), scope)  # the rules evaluator: whitelisted AST, work-bounded (C2 v1.5); Muse output is untrusted
 
 
 def _bind(value, scope):

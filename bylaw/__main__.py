@@ -163,15 +163,18 @@ def cmd_bench(a):
         raise SystemExit(f"unknown mode in --modes {a.modes!r}; known: bfs, muse")
     for mode in modes:
         r = audit(domain, ruleset, a.budget, use_llm=mode == "muse")
+        b = r.get("contradictions", [])  # Class B (C4 v1.7), present once gold adjudication (GA1) lands
         rows.append({"mode": mode, "holes": len(r["holes"]), "hole_keys": [h["key"] for h in r["holes"]],
+                     "contradictions": len(b), "contradiction_keys": [h["key"] for h in b],
                      "ambiguities": len(r["ambiguities"]), "ambiguity_keys": [h["key"] for h in r["ambiguities"]],
-                     **{k: r["stats"][k] for k in ("tool_calls", "llm_calls", "tokens", "seconds")}, "commit": r["run"]["commit"]})
+                     **{k: r["stats"][k] for k in ("tool_calls", "llm_calls", "tokens", "seconds", "found")},
+                     "commit": r["run"]["commit"]})
     Path(a.output).write_text(json.dumps({"domain": a.domain, "budget": a.budget, "rows": rows}, indent=2) + "\n")
-    cols = ("mode", "holes", "ambiguities", "tool_calls", "llm_calls", "tokens", "seconds")
+    cols = ("mode", "holes", "contradictions", "ambiguities", "tool_calls", "llm_calls", "tokens", "seconds")
     print(f"bench {a.domain} budget {a.budget} -> {a.output}")
-    print(" | ".join(f"{c:>11}" for c in cols))
+    print(" | ".join(f"{c:>14}" for c in cols))
     for row in rows:
-        print(" | ".join(f"{row[c]!s:>11}" for c in cols))
+        print(" | ".join(f"{row[c]!s:>14}" for c in cols))
 
 
 def main(argv=None):
