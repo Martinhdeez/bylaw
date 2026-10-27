@@ -179,7 +179,7 @@ def test_muse_audit_with_amend_drafts_backtests_and_counts_llm_calls(monkeypatch
     import bylaw.backtest
     import bylaw.report
 
-    def fake_search(domain, ruleset, budget, use_llm):  # also serves the offline re-audit inside amend.closes
+    def fake_search(domain, ruleset, budget, use_llm, **kw):  # also serves the offline re-audit inside amend.closes
         if use_llm:
             api.llm.USAGE["calls"] += 1
             api.llm.USAGE["prompt_tokens"] += 100

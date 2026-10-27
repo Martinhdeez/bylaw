@@ -167,7 +167,7 @@ def cmd_bench(a):
         rows.append({"mode": mode, "holes": len(r["holes"]), "hole_keys": [h["key"] for h in r["holes"]],
                      "contradictions": len(b), "contradiction_keys": [h["key"] for h in b],
                      "ambiguities": len(r["ambiguities"]), "ambiguity_keys": [h["key"] for h in r["ambiguities"]],
-                     **{k: r["stats"][k] for k in ("tool_calls", "llm_calls", "tokens", "seconds", "found")},
+                     **{k: r["stats"][k] for k in ("tool_calls", "llm_calls", "llm_errors", "tokens", "seconds", "found")},
                      "commit": r["run"]["commit"]})
     Path(a.output).write_text(json.dumps({"domain": a.domain, "budget": a.budget, "rows": rows}, indent=2) + "\n")
     cols = ("mode", "holes", "contradictions", "ambiguities", "tool_calls", "llm_calls", "tokens", "seconds")

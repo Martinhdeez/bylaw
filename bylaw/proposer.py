@@ -35,16 +35,26 @@ def search(domain, ruleset: dict, budget: int, use_llm: bool, llm=None):
         templates = _muse_chains(domain, ruleset, llm or muse.structured)
         chain = next(templates, None)
         while chain is not None and spent + len(chain) <= budget * MUSE_SHARE:
-            spent += len(chain)
             seen.add(json.dumps(chain, sort_keys=True, default=str))
-            found = yield chain  # the caller may send back whether the chain found a hole
-            chain = _send(templates, found)
-    for chain in _bfs(domain, budget - spent):
+            executed, hit = _cost(chain, (yield chain))
+            spent += executed
+            chain = _send(templates, hit)
+    bfs = _bfs(domain, budget - spent)
+    chain = next(bfs, None)
+    while chain is not None:
+        feedback = (0, None)  # a chain Muse already proposed is skipped: it costs nothing
         if json.dumps(chain, sort_keys=True, default=str) not in seen:
-            yield chain
+            feedback = _cost(chain, (yield chain))
+        chain = _send(bfs, feedback)
+
+
+def _cost(chain, feedback) -> tuple[int, bool | None]:
+    """C6 v1.8: the caller sends (executed write steps, hit). Without feedback a chain costs its length."""
+    return (len(chain), None) if feedback is None else feedback
 
 
 def _bfs(domain, budget: int):
+    """Sent (executed, hit) after each chain; charged with executed. Never yields a chain that could overrun."""
     db = domain.snapshot(domain.fresh_env())
     spent = 0
     pool = _pool(domain, db)
@@ -55,8 +65,7 @@ def _bfs(domain, budget: int):
                 for chain in _chains(db, rid, _state(db, rid), depth, None):
                     if spent + len(chain) > budget:
                         return
-                    spent += len(chain)
-                    yield chain
+                    spent += (yield chain)[0]
 
 
 def _pool(domain, db) -> list[list[str]]:
@@ -275,8 +284,14 @@ def _muse_chains(domain, ruleset, llm):
     """Muse templates for every goal (asked in parallel), bound to targets, round-robin over the templates."""
     db = domain.snapshot(domain.fresh_env())
     goals = [domain.goals[g] for g in sorted(domain.goals)]
+    def ask(goal):
+        try:
+            return _ask(domain, ruleset, llm, db, goal)
+        except Exception:  # C6 v1.8: a failed call leaves this goal to the BFS; the caller's llm wrapper counts it
+            return {"templates": []}
+
     with ThreadPoolExecutor(len(goals)) as ex:
-        replies = list(ex.map(lambda g: _ask(domain, ruleset, llm, db, g), goals))
+        replies = list(ex.map(ask, goals))
     per_goal = [[_instances(domain, ruleset, db, t, domain.targets(g.id)) for t in r.get("templates", [])]
                 for g, r in zip(goals, replies)]
     live = [[ts[i], 0, 0] for i in range(max(map(len, per_goal), default=0)) for ts in per_goal if i < len(ts)]

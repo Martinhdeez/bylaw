@@ -71,16 +71,17 @@ def _git(*args) -> str:
         return ""
 
 
-def _steered(search_gen, entries: dict):
-    """Yields the search's chains and sends back, after each one is tried, whether it added a proven entry."""
-    n, found = len(entries), None
+def _steered(search_gen, entries: dict, tool_calls):
+    """Yields the search's chains and, after each one is tried, sends back the C6 v1.8 feedback
+    (write steps it executed, whether it added a proven entry). `tool_calls()` is the running total."""
+    n, done, feedback = len(entries), tool_calls(), None
     while True:
         try:
-            proposal = search_gen.send(found)
+            proposal = search_gen.send(feedback)
         except StopIteration:
             return
         yield proposal
-        found, n = len(entries) > n, len(entries)
+        feedback, n, done = (tool_calls() - done, len(entries) > n), len(entries), tool_calls()
 
 
 def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, model: str = "", llm=None) -> dict:
@@ -90,13 +91,18 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     db = domain.snapshot(domain.fresh_env())
     entries, chains_tried, tool_calls = {}, 0, 0
-    asked, billed_from, found = [], len(muse.CALLS), {}
+    asked, errors, billed_from, found = [], [], len(muse.CALLS), {}
 
     def counted(*a, **kw):
         asked.append(1)
-        return (llm or muse.structured)(*a, **kw)
+        try:
+            return (llm or muse.structured)(*a, **kw)
+        except Exception:
+            errors.append(1)  # the search leaves that goal to the BFS (C6 v1.8)
+            raise
 
-    for proposal in _steered(search(domain, ruleset, budget, use_llm, llm=counted), entries):
+    gen = search(domain, ruleset, budget, use_llm, llm=counted) if use_llm else search(domain, ruleset, budget, use_llm)
+    for proposal in _steered(gen, entries, lambda: tool_calls):
         chain = [{"tool": t, "args": a} for t, a in proposal]
         r = run(domain, chain, ruleset)
         chains_tried += 1
@@ -125,6 +131,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
                 "goals_commit": _git("log", "-1", "--format=%H", "--", "bylaw/goals.py")},
         "holes": holes, "ambiguities": ambiguities,
         "stats": {"chains_tried": chains_tried, "tool_calls": tool_calls, "llm_calls": len(asked),
+                  "llm_errors": len(errors),
                   "tokens": sum(c["prompt_tokens"] + c["completion_tokens"] for c in muse.CALLS[billed_from:]),
                   "seconds": round(time.monotonic() - t0, 2),
                   "found": [found[h["key"]] for h in holes]},  # C5 v1.6: when each hole was first proved

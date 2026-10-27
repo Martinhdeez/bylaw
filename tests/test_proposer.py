@@ -102,7 +102,10 @@ def test_malformed_templates_are_ignored():
            {"rationale": "", "where": "True", "steps": [{"tool": "get_user_details", "args_json": "{}"}]},
            {"rationale": "", "where": "True", "steps": [_cert()] * 5},
            {"rationale": "", "where": "__import__('os')", "steps": [_cert()]},
-           {"rationale": "", "where": "res['no_such_field']", "steps": [_cert()]}]
+           {"rationale": "", "where": "res['no_such_field']", "steps": [_cert()]},
+           # plain eval would accept these; the bounded rules evaluator must reject them (untrusted Muse output)
+           {"rationale": "", "where": "9 ** 2 > 0 and " + DELAYED, "steps": [_cert()]},
+           {"rationale": "", "where": "res.keys() is not None and " + DELAYED, "steps": [_cert()]}]
     chains = list(search(DOMAIN, RULES, 20, use_llm=True, llm=ScriptedMuse({"G7": bad})))
     assert chains == list(search(DOMAIN, RULES, 20, use_llm=False))
 
@@ -112,13 +115,44 @@ def _is_cert(chain):
 
 
 def test_a_template_that_keeps_missing_loses_its_turns_and_one_that_hits_keeps_them():
-    """The caller sends back whether each chain found something; a template that misses is dropped early."""
+    """v1.8: the caller sends back (executed, hit); a template that misses is dropped early."""
     gen = search(DOMAIN, RULES, 40, use_llm=True, llm=ScriptedMuse({"G7": [G7_TWICE]}))
-    missed = [next(gen)] + [gen.send(False) for _ in range(3)]
+    missed = [next(gen)] + [gen.send((2, False)) for _ in range(3)]
     assert [_is_cert(c) for c in missed] == [True, True, False, False]
     gen = search(DOMAIN, RULES, 40, use_llm=True, llm=ScriptedMuse({"G7": [G7_TWICE]}))
-    hit = [next(gen)] + [gen.send(True) for _ in range(3)]
+    hit = [next(gen)] + [gen.send((2, True)) for _ in range(3)]
     assert all(map(_is_cert, hit))
+
+
+@pytest.mark.parametrize("use_llm", [False, True])
+def test_the_budget_is_charged_with_executed_steps_when_the_caller_reports_them(use_llm):
+    """C6 v1.8: a chain blocked at step 1 costs 0; without feedback each chain costs its length."""
+    muse = ScriptedMuse({"G7": [G7_TWICE]})
+    gen = search(DOMAIN, RULES, 2, use_llm=use_llm, llm=muse)
+    blocked = [next(gen)] + [gen.send((0, False)) for _ in range(5)]  # never charged: the search keeps going
+    assert len(blocked) == 6
+    gen = search(DOMAIN, RULES, 2, use_llm=use_llm, llm=muse)
+    first = next(gen)
+    rest = []
+    try:
+        while True:
+            rest.append(gen.send((len(first if not rest else rest[-1]), False)))
+    except StopIteration:
+        pass
+    assert len(first) + sum(map(len, rest)) <= 2
+
+
+def test_a_failed_muse_call_for_one_goal_leaves_the_others_and_the_bfs():
+    """C6 v1.8: an error for one goal never aborts the search."""
+    ok = ScriptedMuse({"G7": [G7_TWICE]})
+
+    def flaky(messages, schema, name, **kw):
+        if json.loads(messages[-1]["content"])["goal"]["id"] == "G1":
+            raise RuntimeError("empty reply from muse-spark-1.3 (finish_reason=length)")
+        return ok(messages, schema, name, **kw)
+
+    chains = list(search(DOMAIN, RULES, 40, use_llm=True, llm=flaky))
+    assert _is_cert(chains[0]) and not all(map(_is_cert, chains))
 
 
 @pytest.mark.live
