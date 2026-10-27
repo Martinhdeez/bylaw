@@ -1,9 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, Check, ChevronLeft, ChevronRight, Play, ShieldCheck, X } from "lucide-react";
-import { api, useGet, type Domain, type Hole, type Policy, type Ratified } from "../api";
-import { Call, Crumbs, Failure, Loading, Muse, changedFields, goldLine, holeHref, humanize, lineOf, quote, usd } from "../ui";
-
-const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Pause, Play, ShieldCheck, X } from "lucide-react";
+import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Policy, type Ratified } from "../api";
+import { Call, Crumbs, Failure, Loading, Muse, Ticker, changedFields, goldLine, holeHref, humanize, lineOf, quote, reduced, usd } from "../ui";
 
 export function HoleView({ domain, hkey, muse }: { domain: Domain; hkey: string; muse: boolean }) {
   const hole = useGet<Hole>(`/api/holes/${encodeURIComponent(hkey)}?domain=${domain}`);
@@ -11,7 +9,7 @@ export function HoleView({ domain, hkey, muse }: { domain: Domain; hkey: string;
   const policy = useGet<Policy>(api.policy(domain));
   const crumbs = <Crumbs items={[["Report", `#/${domain}/report`], [hkey]]} />;
 
-  if (hole.loading) return <div className="page">{crumbs}<Loading what={`hole ${hkey}`} /></div>;
+  if (hole.loading) return <div className="page">{crumbs}<Loading what={`hole ${hkey}`} shape="detail" /></div>;
   if (!hole.data)
     return (
       <div className="page">
@@ -32,13 +30,16 @@ export function HoleView({ domain, hkey, muse }: { domain: Domain; hkey: string;
   return <Trace domain={domain} h={h} goal={goal} isFixed={isFixed} lines={policy.data?.lines} crumbs={crumbs} muse={muse} />;
 }
 
+// The trace is shown as an evidence exhibit: a rail with one node per call, a cursor on the current one,
+// and the forbidden outcome punched like the logo's hole once the last call lands.
 function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
-  domain: Domain; h: Hole; goal?: { id: string; name: string; policy_ref: string; description: string }; isFixed: boolean; lines?: string[]; crumbs: ReactNode; muse: boolean;
+  domain: Domain; h: Hole; goal?: ForbiddenGoal; isFixed: boolean; lines?: string[]; crumbs: ReactNode; muse: boolean;
 }) {
   const n = h.chain.length;
   const [at, setAt] = useState(reduced() ? n : -1);
   const [playing, setPlaying] = useState(!reduced());
   const [open, setOpen] = useState(n - 1);
+  const list = useRef<HTMLOListElement>(null);
   const { name, target } = humanize(h.title, h.key);
   const [ok, total] = h.replays.split("/").map(Number);
 
@@ -52,6 +53,39 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
     setPlaying(false);
     setAt((a) => Math.min(n, Math.max(0, a + d)));
   };
+  const replay = () => {
+    if (reduced()) return setAt(n);
+    setAt(-1);
+    setPlaying(true);
+  };
+  // ←/→ step the trace, unless the keys belong to a field or the ⌘K dialog.
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || (e.target as Element).closest?.("input, textarea, select, dialog")) return;
+      if (e.key === "ArrowRight") step(1);
+      if (e.key === "ArrowLeft") step(-1);
+    };
+    addEventListener("keydown", on);
+    return () => removeEventListener("keydown", on);
+  }, [n]);
+  // Cursor on the current node, fill from the first node to it: one layout read per step or resize.
+  useLayoutEffect(() => {
+    const ol = list.current!;
+    const measure = () => {
+      const nodes = ol.querySelectorAll(".node");
+      const track = ol.querySelector(".track");
+      const node = nodes[Math.min(Math.max(at, 0), n)];
+      if (!node || !track) return;
+      const o = ol.getBoundingClientRect(), t = track.getBoundingClientRect(), r = node.getBoundingClientRect();
+      const mid = r.top + r.height / 2;
+      ol.style.setProperty("--y", `${mid - o.top}px`);
+      ol.style.setProperty("--p", String(at < 0 ? 0 : Math.max(0, Math.min(1, (mid - t.top) / t.height))));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(ol);
+    return () => ro.disconnect();
+  }, [at, open, n]);
 
   return (
     <div className="page">
@@ -67,14 +101,14 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
               : `Each step below passes every rule of the policy. Together they reach goal ${h.goal}, an outcome the policy forbids.`}
           </p>
         </div>
-        <div className="replay-ctl">
-          {h.class === "B" && <span className="tag amber">Class B · contradiction</span>}
+        <div className="ctl">
+          {h.class === "B" && <span className="tag amber">Class B, contradiction</span>}
           {isFixed ? (
-            <span className="tag green"><ShieldCheck size={13} aria-hidden="true" />Fixed and enforced</span>
+            <span className="tag green"><ShieldCheck aria-hidden="true" />Fixed and enforced</span>
           ) : h.amendment ? (
-            <a className="btn primary" href={holeHref(domain, h.key, "/amendment")}>Review amendment <ArrowRight size={16} aria-hidden="true" /></a>
+            <a className="btn primary" href={holeHref(domain, h.key, "/amendment")}>Review amendment<span className="ic"><ArrowRight aria-hidden="true" /></span></a>
           ) : (
-            <span className="tag">{h.class === "C" ? "Class C · listed for review" : "No amendment drafted"}</span>
+            <span className="tag">{h.class === "C" ? "Class C, listed for review" : "No amendment drafted"}</span>
           )}
         </div>
       </div>
@@ -82,43 +116,51 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
       <div className="detail">
         <section className="panel" aria-labelledby="trace-h">
           <div className="panel-h">
-            <h2 id="trace-h">Trace replay <span className="label">step {Math.max(0, Math.min(at, n))} of {n}</span></h2>
-            <div className="replay-ctl">
+            <h2 id="trace-h">
+              <span className="exhibit">Exhibit {h.id}</span>Trace replay
+              <span className="segs" role="img" aria-label={`step ${Math.max(0, Math.min(at, n))} of ${n}`}>
+                {Array.from({ length: n + 1 }, (_, i) => <i key={i} className={i < at ? "on" : i === at ? "cur" : ""} />)}
+              </span>
+            </h2>
+            <div className="ctl">
               {muse ? <Muse>Rules compiled by Muse Spark</Muse> : <span className="tag">Hand RuleSet</span>}
-              <button className="btn sm" onClick={() => step(-1)} disabled={at <= 0} aria-label="Previous step"><ChevronLeft size={15} aria-hidden="true" /></button>
-              <button className="btn sm" onClick={() => step(1)} disabled={at >= n}>Next step<ChevronRight size={15} aria-hidden="true" /></button>
-              <button className="btn sm" onClick={() => { setAt(-1); setPlaying(!reduced()); if (reduced()) setAt(n); }}>
-                <Play size={14} aria-hidden="true" />Replay
-              </button>
+              <span className="keys" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd></span>
+              <button className="btn sm icon" onClick={() => step(-1)} disabled={at <= 0} aria-label="Previous step" aria-keyshortcuts="ArrowLeft" data-tip="Previous step" data-tip-pos="bottom"><ChevronLeft aria-hidden="true" /></button>
+              <button className="btn sm" onClick={() => step(1)} disabled={at >= n} aria-keyshortcuts="ArrowRight">Next step<ChevronRight aria-hidden="true" /></button>
+              {playing
+                ? <button className="btn sm" onClick={() => setPlaying(false)}><Pause aria-hidden="true" />Pause</button>
+                : <button className="btn sm" onClick={replay}><Play aria-hidden="true" />Replay</button>}
             </div>
           </div>
-          <ol className="trace" aria-live="polite">
+          <ol className={at < 0 ? "trace idle" : "trace"} ref={list} aria-live="polite">
+            <li className="track" aria-hidden="true"><span className="fill" /></li>
+            <li className="cursor" aria-hidden="true" />
             {h.chain.map((s, i) => {
               const state = i < at ? "" : i === at ? "current" : "pending";
               return (
-                <li key={i} className={`step ${state}`} data-testid="step" data-state={state || "past"}>
+                <li key={i} className={`step ${state || "past"}`} data-testid="step" data-state={state || "past"}>
                   <button className="step-h" aria-expanded={state !== "pending" && open === i} disabled={state === "pending"} onClick={() => setOpen(i)}>
-                    <span className="i">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="node">{state === "" ? <Check aria-hidden="true" /> : String(i + 1).padStart(2, "0")}</span>
                     <Call step={s} />
                     {state !== "pending" && (
                       <span className={`verdict ${s.ok ? "ok" : "no"}`}>
-                        {s.ok ? <Check size={15} aria-hidden="true" /> : <X size={15} aria-hidden="true" />}
+                        {s.ok ? <Check aria-hidden="true" /> : <X aria-hidden="true" />}
                         {s.ok ? "allowed" : "blocked"}
                       </span>
                     )}
                   </button>
                   {state !== "pending" && open !== i && (
                     <div className="chips">
-                      {s.verdicts.map((v) => <span key={v.rule_id} className={v.ok ? "" : "no"}>{v.ok ? <Check size={11} aria-hidden="true" /> : <X size={11} aria-hidden="true" />}{v.rule_id}</span>)}
+                      {s.verdicts.map((v, j) => <span key={v.rule_id} className={v.ok ? "" : "no"} style={{ "--i": j } as CSSProperties}>{v.ok ? <Check aria-hidden="true" /> : <X aria-hidden="true" />}{v.rule_id}</span>)}
                     </div>
                   )}
                   {state !== "pending" && open === i && (
                     <div className="rules">
-                      {s.verdicts.map((v) => {
+                      {s.verdicts.map((v, j) => {
                         const ln = lineOf(lines, v.policy_ref);
                         return (
-                          <div className="rule" key={v.rule_id}>
-                            {v.ok ? <Check size={13} aria-label="rule passed" /> : <X size={13} aria-label="rule failed" className="no" />}
+                          <div className="rule" key={v.rule_id} style={{ "--i": j } as CSSProperties}>
+                            {v.ok ? <Check aria-label="rule passed" /> : <X aria-label="rule failed" className="no" />}
                             <span className="rid" translate="no">{v.rule_id}{ln > 0 && <small>policy.md:{ln}</small>}</span>
                             <q>{v.policy_ref}</q>
                           </div>
@@ -130,9 +172,9 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
               );
             })}
             <li className={`outcome ${h.class === "B" ? "b" : ""} ${at >= n ? "" : "pending"}`} data-testid="outcome">
-              <span className="eq">=</span>
+              <span className="node" aria-hidden="true" />
               <code translate="no">{h.goal} {goal?.name ?? name}</code>
-              {at >= n && <span className="verdict"><X size={15} aria-hidden="true" />{h.class === "B" ? "forbidden by the text, done by gold" : "forbidden"}</span>}
+              {at >= n && <span className="verdict"><X aria-hidden="true" />{h.class === "B" ? "forbidden by the text, done by gold" : "forbidden"}</span>}
             </li>
           </ol>
         </section>
@@ -140,13 +182,13 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
         <aside className="side">
           <section className="panel">
             <div className="panel-h"><h2>Proof</h2><span className="tag green">replays {h.replays}</span></div>
-            <div className="panel-b" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div className="panel-b stack">
               <div className="replays" aria-label={`${h.replays} replays reproduced the outcome`}>
-                {Array.from({ length: total || 0 }, (_, i) => <i key={i} className={i < ok ? "" : "miss"}>{i < ok ? <Check size={13} aria-hidden="true" /> : <X size={13} aria-hidden="true" />}</i>)}
-                <span className="label" style={{ marginLeft: 6 }}>same DB diff on a fresh env</span>
+                {Array.from({ length: total || 0 }, (_, i) => <i key={i} className={i < ok ? "" : "miss"} style={{ "--i": i } as CSSProperties}>{i < ok ? <Check aria-hidden="true" /> : <X aria-hidden="true" />}</i>)}
+                <span className="label">same DB diff on a fresh env</span>
               </div>
               <div className={`money ${h.class === "A" ? "" : "neutral"}`}>
-                <b>{usd(h.money_delta)}</b>
+                <Ticker className="b-num" value={h.money_delta} format={usd} ms={1100} />
                 <span>{h.money_delta > 0 ? "net paid out to the customer by this chain" : h.money_delta < 0 ? "net charged to the customer; the forbidden change itself is the harm" : "no money moves; the forbidden change itself is the harm"}</span>
               </div>
             </div>
@@ -154,7 +196,7 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
 
           <section className="panel">
             <div className="panel-h"><h2>Forbidden goal</h2><span className="label">{h.goal}</span></div>
-            <div className="panel-b" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div className="panel-b stack">
               {goal ? (
                 <>
                   <div className="paper">
@@ -176,7 +218,7 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
                     <thead><tr><th colSpan={2}>{coll}.{rid}{!c.before ? " (created)" : !c.after ? " (deleted)" : ""}</th></tr></thead>
                     <tbody>
                       {changedFields(c).map(([k, b, a]) => (
-                        <tr key={k} className="chg">
+                        <tr key={k}>
                           <td>{k}</td>
                           <td><span className="was">{b}</span> → <span className="now">{a}</span></td>
                         </tr>
