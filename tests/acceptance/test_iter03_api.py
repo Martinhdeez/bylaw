@@ -5,9 +5,11 @@ Every test gets its own tmp store dirs through BYLAW_REPORTS_DIR, BYLAW_CACHE_DI
 BYLAW_RATIFIED_DIR (read on every request, 03 v1.1): the reports dir holds the airline report and
 bench fixtures, nothing for retail; the cache and ratified dirs start empty.
 """
+import faulthandler
 import importlib
 import json
 import os
+import threading
 import time
 from datetime import datetime
 from types import SimpleNamespace
@@ -51,6 +53,7 @@ def client(app, stores):
 
     with TestClient(app) as c:
         yield c
+    faulthandler.cancel_dump_traceback_later()  # teardown finished: disarm read_events' watchdog
 
 
 @pytest.fixture
@@ -73,17 +76,40 @@ def domain_obj(name):
     return importlib.import_module("bylaw.domain").get_domain(name)
 
 
-def read_events(client, audit_id):
-    events = []
-    with client.stream("GET", f"/api/audits/{audit_id}/events") as r:
-        assert r.status_code == 200
-        assert r.headers["content-type"].startswith("text/event-stream")
-        for line in r.iter_lines():
-            if line.startswith("data:"):
-                ev = json.loads(line[len("data:"):].strip())
-                events.append(ev)
-                if ev["phase"] in ("done", "error"):
-                    break
+EVENTS_DEADLINE = 120  # seconds for one SSE read to reach done/error
+
+
+def read_events(client, audit_id, deadline=EVENTS_DEADLINE):
+    """Read the stream in a daemon thread so a stream that never ends fails instead of hanging.
+
+    On timeout the test fails; a watchdog stays armed so that, if teardown then blocks on the stuck
+    stream, the process exits with a traceback instead of hanging the gate.
+    """
+    events, failure = [], []
+
+    def read():
+        try:
+            with client.stream("GET", f"/api/audits/{audit_id}/events") as r:
+                assert r.status_code == 200
+                assert r.headers["content-type"].startswith("text/event-stream")
+                for line in r.iter_lines():
+                    if line.startswith("data:"):
+                        ev = json.loads(line[len("data:"):].strip())
+                        events.append(ev)
+                        if ev["phase"] in ("done", "error"):
+                            break
+        except BaseException as e:  # re-raised in the test thread
+            failure.append(e)
+
+    reader = threading.Thread(target=read, daemon=True)
+    faulthandler.dump_traceback_later(deadline * 2, exit=True)
+    reader.start()
+    reader.join(deadline)
+    if reader.is_alive():
+        pytest.fail(f"event stream of {audit_id} gave no done/error within {deadline} s; got {events[-3:]}")
+    faulthandler.cancel_dump_traceback_later()
+    if failure:
+        raise failure[0]
     return events
 
 
