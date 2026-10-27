@@ -1,5 +1,6 @@
 """Unit tests for the C2 rule checker (REQ-EN1-1..3)."""
 import json
+import time
 from pathlib import Path
 
 import pytest
@@ -140,7 +141,9 @@ def test_hand_ruleset_names_only_domain_tools_and_goals(airline, hand):
     assert {g["id"] for g in hand["forbidden_goals"]} == set(d.goals) == {f"G{i}" for i in range(1, 8)}
 
 
-def test_cabin_and_flights_in_one_call_is_denied_but_each_alone_is_not(airline, hand):
+def test_basic_economy_may_change_cabin_but_never_flights(airline, hand):
+    """Policy: "Basic economy flights cannot be modified." / "all reservations, including basic economy,
+    can change cabin without changing the flights." """
     d, snap = airline
     r = snap["reservations"]["T1QOBS"]  # basic economy, one way JFK-MIA, HAT060 on 2024-05-26
     pid = next(k for k, v in snap["users"][r["user_id"]]["payment_methods"].items() if v["source"] == "credit_card")
@@ -152,8 +155,17 @@ def test_cabin_and_flights_in_one_call_is_denied_but_each_alone_is_not(airline, 
         return failing(hand, snap, "update_reservation_flights", args, d.now)
 
     assert upd("economy", same) == []
-    assert "R-flights-not-both" in upd("economy", other)
+    assert upd("economy", other) == ["R-flights-not-basic"]
     assert upd("basic_economy", other) == ["R-flights-not-basic"]
+
+
+def test_other_cabins_may_change_cabin_and_flights_in_one_call(airline, hand):
+    """Gold tasks 15 and 16 (v1.4 baseline): business M05KNL goes to economy on new flights in one call."""
+    d, snap = airline
+    assert snap["reservations"]["M05KNL"]["cabin"] == "business"
+    args = {"reservation_id": "M05KNL", "cabin": "economy", "payment_id": "gift_card_8887175",
+            "flights": [{"flight_number": "HAT110", "date": "2024-05-24"}, {"flight_number": "HAT172", "date": "2024-05-24"}]}
+    assert failing(hand, snap, "update_reservation_flights", args, d.now) == []
 
 
 def test_bags_cannot_be_removed_or_exceed_the_free_allowance(airline, hand):
@@ -208,3 +220,104 @@ def test_domain_call_strips_conversation_facts_and_keeps_them_in_the_result(airl
     assert step.ok and step.error is None and step.args["reason"] == "change of plan"
     assert d.snapshot(env)["reservations"]["34XLFT"]["status"] == "cancelled"
     assert d.snapshot(d.fresh_env())["reservations"]["34XLFT"]["status"] != "cancelled"
+
+
+# ---- C2 v1.5 evaluation budget: 10^6 iterations plus elements built, per rule evaluation ----
+
+# 200 reservations: a triple-nested comprehension is 8 * 10^6 iterations, over the budget, yet an unguarded
+# evaluation still finishes in seconds, so removing the guard makes these tests fail instead of hang.
+BIG = {"users": {}, "flights": {}, "reservations": {f"R{i}": {} for i in range(200)}}
+def _doubling(var, k, open_, close):
+    """for v0 in [0] for v1 in [(v0, v0)] ... : v_k is a shared structure with 2^k leaves."""
+    return " ".join([f"for {var}0 in [0]"] + [f"for {var}{i} in [{open_}{var}{i-1}, {var}{i-1}{close}]" for i in range(1, k + 1)])
+
+
+ROWS = "db['reservations']"
+SHARED2 = f"[[y for b in {ROWS}] for y in [[0 for c in {ROWS}]]][0]"  # 200 refs to one 200-row
+SHARED3 = f"[[y for a in {ROWS}] for y in [{SHARED2}]][0]"  # 200 refs to that
+NESTED = "len([1 for a in db['reservations'] for b in db['reservations'] for c in db['reservations']]) >= 0"
+OVER_BOUND = {
+    "str_repeat": "len('a' * 1000000000) > 0",
+    "str_repeat_huge": "len('a' * 100000000000) > 0",
+    "str_format": "len('%0999999999d' % 1) > 0",
+    "list_repeat": "len([0] * 2000000) > 0",
+    "concat": "len([0] * 600000 + [0] * 600000) > 0",
+    "sum_concat": "len(sum([[0] * 1000] * 2000, [])) > 0",
+    "per_value_sum": "len([[0] * 10000 for a in db['reservations']]) > 0",  # 200 values of 10^4 each
+    "nested_comprehension": NESTED,
+    "nested_generator": "sum(1 for a in db['reservations'] for b in db['reservations'] for c in db['reservations']) >= 0",
+    # review round 2 (agent-abb217651162f51b6/.scratch/review-en2/amplify.py)
+    "deep_eq_repeat": "([[[[[0]*100]*100]*100]*100]*100) == ([[[[[0]*100]*100]*100]*100]*100)",
+    "int_squaring": "len([1 for x0 in [99999999999] " + " ".join(f"for x{i} in [x{i-1}*x{i-1}]" for i in range(1, 27)) + "]) == 1",
+    # repetition hidden from validate, refused at runtime
+    "runtime_repeat": "len([s * 1000000000 for s in ['ab']]) > 0",
+    # sharing built by comprehensions, then a deep compare: 200^3 leaf compares, ~600 iterations charged
+    "shared_deep_eq": f"({SHARED3}) == ({SHARED3})",
+    "shared_deep_max": f"max([{SHARED3}, {SHARED3}]) == 0",
+    "sum_over_cap": "sum([999999999999999, 999999999999999]) > 0",
+    # review round 3 (agent-abb217651162f51b6/.scratch/review-en2/amplify3.py, k=30): doubling, then hashing or max
+    "set_hash": f"len([1 {_doubling('x', 30, '(', ')')} if len({{x30}}) == 1]) == 1",
+    "get_hash": f"len([1 {_doubling('x', 30, '(', ')')} if db.get(x30) is None]) == 1",
+    "max_gen": f"len([1 {_doubling('x', 30, '[', ']')} {_doubling('y', 30, '[', ']')} if max(a for a in [x30, y30]) is not None]) == 1",
+    "eq_doubling": f"len([1 {_doubling('x', 30, '[', ']')} {_doubling('y', 30, '[', ']')} if x30 == y30]) == 1",
+    "depth_9": "len([[[[[[[[[1]]]]]]]]]) == 1",
+}
+
+
+@pytest.mark.parametrize("expr", OVER_BOUND.values(), ids=OVER_BOUND.keys())
+def test_rule_over_the_evaluation_budget_gives_a_failing_verdict(expr):
+    t = time.perf_counter()
+    [v] = check(rs(("A", "t", expr)), BIG, "t", {}, NOW)
+    assert not v.ok and v.error
+    assert time.perf_counter() - t < 5.0
+
+
+def test_rules_within_the_budget_still_evaluate():
+    within = ("len([0, 0] + [1]) + sum([1, 2]) + len([1 for a in db['reservations']]) + 7 % 4 + 12 * 2 - 10 // 3"
+              " + max([[1, 2], [1, 3]])[1] + (999999999999999 - 1) * 1 // 999999999999999 == 233"
+              " and [{'a': [1]}] == [{'a': [1]}] and 3 in [1, 2, 3] and 'R5' in db['reservations']"
+              " and len([[[[[[[[1]]]]]]]]) == 1 and len([x3 " + _doubling("x", 3, "(", ")") + "]) == 1")
+    [v] = check(rs(("A", "t", within)), BIG, "t", {}, NOW)
+    assert v.ok and v.error is None
+
+
+def test_the_budget_is_per_evaluation_not_per_process():
+    r = rs(("A", "t", "len([1 for a in db['reservations'] for b in db['reservations']]) == 40000"))
+    assert all(allowed(check(r, BIG, "t", {}, NOW)) for _ in range(30))  # 30 * 4 * 10^4 > 10^6 in total
+
+
+def test_concurrent_checks_over_the_budget_all_fail_cleanly():
+    from concurrent.futures import ThreadPoolExecutor
+    r = rs(("A", "t", NESTED), ("B", "t", "True"))
+    with ThreadPoolExecutor(8) as pool:
+        results = list(pool.map(lambda _: check(r, BIG, "t", {}, NOW), range(8)))
+    assert all([(v.rule_id, v.ok) for v in vs] == [("A", False), ("B", True)] for vs in results)
+
+
+@pytest.mark.parametrize("expr", ["b'a' * 1000000000", "len(b'%0999999999d' % 1) > 0", "b'x' in [b'x']"])
+def test_bytes_constants_are_rejected(expr):
+    with pytest.raises(RuleError):
+        validate(rs(("A", "t", expr)))
+
+
+@pytest.mark.parametrize("expr", ["[0] * 3 == [0, 0, 0]", "'ab' * 2 == 'abab'", "2 * (1, 2) == (1, 2, 1, 2)",
+                                  "[x for x in [1]] * 2 == [1, 1]", "1000000000000001 > 0", "1e16 > 0"])
+def test_repetition_and_oversized_literals_are_rejected_by_validate(expr):
+    with pytest.raises(RuleError):
+        validate(rs(("A", "t", expr)))
+
+
+@pytest.mark.parametrize("expr", ["x * 2 > 0", "x + x > 0", "x - -x > 0", "x * x // 1 > 0", "-x * 10 < 0", "x * 10.0 > 0"])
+def test_numbers_over_ten_to_the_fifteen_fail(expr):
+    [v] = check(rs(("A", "t", expr.replace("x", "999999999999999"))), BIG, "t", {}, NOW)
+    assert not v.ok and v.error
+
+
+@pytest.mark.parametrize("expr", ["len([1 for db['users'] in [0]]) == 1", "len([1 for args['k'] in [0]]) == 1",
+                                  "len([1 for a, res['cabin'] in [(0, 0)]]) == 1", "len([1 for x[0:1] in [[0]]]) == 1"])
+def test_comprehension_targets_cannot_write_into_the_snapshot_or_args(expr):
+    snap = {"users": {"u": {}}, "reservations": {}}
+    with pytest.raises(RuleError):
+        validate(rs(("A", "t", expr)))
+    [v] = check(rs(("A", "t", expr)), snap, "t", {"k": 1}, NOW)
+    assert not v.ok and snap == {"users": {"u": {}}, "reservations": {}}

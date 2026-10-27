@@ -2,7 +2,10 @@
 
 Expressions are Python expression syntax, accepted only if every AST node is on a whitelist, then
 evaluated with no builtins. Names: args db now res user, plus comprehension variables.
-Functions: len any all sum min max abs hours_between zip (zip: C2 v1.1 note). Methods: `.get` only.
+Functions: len any all sum min max abs hours_between zip (zip: C2 v1.3). Methods: `.get` only.
+Evaluation is bounded by work (C2 v1.5): comprehension iterations, elements built by `+` and elements reached
+by comparisons and min/max count against BUDGET per evaluation. `*` is numeric only, numbers stay within
+MAX_NUMBER, `%` is numeric only, `sum` takes a numeric start only, bytes are rejected.
 """
 import ast
 from dataclasses import dataclass
@@ -47,7 +50,179 @@ def hours_between(a: str, b: str) -> float:
     return abs((datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds()) / 3600
 
 
-FUNCS = {f.__name__: f for f in (len, any, all, sum, min, max, abs, zip, hours_between)}
+BUDGET = 10**6  # comprehension iterations plus elements built or compared, per rule evaluation (C2 v1.5)
+MAX_NUMBER = 10**15  # money/hours scale; any number a rule computes stays within +-MAX_NUMBER (C2 v1.5 addendum)
+_NUM = (int, float)
+_SEQ = (str, list, tuple)
+_CONTAINERS = (list, tuple, dict, set, frozenset)
+MAX_DEPTH = 8  # nesting depth of any value a rule builds (round 3 of the PR #8 review)
+
+
+class _OverBudget(Exception):
+    pass
+
+
+def _num(x):
+    if isinstance(x, _NUM) and abs(x) > MAX_NUMBER:
+        raise _OverBudget(f"number over {MAX_NUMBER}")
+    return x
+
+
+class _Budget:
+    """Work counter for one rule evaluation; _Guard routes comprehension iterables, arithmetic and comparison
+    operands here. One instance per evaluation, so concurrent checks never share it."""
+
+    def __init__(self):
+        self.left = BUDGET
+        # Containers this evaluation built (displays, comprehensions, `+`, slices, zip tuples), by id, with their
+        # nesting depth. Pinning them keeps an id from being reused while the evaluation runs. Containers not in
+        # it come from the snapshot or args: their size is bounded by the input, and they are not charged.
+        self._built, self._size = {}, {}
+
+    def charge(self, n):
+        self.left -= n
+        if self.left < 0:
+            raise _OverBudget(f"rule over the evaluation budget of {BUDGET} iterations and elements")
+
+    @staticmethod
+    def _kids(y):
+        return [*y.keys(), *y.values()] if isinstance(y, dict) else y
+
+    def size(self, y):
+        """Elements reachable from a built value, counting a shared part each time it is reached (what a deep ==,
+        `in`, a hash or min/max can cost). Memoised, so computing it visits each distinct container once."""
+        if id(y) not in self._built:
+            return 0
+        if id(y) not in self._size:
+            n = len(y) + sum(self.size(k) for k in self._kids(y))
+            if n > BUDGET:
+                raise _OverBudget(f"rule over the evaluation budget of {BUDGET} iterations and elements")
+            self._size[id(y)] = n
+        return self._size[id(y)]
+
+    def built(self, x):
+        """Registers a value the rule built and refuses nesting deeper than MAX_DEPTH (children are registered
+        before their parents, so one level is enough)."""
+        if isinstance(x, _CONTAINERS) and id(x) not in self._built:
+            depth = 1 + max((self._built[id(k)][1] for k in self._kids(x) if id(k) in self._built), default=0)
+            if depth > MAX_DEPTH:
+                raise _OverBudget(f"value nested deeper than {MAX_DEPTH}")
+            self._built[id(x)] = (x, depth)
+        return x
+
+    def zip(self, *iterables):
+        for t in zip(*iterables):
+            yield self.built(t)
+
+    def it(self, iterable):
+        """Charges every reachable element of each item, so a chain of single-item comprehensions that doubles
+        a shared value (v_k = (v_{k-1}, v_{k-1})) costs 2^k."""
+        for x in iterable:
+            self.charge(1 + self.size(x))
+            yield x
+
+    def deep(self, x):
+        self.charge(self.size(x))
+        return x
+
+    def cmp(self, x):
+        return self.deep(x) if isinstance(x, _CONTAINERS) else x
+
+    def key(self, x):
+        """Right side of `in`: dict and set lookups hash the left side only."""
+        return x if isinstance(x, (dict, set, frozenset)) else self.cmp(x)
+
+    @staticmethod
+    def mul(a, b):
+        if not (isinstance(a, _NUM) and isinstance(b, _NUM)):
+            raise _OverBudget("* applies to numbers only")
+        return _num(a * b)
+
+    def add(self, a, b):
+        if isinstance(a, _SEQ) and isinstance(b, _SEQ):
+            self.charge(len(a) + len(b))
+            return self.built(a + b)
+        return _num(a + b)
+
+    @staticmethod
+    def mod(a, b):
+        if isinstance(a, str):  # '%0999999999d' % 1 builds the string in C
+            raise _OverBudget("string formatting is not allowed")
+        return _num(a % b)
+
+    @staticmethod
+    def arith(x):
+        return _num(x)
+
+    def min(self, *args, **kw):
+        return min(*(self.deep(a) for a in args), **kw)
+
+    def max(self, *args, **kw):
+        return max(*(self.deep(a) for a in args), **kw)
+
+
+def _sum(items, start=0):
+    if not isinstance(start, _NUM):  # sum(lists, []) concatenates in C, out of reach of the budget
+        raise _OverBudget("sum start must be a number")
+    return _num(sum(items, start))
+
+
+def _static_repeat(node):
+    """`*` with a sequence or string display on either side (the runtime check catches the rest)."""
+    seq = (ast.List, ast.Tuple, ast.Set, ast.Dict, ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
+    return isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mult) and any(
+        isinstance(x, seq) or (isinstance(x, ast.Constant) and isinstance(x.value, (str, bytes))) for x in (node.left, node.right))
+
+
+def _call(name, *args):
+    return ast.Call(ast.Name(name, ast.Load()), list(args), [])
+
+
+class _Guard(ast.NodeTransformer):
+    """Routes comprehension iterables, arithmetic and comparison operands through the budget. Runs after
+    validation, so rules cannot name the helpers."""
+
+    def visit_comprehension(self, node):
+        self.generic_visit(node)
+        node.iter = _call("_it", node.iter)
+        return node
+
+    def visit_BinOp(self, node):
+        self.generic_visit(node)
+        fn = {ast.Mult: "_mul", ast.Add: "_add", ast.Mod: "_mod"}.get(type(node.op))
+        return _call(fn, node.left, node.right) if fn else _call("_arith", node)
+
+    def _built(self, node):
+        self.generic_visit(node)
+        return _call("_built", node) if isinstance(getattr(node, "ctx", ast.Load()), ast.Load) else node
+
+    visit_List = visit_Tuple = visit_Set = visit_Dict = _built
+    visit_ListComp = visit_SetComp = visit_DictComp = _built
+
+    def visit_Subscript(self, node):  # a slice is a new container
+        return self._built(node) if isinstance(node.slice, ast.Slice) else self.generic_visit(node)
+
+    def visit_UnaryOp(self, node):
+        self.generic_visit(node)
+        return _call("_arith", node) if isinstance(node.op, (ast.USub, ast.UAdd)) else node
+
+    def visit_Compare(self, node):
+        self.generic_visit(node)
+        if all(isinstance(op, (ast.Is, ast.IsNot)) for op in node.ops):
+            return node  # identity, no element is compared
+        node.left = _call("_cmp", node.left)
+        node.comparators = [_call("_key" if isinstance(op, (ast.In, ast.NotIn)) else "_cmp", c)
+                            for op, c in zip(node.ops, node.comparators)]
+        return node
+
+
+def _run(code, scope):
+    b = _Budget()
+    return eval(code, {**scope, "_it": b.it, "_mul": b.mul, "_add": b.add, "_mod": b.mod, "_arith": b.arith,
+                       "_cmp": b.cmp, "_key": b.key, "_built": b.built, "zip": b.zip, "min": b.min, "max": b.max})
+
+
+FUNCS = {f.__name__: f for f in (len, any, all, min, max, abs, zip, hours_between)} | {"sum": _sum}
 NAMES = {"args", "db", "now", "res", "user"}
 
 _NODES = (
@@ -69,11 +244,21 @@ def _compile(expr: str):
         raise RuleError(f"syntax error in {expr!r}: {e.msg}") from None
     nodes = list(ast.walk(tree))
     bound = {n.id for c in nodes if isinstance(c, ast.comprehension) for n in ast.walk(c.target) if isinstance(n, ast.Name)}
+    for c in nodes:  # `for db['users'] in ...` would write into the snapshot
+        if isinstance(c, ast.comprehension) and not all(
+                isinstance(t, (ast.Name, ast.Tuple, ast.List, ast.Store)) for t in ast.walk(c.target)):
+            raise RuleError(f"comprehension targets must be plain names in {expr!r}")
     for n in nodes:
         if not isinstance(n, _NODES):
             raise RuleError(f"{type(n).__name__} not allowed in {expr!r}")
         if isinstance(n, ast.Name) and (n.id.startswith("_") or n.id not in NAMES | FUNCS.keys() | bound):
             raise RuleError(f"name {n.id!r} not allowed in {expr!r}")
+        if isinstance(n, ast.Constant) and isinstance(n.value, bytes):
+            raise RuleError(f"bytes constant not allowed in {expr!r}")
+        if isinstance(n, ast.Constant) and isinstance(n.value, _NUM) and abs(n.value) > MAX_NUMBER:
+            raise RuleError(f"number over {MAX_NUMBER} in {expr!r}")
+        if _static_repeat(n):
+            raise RuleError(f"* applies to numbers only, in {expr!r}")
         if isinstance(n, ast.Attribute) and n.attr != "get":
             raise RuleError(f"attribute .{n.attr} not allowed in {expr!r}")
         if isinstance(n, ast.keyword) and n.arg is None:
@@ -84,7 +269,7 @@ def _compile(expr: str):
                 raise RuleError(f"call not allowed in {expr!r}")
         if isinstance(n, ast.Attribute) and not any(isinstance(c, ast.Call) and c.func is n for c in nodes):
             raise RuleError(f".get must be called in {expr!r}")
-    return compile(tree, "<rule>", "eval")
+    return compile(ast.fix_missing_locations(_Guard().visit(tree)), "<rule>", "eval")
 
 
 def validate(ruleset: dict) -> None:
@@ -122,7 +307,7 @@ def check(ruleset: dict, snapshot: dict, tool: str, args: dict, now: str) -> lis
         if r["tool"] != tool:
             continue
         try:
-            out.append(Verdict(r["id"], bool(eval(_compile(r["allow_if"]), dict(scope))), r["policy_ref"]))
+            out.append(Verdict(r["id"], bool(_run(_compile(r["allow_if"]), scope)), r["policy_ref"]))
         except Exception as e:  # a rule that cannot be evaluated does not allow the call
             out.append(Verdict(r["id"], False, r["policy_ref"], f"{type(e).__name__}: {e}"))
     return out
