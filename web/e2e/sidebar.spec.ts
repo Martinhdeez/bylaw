@@ -2,7 +2,7 @@
 import { expect, test } from "@playwright/test";
 import { mockApi } from "./mock";
 
-const OUT = "../.artifacts/reports/ui3";
+const OUT = "../.scratch/after/ui3/ui3";
 test.use({ viewport: { width: 1440, height: 900 } });
 
 test("sidebar collapses and expands", async ({ page }) => {
