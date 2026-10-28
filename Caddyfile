@@ -1,0 +1,10 @@
+# The only public entry to Bylaw: basic auth over the whole app, then the API container.
+# BYLAW_DOMAIN set: automatic HTTPS for that name. Unset: plain HTTP on :80 (local testing).
+{$BYLAW_DOMAIN::80} {
+	basic_auth {
+		{$BYLAW_BASIC_AUTH_USER} {$BYLAW_BASIC_AUTH_HASH}
+	}
+	reverse_proxy bylaw:8000 {
+		flush_interval -1 # SSE: /api/audits/{id}/events streams unbuffered
+	}
+}

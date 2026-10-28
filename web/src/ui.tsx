@@ -1,7 +1,10 @@
-import { AlertTriangle, ChevronRight, Loader2, RotateCcw, Sparkles } from "lucide-react";
-import type { ReactNode } from "react";
+import { AlertTriangle, ChevronRight, RotateCcw } from "lucide-react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import type { ApiError, Change, Step } from "./api";
 
+export const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// The tile takes currentColor, so it follows the theme; the hole keeps its black fill and violet ring.
 export function Logo() {
   return (
     <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -12,22 +15,18 @@ export function Logo() {
             <rect x="26" y="16" width="22" height="88" rx="5" fill="#000" />
             <rect x="38" y="46" width="56" height="58" rx="24" fill="#000" />
           </g>
-          <path d="M122.0 6.0 L109.3 12.7 L107.5 25.3 L92.0 33.6 L90.0 47.9 L73.5 57.3 L66.2 73.0 L52.3 76.6 L45.5 94.7 L31.0 101.9 L22.0 118.0" fill="none" stroke="#000" strokeWidth="7" strokeLinejoin="round" />
+          <path d="M122.0 6.0 L109.3 12.7 L107.5 25.3 L92.0 33.6 L90.0 47.9 L73.5 57.3 L66.2 73.0 L52.3 76.6 L45.5 94.7 L31.0 101.9 L22.0 118.0" fill="none" stroke="#000" strokeWidth="10" strokeLinejoin="round" />
         </mask>
       </defs>
       <rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor" mask="url(#mN3)" />
-      <circle cx="65.0" cy="72.6" r="7.6" fill="#07090E" stroke="#FF4D2E" strokeWidth="5" />
+      <circle cx="65.0" cy="72.6" r="7.6" fill="#07090E" stroke="#9152ff" strokeWidth="5" />
     </svg>
   );
 }
 
-export function Muse({ children }: { children: ReactNode }) {
-  return (
-    <span className="tag muse">
-      <Sparkles size={13} aria-hidden="true" />
-      {children}
-    </span>
-  );
+// `live` passes a sheen over the badge while Muse is working.
+export function Muse({ children, live }: { children: ReactNode; live?: boolean }) {
+  return <span className={live ? "tag muse is-live" : "tag muse"}>{children}</span>;
 }
 
 export function Crumbs({ items }: { items: [string, string?][] }) {
@@ -35,7 +34,7 @@ export function Crumbs({ items }: { items: [string, string?][] }) {
     <nav className="crumbs" aria-label="Breadcrumb">
       {items.map(([label, href], i) => (
         <span key={label} style={{ display: "contents" }}>
-          {i > 0 && <ChevronRight size={13} aria-hidden="true" />}
+          {i > 0 && <ChevronRight size={12} aria-hidden="true" />}
           {href ? <a href={href}>{label}</a> : <span aria-current="page">{label}</span>}
         </span>
       ))}
@@ -43,11 +42,27 @@ export function Crumbs({ items }: { items: [string, string?][] }) {
   );
 }
 
-export function Loading({ what }: { what: string }) {
+// Skeletons shaped like the screen they stand in for.
+export function Loading({ what, shape = "report" }: { what: string; shape?: "report" | "detail" | "bench" }) {
   return (
-    <div className="panel empty-state" role="status">
-      <Loader2 size={22} className="spin" aria-hidden="true" />
-      <p>Loading {what}…</p>
+    <div role="status" className="loading">
+      <span className="sr-only">Loading {what}…</span>
+      <div className="skel" style={{ height: 48, width: "56%" }} />
+      <div className="skel line" style={{ width: "72%" }} />
+      <div className="skel line" style={{ width: "48%" }} />
+      {shape === "report" && (
+        <>
+          <div className="summary">{[0, 1, 2, 3].map((i) => <div key={i} className="skel" style={{ height: 112 }} />)}</div>
+          <div className="goal-group"><div className="skel" style={{ height: 280 }} /><div className="skel" style={{ height: 280 }} /></div>
+        </>
+      )}
+      {shape === "detail" && (
+        <div className="detail">
+          <div className="skel" style={{ height: 420 }} />
+          <div className="side"><div className="skel" style={{ height: 160 }} /><div className="skel" style={{ height: 240 }} /></div>
+        </div>
+      )}
+      {shape === "bench" && <div className="bench"><div className="skel" style={{ height: 380 }} /><div className="skel" style={{ height: 200 }} /></div>}
     </div>
   );
 }
@@ -55,13 +70,13 @@ export function Loading({ what }: { what: string }) {
 export function Failure({ error, onRetry }: { error: ApiError; onRetry: () => void }) {
   return (
     <div className="notice" role="alert">
-      <AlertTriangle size={18} aria-hidden="true" />
+      <AlertTriangle aria-hidden="true" />
       <div>
         <b>{error.status ? `The API answered ${error.status}.` : "The Bylaw API is not reachable."}</b>
         <p>{error.status ? error.message.slice(0, 300) : "Start it from the repository root with uv run uvicorn bylaw.api:app, then retry."}</p>
-        <button className="btn" style={{ marginTop: 10 }} onClick={onRetry}>
-          <RotateCcw size={15} aria-hidden="true" />Retry
-        </button>
+        <div className="acts">
+          <button className="btn sm" onClick={onRetry}><RotateCcw aria-hidden="true" />Retry</button>
+        </div>
       </div>
     </div>
   );
@@ -69,10 +84,40 @@ export function Failure({ error, onRetry }: { error: ApiError; onRetry: () => vo
 
 const nf = new Intl.NumberFormat("en-US");
 const cf = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-export const int = (n: number) => nf.format(n);
+export const int = (n: number) => nf.format(Math.round(n));
 export const usd = (n: number) => cf.format(n);
 export const when = (iso: string) =>
   iso ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(iso)) + " UTC" : "";
+
+// Tweens a number to its new value in a rAF loop, writing the text outside React's render.
+export function Ticker({ value, format = int, ms = 900, className, testId }: { value: number; format?: (n: number) => string; ms?: number; className?: string; testId?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const cur = useRef(0);
+  useLayoutEffect(() => {
+    const el = ref.current!;
+    const a = cur.current, b = value;
+    if (reduced() || a === b) {
+      el.textContent = format(b);
+      cur.current = b;
+      return;
+    }
+    let raf = 0, t0: number | undefined;
+    const tick = (t: number) => {
+      t0 ??= t;
+      const p = Math.min(1, (t - t0) / ms);
+      cur.current = a + (b - a) * (1 - Math.pow(1 - p, 4));
+      el.textContent = format(p < 1 ? cur.current : b);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      cur.current = b;
+      el.textContent = format(b);
+    };
+  }, [value]);
+  return <span ref={ref} className={className} data-testid={testId} />;
+}
 
 // "basic_economy_flights_changed on T1QOBS" -> { name: "Basic economy flights changed", target: "T1QOBS" }
 export function humanize(title: string, key = "") {
@@ -113,12 +158,12 @@ function leaves(v: unknown, path: string, out: Map<string, string>) {
   } else out.set(path, v === null || v === undefined ? "null" : String(v));
 }
 
-// The changed fields of one C4 v1.2 diff record, as [path, before, after]; "—" marks a field that did not exist.
+// The changed fields of one C4 v1.2 diff record, as [path, before, after]; "none" marks a field that did not exist.
 export function changedFields(c: Change): [string, string, string][] {
   const b = new Map<string, string>(), a = new Map<string, string>();
   leaves(c.before ?? {}, "", b);
   leaves(c.after ?? {}, "", a);
-  return [...new Set([...b.keys(), ...a.keys()])].filter((k) => b.get(k) !== a.get(k)).map((k) => [k, b.get(k) ?? "—", a.get(k) ?? "—"]);
+  return [...new Set([...b.keys(), ...a.keys()])].filter((k) => b.get(k) !== a.get(k)).map((k) => [k, b.get(k) ?? "none", a.get(k) ?? "none"]);
 }
 
 // Class B evidence: the gold tasks that reach the goal (01 v1.7).

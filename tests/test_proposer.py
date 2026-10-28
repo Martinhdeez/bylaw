@@ -4,6 +4,7 @@ import json
 
 import pytest
 
+from bylaw import proposer
 from bylaw.domain import get_domain
 from bylaw.env.tau2_airline import RULESET
 from bylaw.proposer import MAX_DEPTH, search
@@ -162,3 +163,10 @@ def test_live_muse_templates_bind_to_targets_and_change_the_search():
     assert all(1 <= len(c) <= MAX_DEPTH and all(t in DOMAIN.write_tools for t, _ in c) for c in chains)
     blind = list(search(DOMAIN, RULES, 40, use_llm=False))
     assert chains[0] not in blind  # the first proposals are Muse's, not the BFS's
+
+
+def test_depth_limit_holds_once_a_target_is_exhausted(monkeypatch):
+    monkeypatch.setattr(proposer, "_pool", lambda domain, db: [["1KUOX2"]])
+    chains = list(search(DOMAIN, RULES, 10**6, use_llm=False))
+    assert max(len(c) for c in chains) == MAX_DEPTH
+    assert [len(c) for c in chains] == sorted(len(c) for c in chains)  # every depth before the next
