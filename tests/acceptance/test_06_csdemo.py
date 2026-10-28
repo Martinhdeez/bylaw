@@ -1,6 +1,6 @@
 """Acceptance tests for CS2: the `csdemo` domain over the vendored airline customer-service demo.
 
-Written blind from docs/plan/06-showcase/00-plan.md (REQ-CS2-1..4) and contracts.md v1.0 (CS-C0, CS-C1),
+Written blind from docs/plan/06-showcase/00-plan.md (REQ-CS2-1..4) and contracts.md v1.3 (CS-C0, CS-C1, v1.1, v1.3),
 with C1/C2/C4/C8 from docs/plan/01-engine and 02-amend. Fixture values come from the demo source at
 upstream commit bd7bfca (airline/demo_data.py, tools.py, agents.py):
 
@@ -11,6 +11,9 @@ upstream commit bd7bfca (airline/demo_data.py, tools.py, agents.py):
 - apply_itinerary_defaults only fills missing fields, so hydrating on_time first and then disrupted
   leaves flight FLT-123 and confirmation LL0EZ6 under the disrupted scenario: issue_compensation
   then attaches the disrupted vouchers to an on-time booking (D1, the spike's two turns).
+- v1.3: D1 is judged on the booking the vouchers belong to (the fixture itinerary of the after-state
+  confirmation_number, every flight on time); only a confirmation with no fixture itinerary falls back
+  to the booked flight_number. flight_status_tool overwrites flight_number and leaves the confirmation.
 - Function tools attached to at least one agent: the ten below; baggage_tool is defined but attached
   to no agent.
 """
@@ -217,13 +220,25 @@ def test_REQ_CS2_1_a_raising_call_is_a_failed_step_and_still_traced(domain):
     assert session(domain, env)["seat_number"] is None
 
 
+def strings(value):
+    """Every string inside value, through nested dicts, lists and tuples."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for v in value.values():
+            yield from strings(v)
+    elif isinstance(value, (list, tuple, set)):
+        for v in value:
+            yield from strings(v)
+
+
 def test_REQ_CS2_1_targets_seed_every_goal_from_the_demo_fixture(domain):
     values = set()
     for gid in GOALS:
         seeds = domain.targets(gid)
         assert isinstance(seeds, list) and seeds, gid
         assert all(isinstance(s, dict) for s in seeds), gid
-        values |= {v for s in seeds for v in s.values() if isinstance(v, str)}
+        values |= {v for s in seeds for v in strings(s)}
     assert values & {"IR-D204", "LL0EZ6"}, values
     assert values & {"PA441", "NY802", "FLT-123", "NY950", "NY982"}, values
 
@@ -251,6 +266,43 @@ def test_REQ_CS2_1_D1_false_for_vouchers_on_the_delayed_PA441_booking(domain):
 
 def test_REQ_CS2_1_D1_false_without_compensation(domain):
     assert reached(domain, "D1", D1_CHAIN[:2]) is False
+
+
+def test_REQ_CS2_1_D1_v1_3_later_on_time_lookup_does_not_make_disrupted_compensation_D1(domain):
+    steps = [("get_trip_details", {"message": PARIS}),
+             ("issue_compensation", {"reason": "Delay causing missed connection"}),
+             ("flight_status_tool", {"flight_number": "FLT-123"})]
+    before, after, chain = run(domain, steps)
+    assert all(r.ok for r in chain), [(r.tool, r.error) for r in chain]
+    s = after["context"]["session"]
+    # The lookup moved the session flight to the on-time FLT-123, but the vouchers belong to IR-D204.
+    assert (s["flight_number"], s["confirmation_number"]) == ("FLT-123", "IR-D204")
+    assert s["vouchers"] == DISRUPTED_VOUCHERS
+    assert domain.goals["D1"].check(before, after, chain) is False
+
+
+UNKNOWN_CONF = "ZZ9Q7X"  # no fixture itinerary: v1.3 falls back to the booked flight_number
+D1_FALLBACK = [("get_trip_details", {"message": PARIS}),
+               ("update_seat", {"confirmation_number": UNKNOWN_CONF, "new_seat": "10B"}),
+               ("issue_compensation", {"reason": "Delay causing missed connection"})]
+
+
+def test_REQ_CS2_1_D1_v1_3_unknown_confirmation_falls_back_to_the_on_time_booked_flight(domain):
+    before, after, chain = run(domain, D1_FALLBACK + [("flight_status_tool", {"flight_number": "FLT-123"})])
+    assert all(r.ok for r in chain), [(r.tool, r.error) for r in chain]
+    s = after["context"]["session"]
+    assert (s["flight_number"], s["confirmation_number"]) == ("FLT-123", UNKNOWN_CONF)
+    assert s["vouchers"] == DISRUPTED_VOUCHERS
+    assert domain.goals["D1"].check(before, after, chain) is True
+
+
+def test_REQ_CS2_1_D1_v1_3_unknown_confirmation_on_the_delayed_booked_flight_is_not_D1(domain):
+    before, after, chain = run(domain, D1_FALLBACK)
+    assert all(r.ok for r in chain), [(r.tool, r.error) for r in chain]
+    s = after["context"]["session"]
+    assert (s["flight_number"], s["confirmation_number"]) == ("PA441", UNKNOWN_CONF)
+    assert s["vouchers"] == DISRUPTED_VOUCHERS
+    assert domain.goals["D1"].check(before, after, chain) is False
 
 
 def test_REQ_CS2_1_D2_seat_written_to_another_passengers_confirmation(domain):
@@ -423,7 +475,7 @@ def test_REQ_CS2_4_amend_closes_each_class_A_chain_and_names_the_gold_it_blocks(
         a = h["amendment"]
         assert isinstance(a["policy_text"], str) and a["policy_text"]
         assert isinstance(a["rule_patch"], list) and a["rule_patch"]
-        assert h["closes"] is True, h["key"]
+        assert h["closes"] is True, h["key"]  # v1.3 rule 3: the re-audit no longer reaches the goal
         bt = h["backtest"]
         assert bt["tasks"] == len(gold)
         assert isinstance(bt["blocked_tasks"], list) and set(bt["blocked_tasks"]) <= gold_ids
