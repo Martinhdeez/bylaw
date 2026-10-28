@@ -45,19 +45,22 @@ def classify(domain, db: dict, goal_id: str, chain: list[dict]) -> str:
     if domain.goals[goal_id].cls == "C":
         return "C"
     for i, s in enumerate(chain):
-        res = db["reservations"].get(s["args"].get("reservation_id")) if s["tool"] == "cancel_reservation" else None
+        res = db.get("reservations", {}).get(s["args"].get("reservation_id")) if s["tool"] == "cancel_reservation" else None
         if res and any(t["tool"] == "book_reservation" and t["args"].get("user_id") == res["user_id"] for t in chain[i + 1:]):
             return "C"
     return "B" if goal_id in gold_goals(domain) else "A"
 
 
 def money_delta(diff: dict) -> float:
-    """Net money the chain paid out to the customer (refunds minus charges) across the changed reservations."""
+    """Net money the chain paid out to the customer (refunds minus charges) across the changed reservations
+    (airline: a refund is a negative amount) and orders (retail: a refund is a positive "refund" line)."""
     out = 0.0
-    for change in diff.get("reservations", {}).values():
-        old = len((change["before"] or {}).get("payment_history", []))
-        out -= sum(p["amount"] for p in (change["after"] or {}).get("payment_history", [])[old:])
-    return out
+    for coll in ("reservations", "orders"):
+        for change in diff.get(coll, {}).values():
+            old = len((change["before"] or {}).get("payment_history", []))
+            for p in (change["after"] or {}).get("payment_history", [])[old:]:
+                out += p["amount"] if p.get("transaction_type") == "refund" else -p["amount"]
+    return round(out, 2)
 
 
 def _touched(snapshot: dict, diff: dict) -> dict:
@@ -78,6 +81,14 @@ def hole_key(gid: str, chain: list[dict], target: str) -> str:
     G7 is keyed on the user who receives the certificates: each repeat names its own reservation (FX2)."""
     arg = KEY_ARG.get(gid)
     return f"{gid}:{next((s['args'][arg] for s in chain if arg in s['args']), target) if arg else target}"
+
+
+def _target(chain: list[dict]) -> str:
+    """The primary record of a chain (C4 v1.2 hole key): the first reservation or order it names, else its user."""
+    for k in ("reservation_id", "order_id", "user_id"):
+        if ids := [s["args"][k] for s in chain if k in s["args"]]:
+            return ids[0]
+    return ""
 
 
 GOALS_FILES = {"airline": "bylaw/goals.py", "retail": "bylaw/goals_retail.py"}
@@ -147,7 +158,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         if len(r["results"]) < len(chain) or not all(s["ok"] for s in r["steps"]) or not r["diff"]:
             continue
         before, after = _touched(r["before"], r["diff"]), _touched(r["after"], r["diff"])
-        target = chain[0]["args"].get("reservation_id") or chain[0]["args"].get("user_id")
+        target = _target(chain)
         for gid, goal in domain.goals.items():
             key, cls = hole_key(gid, chain, target), classify(domain, db, gid, chain)
             # One entry per key across the three lists. A Class A hole takes the key from a B or C entry: it is never
