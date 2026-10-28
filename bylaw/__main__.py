@@ -33,13 +33,15 @@ def cmd_audit(a):
     from bylaw.report import audit
 
     domain = get_domain(a.domain)
-    report = audit(domain, json.loads((HAND_RULESETS / f"{a.domain}.json").read_text()), a.budget, use_llm=not a.no_llm)
+    report = audit(domain, json.loads((HAND_RULESETS / f"{a.domain}.json").read_text()), a.budget, use_llm=not a.no_llm,
+                   long_context=a.long_context)
     Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
     s = report["stats"]
-    print(f"wrote {a.output}: {len(report['holes'])} Class A holes, {len(report['ambiguities'])} ambiguities; "
+    print(f"wrote {a.output}: {len(report['holes'])} Class A holes, {len(report['contradictions'])} Class B contradictions, "
+          f"{len(report['ambiguities'])} Class C ambiguities; "
           f"{s['chains_tried']} chains, {s['tool_calls']} tool calls, {s['llm_calls']} LLM calls, "
-          f"{s['tokens']} tokens, {s['seconds']}s")
-    for e in report["holes"] + report["ambiguities"]:
+          f"{s['tokens']} tokens (largest prompt {report['run']['context_tokens']}), {s['seconds']}s")
+    for e in report["holes"] + report["contradictions"] + report["ambiguities"]:
         print(f"  {e['id']} {e['class']} {e['key']} replays {e['replays']} money_delta {e['money_delta']} "
               f"{' -> '.join(st['tool'] for st in e['chain'])}")
 
@@ -177,6 +179,28 @@ def cmd_bench(a):
         print(" | ".join(f"{row[c]!s:>14}" for c in cols))
 
 
+def cmd_review(a):
+    from bylaw.review import EXPECTED, VERDICTS, review
+
+    out = review(json.loads(Path(a.report).read_text()), source=a.report)
+    Path(a.output).write_text(json.dumps(out, indent=2) + "\n")
+    r, ag = out["run"], out["agreement"]
+
+    def frac(x):
+        return f"{x['agree']}/{x['n']} ({x['rate']:.2f})" if x["n"] else "0/0 (n/a)"
+
+    print(f"wrote {a.output}: blind review of {a.report} (commit {r['commit'][:7]}, model {r['model']})")
+    print(f"agreement {frac(ag['overall'])}")
+    for c, x in ag["by_class"].items():
+        print(f"  {c} <-> {EXPECTED[c]:10} {frac(x)}")
+    print("confusion (rows engine class, columns blind verdict):")
+    print("   " + " ".join(f"{v:>10}" for v in VERDICTS))
+    for c, row in ag["confusion"].items():
+        print(f"{c:2} " + " ".join(f"{row[v]:>10}" for v in VERDICTS))
+    for v in out["reviews"]:
+        print(f"  {v['id']} {v['class']} {v['key']} {v['verdict']}{'' if v['agree'] else ' (disagrees)'}: {v['reason']}")
+
+
 def cmd_coverage(a):
     report = json.loads(Path(a.report).read_text())
     entries = report.get("holes", []) + report.get("contradictions", []) + report.get("ambiguities", [])
@@ -206,6 +230,8 @@ def main(argv=None):
     au.add_argument("--domain", required=True)
     au.add_argument("--no-llm", action="store_true", help="blind BFS search, no Muse calls")
     au.add_argument("--budget", type=int, default=2000, help="write tool calls the search may execute")
+    au.add_argument("--long-context", action="store_true",
+                    help="send every tool schema and the gold task list with the policy in each Muse prompt")
     au.add_argument("-o", "--output", default="report.json")
     au.set_defaults(fn=cmd_audit)
     c = sub.add_parser("compile", help="compile a domain policy into a RuleSet with Muse")
@@ -233,6 +259,10 @@ def main(argv=None):
     be.add_argument("--modes", default="bfs,muse", help="comma-separated: bfs, muse")
     be.add_argument("-o", "--output", default="bench.json")
     be.set_defaults(fn=cmd_bench)
+    rv = sub.add_parser("review", help="blind Muse review of every finding and its agreement with the engine class")
+    rv.add_argument("report")
+    rv.add_argument("-o", "--output", default="review.json")
+    rv.set_defaults(fn=cmd_review)
     cv = sub.add_parser("coverage", help="per forbidden goal: chains tried, executed write steps, findings by class")
     cv.add_argument("report")
     cv.add_argument("--json", help="also write the table as JSON to this path")
