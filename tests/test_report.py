@@ -273,3 +273,10 @@ def test_two_certificate_chains_for_the_same_user_give_one_g7_entry(monkeypatch)
 def test_certificate_chains_for_two_users_give_two_g7_entries(monkeypatch):
     g7 = _g7(monkeypatch, _twice("3B66OJ", "emma_smith_9363", 200), _twice("06K2QN", "ivan_taylor_6615", 200))
     assert sorted(e["key"] for e in g7) == ["G7:emma_smith_9363", "G7:ivan_taylor_6615"]
+
+
+def test_g7_key_is_the_user_who_receives_the_certificates_not_an_earlier_step_user():
+    # FX3: C4 v1.11 keys G7 on the certificates' receiver; a booking for another user earlier in the chain must not win.
+    cert = {"tool": "send_certificate", "args": {"user_id": "ivan_taylor_6615", "reservation_id": "06K2QN", "amount": 200}}
+    chain = [{"tool": "book_reservation", "args": {"user_id": "emma_smith_9363"}}, cert, cert]
+    assert report_mod.hole_key("G7", chain, "06K2QN") == "G7:ivan_taylor_6615"
