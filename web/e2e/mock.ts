@@ -74,13 +74,18 @@ const json = (body: unknown, status = 200) => ({ status, contentType: "applicati
 
 // `partial` stops the event stream before `done`, to show a running audit. `stored: false` starts from the
 // offline audit result (no amendments, C9 v1.2); place() then swaps in a stored report that carries them.
+// A bench with one blind BFS row and `model: null` (01 v1.9): no Muse in it.
+export const BFS_BENCH = { domain: "airline", budget: 2000, model: null, commit: "05bd65c", rows: [BENCH.rows[0]] };
+
 // `fallback` serves the report as 01 v1.9 `bfs-fallback`: Muse requested, all 3 calls failed, model null.
-export async function mockApi(page: Page, { partial = false, stored = true, fallback = false } = {}) {
-  let report = stored ? storedReport() : adjudicate(fx("airline.report.json"));
+// `fixture` serves that report file as it is, without adjudication; `edit` changes it; `bench` replaces the bench.
+export async function mockApi(page: Page, { partial = false, stored = true, fallback = false, fixture = "", edit = (_: any) => {}, bench = BENCH as object } = {}) {
+  let report = fixture ? fx(fixture) : stored ? storedReport() : adjudicate(fx("airline.report.json"));
   if (fallback) {
     report.run = { ...report.run, mode: "bfs-fallback", model: null };
     report.stats = { ...report.stats, llm_calls: 3, llm_errors: 3 };
   }
+  edit(report);
   const ratified = fx("airline.ratified.json");
   const policy = fx("airline.policy.json");
 
@@ -96,7 +101,7 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
     if (p === "/api/policy") return route.fulfill(json(policy));
     if (p === "/api/reports/latest") return route.fulfill(json(report));
     if (p === "/api/ratified") return route.fulfill(json(ratified));
-    if (p === "/api/bench") return route.fulfill(json(BENCH));
+    if (p === "/api/bench") return route.fulfill(json(bench));
     if (p === "/api/audits" && method === "POST") return route.fulfill(json({ id: "a1" }, 202));
     if (p === "/api/audits/a1") return route.fulfill(json({ id: "a1", domain: "airline", status: "done", report, error: null }));
     if (p === "/api/audits/a1/events") {

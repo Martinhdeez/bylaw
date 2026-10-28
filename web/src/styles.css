@@ -401,6 +401,15 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .amb .id { font: 600 12px var(--mono); color: var(--muted); }
 .amb .t { font-weight: 700; }
 .amb .c { font: 500 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.amb-goal { border-top: 1px solid var(--line); }
+.amb-goal summary { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto 16px; gap: 16px; align-items: center; padding: 14px 20px; cursor: pointer; list-style: none; transition: background .2s; }
+.amb-goal summary::-webkit-details-marker { display: none; }
+.amb-goal summary:hover { background: var(--hover); }
+.amb-goal summary .id { font: 600 12px var(--mono); color: var(--muted); }
+.amb-goal summary .t { font-weight: 700; }
+.amb-goal summary > svg { width: 16px; height: 16px; color: var(--faint); transition: transform .2s var(--ease); }
+.amb-goal[open] summary > svg { transform: rotate(90deg); }
+.amb-goal .amb a { padding-left: 32px; }
 
 /* ── hole: the trace as an evidence exhibit, a cursor moving down the record ── */
 .detail, .amend { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
@@ -529,6 +538,7 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .ratio { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
 .ratio .big { font: 600 84px/0.95 var(--serif); letter-spacing: -0.03em; }
 .ratio p { color: var(--muted); font-size: 14px; }
+.ratio code { font: 600 13px var(--mono); color: var(--ink); white-space: nowrap; }
 .btable { width: 100%; border-collapse: collapse; font: 500 13px var(--mono); }
 .btable th, .btable td { text-align: right; padding: 12px 20px; border-top: 1px solid var(--line); white-space: nowrap; }
 .btable th:first-child, .btable td:first-child { text-align: left; }

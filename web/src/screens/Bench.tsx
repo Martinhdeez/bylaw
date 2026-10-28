@@ -25,8 +25,11 @@ export function Bench({ domain }: { domain: Domain }) {
     );
   if (!bench.data) return <div className="page">{crumbs}<Failure error={bench.error!} onRetry={bench.reload} /></div>;
 
-  const { rows, budget } = bench.data;
-  const muse = rows.find((r) => r.mode === "muse");
+  const { rows, budget, model } = bench.data;
+  // 01 v1.9: a null top-level model means no Muse call succeeded; a bench from before v1.9 has no model key.
+  const asked = rows.some((r) => r.mode === "muse");
+  const muse = model !== null ? rows.find((r) => r.mode === "muse") : undefined;
+  const label = (m: Row["mode"]) => (m === "muse" && !muse ? "Muse unavailable" : LABEL[m]);
   const bfs = rows.find((r) => r.mode === "bfs");
   const maxHoles = Math.max(1, ...rows.map((r) => r.holes));
   const ratio = muse && bfs && per1k(bfs.holes, bfs.tool_calls) > 0 ? per1k(muse.holes, muse.tool_calls) / per1k(bfs.holes, bfs.tool_calls) : null;
@@ -39,20 +42,31 @@ export function Bench({ domain }: { domain: Domain }) {
       {crumbs}
       <div className="head">
         <div>
-          <h1 className="title"><span className="v">Muse-guided</span> search against blind BFS</h1>
-          <p className="lede">Same {domain} policy, same budget of {int(budget)} tool calls, same depth limit. Muse Spark proposes chains per forbidden goal before BFS fills the rest of the budget.</p>
+          {muse ? (
+            <>
+              <h1 className="title"><span className="v">Muse-guided</span> search against blind BFS</h1>
+              <p className="lede">Same {domain} policy, same budget of {int(budget)} tool calls, same depth limit. Muse Spark proposes chains per forbidden goal before BFS fills the rest of the budget.</p>
+            </>
+          ) : (
+            <>
+              <h1 className="title">Blind BFS search</h1>
+              <p className="lede">
+                The {domain} policy searched by blind BFS on a budget of {int(budget)} tool calls. {asked ? "Muse unavailable: the Muse run got no answer from Muse Spark, so it searched as blind BFS too." : "No Muse Spark in this bench."}
+              </p>
+            </>
+          )}
         </div>
-        {muse && <Muse>{bench.data.model ? `Chains proposed by Muse Spark, ${bench.data.model}` : "Chains proposed by Muse Spark"}</Muse>}
+        {muse && <Muse>{model ? `Chains proposed by Muse Spark, ${model}` : "Chains proposed by Muse Spark"}</Muse>}
       </div>
 
       <div className="bench">
         <section className="panel">
           <div className="panel-h">
             <h2>Holes proven by tool calls spent <span className="label">log scale</span></h2>
-            <div className="legend">{rows.map((r) => <span key={r.mode}><i style={{ background: COLOR[r.mode] }} />{LABEL[r.mode]}</span>)}</div>
+            <div className="legend">{rows.map((r) => <span key={r.mode}><i style={{ background: COLOR[r.mode] }} />{label(r.mode)}</span>)}</div>
           </div>
           <div className="chart">
-            <Curve rows={rows} budget={budget} max={maxHoles} />
+            <Curve rows={rows} budget={budget} max={maxHoles} label={label} />
           </div>
         </section>
 
@@ -69,7 +83,7 @@ export function Bench({ domain }: { domain: Domain }) {
                 </p>
               </>
             ) : (
-              <p>{muse && bfs ? "Blind BFS found no hole, so there is no ratio to show." : "This bench has one mode only; run it with --modes bfs,muse to compare."}</p>
+              <p>{muse && bfs ? "Blind BFS found no hole, so there is no ratio to show." : asked && !muse ? "Muse was unavailable, so there is nothing to compare. Check the Meta Model API and run the bench again." : <>This bench has one mode only. Run it with <code translate="no">--modes bfs,muse</code> to compare.</>}</p>
             )}
           </section>
         </aside>
@@ -84,7 +98,7 @@ export function Bench({ domain }: { domain: Domain }) {
           <tbody>
             {rows.map((r) => (
               <tr key={r.mode}>
-                <td><b style={{ color: COLOR[r.mode] }}>{LABEL[r.mode]}</b></td>
+                <td><b style={{ color: COLOR[r.mode] }}>{label(r.mode)}</b></td>
                 <td>{r.holes}</td>
                 <td>{int(r.tool_calls)}</td>
                 <td>{per1k(r.holes, r.tool_calls).toFixed(2)}</td>
@@ -105,7 +119,7 @@ const W = 720, H = 300, L = 40, B = 28, T = 16, R = 72;
 
 // Cumulative holes proven against tool calls spent, one step line per mode (C5 v1.6 `found`).
 // The lines draw in, the found points pop in along them, and a hover guide reads both counts at any budget.
-function Curve({ rows, budget, max }: { rows: Row[]; budget: number; max: number }) {
+function Curve({ rows, budget, max, label }: { rows: Row[]; budget: number; max: number; label: (m: Row["mode"]) => string }) {
   const svg = useRef<SVGSVGElement>(null), guide = useRef<SVGGElement>(null), tip = useRef<SVGTextElement>(null);
   const dots = useRef<Record<string, SVGCircleElement | null>>({});
   const span = Math.log10(Math.max(budget, 100)) - 1;
@@ -119,7 +133,7 @@ function Curve({ rows, budget, max }: { rows: Row[]; budget: number; max: number
     return d + ` H${x(budget)}`;
   };
   const first = (r: Row) => Math.min(...(r.found ?? []).map((f) => f.tool_calls));
-  const summary = rows.map((r) => `${LABEL[r.mode]} proves ${r.holes} holes${r.found?.length ? `, the first at call ${first(r)}` : ""}`).join("; ");
+  const summary = rows.map((r) => `${label(r.mode)} proves ${r.holes} holes${r.found?.length ? `, the first at call ${first(r)}` : ""}`).join("; ");
   const muse = rows.find((r) => r.mode === "muse");
 
   // Written straight to the SVG through refs: no React render per pointer move.
