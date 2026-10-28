@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useRef, useState, type KeyboardEvent as KeyEv } from "react";
 import { createRoot } from "react-dom/client";
-import { Database, FileWarning, Gauge, Moon, PanelLeftClose, PanelLeftOpen, PlayCircle, Search, Sun, type LucideIcon } from "lucide-react";
+import { Database, FileWarning, Gauge, Moon, PanelLeftClose, PanelLeftOpen, PlayCircle, Radio, Search, Sun, type LucideIcon } from "lucide-react";
 import { DOMAINS, api, useGet, type Domain, type Report } from "./api";
 import { Logo, Ticker, when } from "./ui";
 import { Audit } from "./screens/Audit";
@@ -8,6 +8,7 @@ import { ReportView } from "./screens/Report";
 import { HoleView } from "./screens/Hole";
 import { AmendmentView } from "./screens/Amendment";
 import { Bench } from "./screens/Bench";
+import { Live } from "./screens/Live";
 import "./styles.css";
 
 const useHash = () => {
@@ -48,7 +49,9 @@ const useTheme = () => {
   return [t, flip] as const;
 };
 
-// Routes: #/ (audit), #/<domain>/report, #/<domain>/holes/<key>[/amendment], #/<domain>/bench
+// Routes: #/ (audit), #/<domain>/report, #/<domain>/holes/<key>[/amendment], #/<domain>/bench, #/live
+// ?film=1 (before the hash) hides the rail and the player chrome, for the recording.
+const FILM = new URLSearchParams(location.search).get("film") === "1";
 function App() {
   const path = useHash();
   const [, seg, section, rawKey, sub] = path.split("/");
@@ -73,7 +76,8 @@ function App() {
   }, []);
 
   let page;
-  if (inUrl && section === "report") page = <ReportView domain={domain} report={report} />;
+  if (seg === "live") page = <Live film={FILM} />;
+  else if (inUrl && section === "report") page = <ReportView domain={domain} report={report} />;
   else if (inUrl && section === "holes" && key && sub === "amendment") page = <AmendmentView domain={domain} hkey={key} effort={report.data?.run.effort} />;
   else if (inUrl && section === "holes" && key) page = <HoleView domain={domain} hkey={key} muse={report.data?.run.mode === "muse"} />;
   else if (inUrl && section === "bench") page = <Bench domain={domain} />;
@@ -82,13 +86,14 @@ function App() {
   const r = report.data;
   const nA = r?.holes.length ?? 0, nB = r?.contradictions?.length ?? 0;
   const nav: { href: string; icon: LucideIcon; label: string; on: boolean; count?: number; red?: boolean }[] = [
-    { href: "#/", icon: PlayCircle, label: "Audit", on: !inUrl },
+    { href: "#/", icon: PlayCircle, label: "Audit", on: !inUrl && seg !== "live" },
     { href: `#/${domain}/report`, icon: FileWarning, label: "Report", on: section === "report" || section === "holes", count: nA || nB, red: nA > 0 },
     { href: `#/${domain}/bench`, icon: Gauge, label: "Bench", on: section === "bench" },
+    { href: "#/live", icon: Radio, label: "Live", on: seg === "live" },
   ];
 
   return (
-    <div className={collapsed ? "shell collapsed" : "shell"}>
+    <div className={(collapsed ? "shell collapsed" : "shell") + (FILM && seg === "live" ? " film" : "")}>
       {/* The hash is the router, so the skip link moves focus itself. */}
       <a className="skip" href="#/" onClick={(e) => { e.preventDefault(); document.getElementById("main")?.focus(); }}>Skip to content</a>
       <div className="routebar" key={path} aria-hidden="true" />
@@ -156,6 +161,7 @@ function Palette({ domain, collapsed, theme, onToggle, onTheme, onClose }: {
     { label: "Run an audit", icon: PlayCircle, hint: "Audit", run: go("#/") },
     { label: `Open the ${domain} report`, icon: FileWarning, hint: "Report", run: go(`#/${domain}/report`) },
     { label: "Compare Muse with blind BFS", icon: Gauge, hint: "Bench", run: go(`#/${domain}/bench`) },
+    { label: "Watch the live run", icon: Radio, hint: "Live", run: go("#/live") },
     { label: `Switch to ${other}`, icon: Database, hint: "Domain", run: go(`#/${other}/report`) },
     { label: collapsed ? "Expand the sidebar" : "Collapse the sidebar", icon: collapsed ? PanelLeftOpen : PanelLeftClose, hint: "View", run: onToggle },
     { label: theme === "light" ? "Use the dark theme" : "Use the light theme", icon: theme === "light" ? Moon : Sun, hint: "View", run: onTheme },
