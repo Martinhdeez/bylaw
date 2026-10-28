@@ -148,3 +148,7 @@ def get_domain(name: str) -> Domain
 
 - C4 hole identity: a finding's key is `<goal>:<primary record>`. For G7 (compensation duplicated) the primary record is the user who receives the certificates, so the key is `G7:<user_id>`. Every other goal keeps the chain's target. Goals whose primary record is not the chain's target are listed in `bylaw/report.py` `KEY_ARG`.
 - Reports written before v1.11 may hold several G7 entries for one user; they are not re-keyed on load.
+
+## v1.12 (2026-10-28, from review of PR #26), clarifies v1.9
+
+- C4 `run.model` is `null` only in modes `bfs` and `bfs-fallback`. A `muse` run whose search made zero counted calls (every goal answered from the disk cache) keeps mode `muse` and its model string.
