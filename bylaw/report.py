@@ -77,6 +77,16 @@ def _touched(snapshot: dict, diff: dict) -> dict:
     return out
 
 
+KEY_ARG = {"G7": "user_id"}  # goals whose primary record (C4) is not the chain's target
+
+
+def hole_key(gid: str, chain: list[dict], target: str) -> str:
+    """C4 key `goal:primary record`: the chain's target, or the first value of the goal's KEY_ARG in the chain.
+    G7 is keyed on the user who receives the certificates: each repeat names its own reservation (FX2)."""
+    arg = KEY_ARG.get(gid)
+    return f"{gid}:{next((s['args'][arg] for s in chain if arg in s['args']), target) if arg else target}"
+
+
 def _target(chain: list[dict]) -> str:
     """The primary record of a chain (C4 v1.2 hole key): the first reservation or order it names, else its user."""
     for k in ("reservation_id", "order_id", "user_id"):
@@ -156,7 +166,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         before, after = _touched(r["before"], r["diff"]), _touched(r["after"], r["diff"])
         target = _target(chain)
         for gid, goal in domain.goals.items():
-            key, cls = f"{gid}:{target}", classify(domain, db, gid, chain)
+            key, cls = hole_key(gid, chain, target), classify(domain, db, gid, chain)
             # One entry per key across the three lists. A Class A hole takes the key from a B or C entry: it is never
             # shadowed. Otherwise the first, shortest chain wins (so the 24h cancel+rebook stays a Class C ambiguity,
             # REQ-EX1-3).

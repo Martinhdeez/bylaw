@@ -252,3 +252,24 @@ def test_a_hole_that_takes_the_key_from_an_ambiguity_is_fed_back_as_a_hit(monkey
     hole = next(h for h in audit(DOMAIN, RULES, budget=20)["holes"] if h["key"] == "G1:" + rid)
     calls = [(s["tool"], s["args"]) for s in hole["chain"]]
     assert [fb[1] for chain, fb in log if chain == calls] == [True]
+
+
+def _twice(rid, uid, amount):
+    cert = {"user_id": uid, "reservation_id": rid, "complaint": "cancelled", "amount": amount}
+    return [("send_certificate", dict(cert)), ("send_certificate", dict(cert))]
+
+
+def _g7(monkeypatch, *chains):
+    monkeypatch.setattr(report_mod, "search", lambda *a, **k: (c for c in chains))
+    return [e for e in audit(DOMAIN, RULES, budget=20)["ambiguities"] if e["goal"] == "G7"]
+
+
+def test_two_certificate_chains_for_the_same_user_give_one_g7_entry(monkeypatch):
+    # FX2: G7's primary record is the user who receives the certificates (C4), not the reservation each repeat names.
+    g7 = _g7(monkeypatch, _twice("3B66OJ", "emma_smith_9363", 200), _twice("A7T16Q", "emma_smith_9363", 100))
+    assert [e["key"] for e in g7] == ["G7:emma_smith_9363"]
+
+
+def test_certificate_chains_for_two_users_give_two_g7_entries(monkeypatch):
+    g7 = _g7(monkeypatch, _twice("3B66OJ", "emma_smith_9363", 200), _twice("06K2QN", "ivan_taylor_6615", 200))
+    assert sorted(e["key"] for e in g7) == ["G7:emma_smith_9363", "G7:ivan_taylor_6615"]
