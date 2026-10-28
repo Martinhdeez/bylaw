@@ -66,3 +66,16 @@ Retail rows are in scope. Many retail chains are blocked at step 1 and cost 0 st
 - `contracts.md` is not edited; the C5 addition is stated here and in the PR.
 - No Muse-mode run (needs the key). The retail run uses budget 200, not the default.
 - FX2 (PR #28, G7 keyed by user) is not on `bylaw/build`. When it lands, `_target` decides the G7 key and per_goal follows it.
+
+## Review (PR #29)
+
+- **Merged base:** origin/bylaw/build merged into the branch at 6f1bc66 (FX2 #28, contracts v1.13) and e1b4af4 (FX1 #26, contracts v1.14). FX1 conflicted in `bylaw/report.py` (`_STATS` next to FX1's `_RUN` schema). The reviewer kept both sides; nothing else changed.
+- **Gate:** `gate: GREEN at e1b4af4`. 438 passed, 1 skipped, 11 deselected in 3300.35 s, plus the web build.
+- **Tests fail on old code:** `tests/test_coverage.py` with `bylaw/` from 3b31c3a: 3 failed (`KeyError: 'per_goal'`, `invalid choice: 'coverage'`).
+- **Mutations:** each one turned a test red:
+  - dropping the A/B/C count gave `(0, 0) != (0, 1)`;
+  - counting every chain for every goal (`if True:` in place of `target in aimed[gid]`) gave G2 chains 2 != 1, executed 2 != 0;
+  - dropping the domain goals from the old-report path left only G1, G2 and G7 listed.
+- **Trace:** `harness-trace docs/plan/05-rigor/00-plan.md tests`: 5 requirements, all named by a test.
+- **Evidence:** the airline and retail tables above match `coverage-*-4bdca67.txt` in the builder's `.scratch/after/cv1-coverage/`. The finding counts match `audit-*-4bdca67.txt` (airline: B G1 2, G2 1, G5 12; C G1 2). These figures were measured at 4bdca67, before FX2 and FX1. No audit was re-run on the merged code.
+- **Stale lines above:** contracts.md now records this addition (v1.13, 3b31c3a), and FX2 is on bylaw/build. The tests failed on 3b31c3a as well as on 82e9c3e.
