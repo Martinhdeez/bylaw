@@ -61,7 +61,7 @@ def test_cli_audit_long_context_flag_reaches_the_audit(monkeypatch, tmp_path):
 
     def fake_audit(domain, ruleset, budget, use_llm, **kw):
         seen.update(use_llm=use_llm, **kw)
-        return {"holes": [], "contradictions": [], "ambiguities": [], "run": {"context_tokens": 0},
+        return {"holes": [], "contradictions": [], "ambiguities": [], "run": {"mode": "bfs", "model": None, "context_tokens": 0},
                 "stats": {"chains_tried": 0, "tool_calls": 0, "llm_calls": 0, "tokens": 0, "seconds": 0}}
 
     monkeypatch.setattr("bylaw.report.audit", fake_audit)

@@ -52,6 +52,16 @@ def test_spark_gets_effort_and_min_tokens(fake):
     assert c.bodies[0]["max_tokens"] == 2000
 
 
+def test_bylaw_effort_overrides_the_callers_effort_and_never_shares_a_cache_entry(fake, monkeypatch):
+    """FX1: BYLAW_EFFORT=low saves tokens while testing; a low answer must never be served for a high request."""
+    c = fake("high answer", "low answer")
+    monkeypatch.delenv("BYLAW_EFFORT", raising=False)
+    assert llm.complete(MSG, effort="high") == "high answer"
+    monkeypatch.setenv("BYLAW_EFFORT", "low")
+    assert llm.complete(MSG, effort="high") == "low answer"  # not the cached high answer
+    assert [b["reasoning_effort"] for b in c.bodies] == ["high", "low"]
+
+
 def test_cache_hit(fake):
     c = fake("first")
     hits = llm.USAGE["cache_hits"]
