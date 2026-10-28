@@ -66,7 +66,7 @@ export function AmendmentView({ domain, hkey, effort }: { domain: Domain; hkey: 
           <h1 className="title">{done ? <>Hole {h.id} <span className="g">closed</span></> : <>Amendment <span className="v">{a.id}</span> for {h.id}</>}</h1>
           <p className="lede">
             {isB
-              ? `This finding is a contradiction: the policy text forbids ${name.toLowerCase()}, but ${goldLine(goldTasks, "the benchmark's gold does it in").slice(0, -1)}. Ratifying the rule makes the written policy win over practice${bt ? "; the backtest shows the gold tasks that decision blocks" : ""}.`
+              ? `This finding is policy vs practice: ${goldLine(goldTasks, "the benchmark's gold reaches it in").slice(0, -1)}, so the policy and the benchmark's practice disagree. Ratifying the rule settles it against practice${bt ? "; the backtest shows the gold tasks that decision blocks" : ""}.`
               : `A sentence for the policy and the rule that enforces it, so that the trace for ${name.toLowerCase()} no longer passes. Past gold tasks were replayed to count the honest customers it would also stop.`}
           </p>
         </div>
@@ -125,7 +125,7 @@ export function AmendmentView({ domain, hkey, effort }: { domain: Domain; hkey: 
               <h2 className="h2">Ratify this amendment</h2>
               {isB && (
                 <p className="tradeoff">
-                  <b>Trade-off.</b> {goldLine(goldTasks)} Ratifying forbids it from now on{bt && bt.blocked_tasks.length ? `, and the proxy will refuse gold task${bt.blocked_tasks.length > 1 ? "s" : ""} ${bt.blocked_tasks.join(", ")}` : ""}. Ratify only if the written policy should win.
+                  <b>Trade-off.</b> {goldLine(goldTasks)} Ratifying forbids it from now on{bt && bt.blocked_tasks.length ? `, and the proxy will refuse gold task${bt.blocked_tasks.length > 1 ? "s" : ""} ${bt.blocked_tasks.join(", ")}` : ""}. Ratify only if the policy should forbid what practice allows.
                 </p>
               )}
               {!bt && <p>This amendment was not backtested. Ratify only after reading the rule.</p>}
