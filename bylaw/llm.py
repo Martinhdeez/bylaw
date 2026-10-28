@@ -4,6 +4,7 @@ Config (env / .env): MODEL_BASE_URL (or BASE_URL), MODEL, MODEL_API_KEY.
 BYLAW_NO_CACHE=1 bypasses the on-disk cache in .cache/llm/.
 BYLAW_EFFORT (e.g. low) overrides the reasoning effort every caller asks for.
 """
+import contextvars
 import hashlib
 import json
 import os
@@ -31,6 +32,8 @@ DEFAULT_CAPS = dict(reasoning_effort=False, json_schema=True, video_input=False,
 
 USAGE = {"calls": 0, "cache_hits": 0, "prompt_tokens": 0, "completion_tokens": 0, "reasoning_tokens": 0, "latency_s": 0.0}
 CALLS = []  # per-call records: model, tokens, latency
+# The calls of one audit: a list set by the caller around its requests; contextvars keep threads apart.
+TALLY: contextvars.ContextVar[list | None] = contextvars.ContextVar("bylaw_llm_tally", default=None)
 
 _client = None
 
@@ -95,6 +98,8 @@ def _call(messages, response_format=None, effort=None, read_cache=True, **opts):
         "latency_s": round(dt, 2),
     }
     CALLS.append(rec)
+    if (tally := TALLY.get()) is not None:
+        tally.append(rec)
     USAGE["calls"] += 1
     for k in ("prompt_tokens", "completion_tokens", "reasoning_tokens", "latency_s"):
         USAGE[k] += rec[k]

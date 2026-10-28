@@ -33,13 +33,14 @@ def cmd_audit(a):
     from bylaw.report import audit
 
     domain = get_domain(a.domain)
-    report = audit(domain, json.loads((HAND_RULESETS / f"{a.domain}.json").read_text()), a.budget, use_llm=not a.no_llm)
+    report = audit(domain, json.loads((HAND_RULESETS / f"{a.domain}.json").read_text()), a.budget, use_llm=not a.no_llm,
+                   long_context=a.long_context)
     Path(a.output).write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n")
     s = report["stats"]
     print(f"wrote {a.output}: {len(report['holes'])} Class A holes, {len(report['contradictions'])} Class B contradictions, "
           f"{len(report['ambiguities'])} Class C ambiguities; "
           f"{s['chains_tried']} chains, {s['tool_calls']} tool calls, {s['llm_calls']} LLM calls, "
-          f"{s['tokens']} tokens, {s['seconds']}s")
+          f"{s['tokens']} tokens (largest prompt {report['run']['context_tokens']}), {s['seconds']}s")
     if report["run"]["mode"] == "bfs-fallback":
         print(f"WARNING: every Muse call failed ({s['llm_errors']}/{s['llm_calls']}); "
               f"the report is labelled bfs-fallback, model null", file=sys.stderr)
@@ -196,6 +197,8 @@ def main(argv=None):
     au.add_argument("--domain", required=True)
     au.add_argument("--no-llm", action="store_true", help="blind BFS search, no Muse calls")
     au.add_argument("--budget", type=int, default=2000, help="write tool calls the search may execute")
+    au.add_argument("--long-context", action="store_true",
+                    help="send every tool schema and the gold task list with the policy in each Muse prompt")
     au.add_argument("-o", "--output", default="report.json")
     au.set_defaults(fn=cmd_audit)
     c = sub.add_parser("compile", help="compile a domain policy into a RuleSet with Muse")

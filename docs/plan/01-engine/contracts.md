@@ -136,3 +136,15 @@ def get_domain(name: str) -> Domain
 - `stats.llm_errors` (int) stays as in v1.8. The CLI prints a warning to stderr when the mode is `bfs-fallback`.
 - C5 `bench` JSON has a top-level `model` (string or `null`) and `commit`.
 - Views: anything that branches on `run.mode === "muse"` shows `bfs-fallback` as an offline run, with a visible "Muse unavailable" note.
+
+## v1.10 (2026-10-27, from LC1), binding on LC1, BR1, CV1, the API and the views
+
+- C4 `run.context_tokens` (int >= 0, required in reports written from v1.10 on): the largest `prompt_tokens` the API billed for one Muse request in this audit; 0 for `bfs`, or when every reply came from the disk cache. Reports written before v1.10 lack it; consumers treat a missing value as unknown, never as 0.
+- C4 `stats.tokens` counts only the requests made by this audit's search (per audit, not per process), so concurrent audits in one API process report their own counts. C9 progress events may still report process-wide usage.
+- C5 `audit --domain D [--no-llm] [--long-context] [--budget N=2000] [-o report.json]`: `--long-context` adds every tool schema of the domain and the gold task list (`load_gold`) to each proposer request, as one extra user message before the goal message. It has no effect with `--no-llm`.
+- C9 `AuditRequest` does not expose `long_context` (REQ-LC1-1 names only the CLI and the report).
+
+## v1.11 (2026-10-28, from FX2), binding on FX2, DM1 and the views
+
+- C4 hole identity: a finding's key is `<goal>:<primary record>`. For G7 (compensation duplicated) the primary record is the user who receives the certificates, so the key is `G7:<user_id>`. Every other goal keeps the chain's target. Goals whose primary record is not the chain's target are listed in `bylaw/report.py` `KEY_ARG`.
+- Reports written before v1.11 may hold several G7 entries for one user; they are not re-keyed on load.
