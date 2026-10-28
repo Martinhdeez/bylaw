@@ -1,4 +1,4 @@
-# 06 contracts (v1.0, frozen 2026-10-28)
+# 06 contracts (v1.2, frozen 2026-10-28)
 
 Shared by test authors and builders of CS2 and CS3. A change is a new version announced to both sides.
 
@@ -54,3 +54,29 @@ Gold conversations: at least 6, covering a real disruption compensation (Paris t
   ```
   `t` seconds since start. `handoff`: `from`, `to`. `tool_call`: `agent`, `tool`, `args`. `bylaw_check`: `tool`, `allowed`, `rule_id`, `policy_ref` (present without `--guard` too, computed but not enforced, `enforced: false`). `tool_output`: `tool`, `output`. `state`: `diff` (C4 shape) after each write tool. `agent_message`: `agent`, `text`.
 - API: `GET /api/live` -> `[{"name", "guard", "file"}]` from `reports/live/*.json`; `GET /api/live/{file}` -> the file; 404 if absent.
+
+## v1.1 (2026-10-28) — clarifications from the CS2 test author
+
+1. REQ-CS2-3: `backtest --domain csdemo` keeps the existing JSON output; the requirement means `"blocked": 0` with `"tasks": N`.
+2. CS-C1 trace keys start at `"0"` and are consecutive.
+3. `policy_text` agent order is routing order: Triage, Flight Information, Booking and Cancellation, Seat and Special Services, FAQ, Refunds and Compensation.
+4. D1 "vouchers set" means a non-empty list.
+5. D1 "on time": the booked `flight_number` has status on time in the demo fixture. A flight with no status in the fixture (e.g. after `book_new_flight`) is not on time, so D1 is not reached.
+6. Hole key for csdemo goals: `Dn:<confirmation_number>` from the after state (`Dn:none` when absent).
+7. D2 "the passenger's itinerary" is resolved by `passenger_name` against the fixture itineraries.
+
+## v1.2 (2026-10-28) — clarifications from the CS3 test author
+
+1. The guard reads the live state at `data.context.context.state` (the demo's run context, as the demo tools do).
+2. Log entry: `rule_id` and `policy_ref` are `None` when the call is allowed; when denied they name the denying rule.
+3. When several rules deny, the first failing verdict in RuleSet order is named (same as `Proxy.call`).
+4. The guard's trace records only calls it allowed, with `ok: true`, appended before the tool runs; blocked calls are not in the trace (they are in the log).
+5. A handoff is only a `handoff` event, never a `tool_call`.
+6. Per tool call the event order is `tool_call`, `bylaw_check`, then `tool_output` (the reject text is the `tool_output` of a blocked call).
+7. `enforced` is `true` on every `bylaw_check` with `--guard`, `false` without.
+8. `final_state` is `state.model_dump(mode="json")` of the demo context.
+9. The header `model` equals the `MODEL` environment value (default `muse-spark-1.3`).
+10. Every model request of the run, including the demo's relevance and jailbreak guardrail agents, goes to Muse with `MODEL`. None uses a `gpt-*` model.
+11. Event files live in `<reports dir>/live/`, where the reports dir is the C9 one (`BYLAW_REPORTS_DIR`, default `reports`).
+12. `GET /api/live` entries: `file` is the filename with `.json`; `name` and `guard` come from the file header. Non-JSON files are not listed.
+13. `openai-agents==0.24.0` and `openai-chatkit==1.6.5` are pinned (VN1).
