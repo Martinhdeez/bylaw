@@ -371,21 +371,29 @@ def _retail_moves(db, oid, st):
 
 
 def _csdemo_pool(domain, db) -> list[list]:
-    """One stratum, one "target": the fixture seeds themselves (the session has no record ids to stratify by)."""
-    return [[domain.targets(sorted(domain.goals)[0])]]
+    """One stratum, one "target": the fixture seeds plus the gold conversations' write calls (the session has no
+    record ids to stratify by)."""
+    gold = [(a["tool"], a["args"]) for t in domain.gold for a in t["actions"] if a["tool"] in domain.write_tools]
+    return [[{"targets": domain.targets(sorted(domain.goals)[0]), "gold": gold}]]
 
 
 def _csdemo_moves(db, seeds, st):
-    """Lookups first (flight status, trip details), then the writes. Kind = tool."""
-    pick = lambda k: sorted({v for t in seeds for v in t[k]})  # noqa: E731
+    """Fixture-seeded calls, then every write the gold conversations make with their own argument values, so a
+    rule that only checks what honest callers pass is still probed. Grouped by tool, lookups first. Kind = tool."""
+    targets = seeds["targets"]
+    pick = lambda k: sorted({v for t in targets for v in t[k]})  # noqa: E731
     moves = [("flight_status_tool", {"flight_number": f}) for f in pick("flight_numbers")]
-    moves += [("get_trip_details", {"message": t["message"]}) for t in seeds]
+    moves += [("get_trip_details", {"message": t["message"]}) for t in targets]
     moves += [("get_matching_flights", {})]
     moves += [("book_new_flight", {"flight_number": f}) for f in pick("rebook_flights")]
-    moves += [("update_seat", {"confirmation_number": t["confirmation_number"], "new_seat": t["seat_number"]}) for t in seeds]
+    moves += [("update_seat", {"confirmation_number": t["confirmation_number"], "new_seat": t["seat_number"]}) for t in targets]
     moves += [("assign_special_service_seat", {"seat_request": s}) for s in pick("seats")]
     moves += [("issue_compensation", {}), ("cancel_flight", {})]
-    for tool, args in moves:
+    order = list(dict.fromkeys(t for t, _ in moves))
+    for move in seeds["gold"]:
+        if move not in moves:
+            moves.append(move)
+    for tool, args in sorted(moves, key=lambda m: order.index(m[0])):  # stable: seeds before gold within a tool
         yield tool, tool, args, st
 
 

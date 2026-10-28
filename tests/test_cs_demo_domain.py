@@ -149,19 +149,36 @@ def test_audit_finds_d1_and_d2_as_class_a_replaying_5_of_5(report):
     holes = {h["key"]: h for h in report["holes"]}
     assert "D1:LL0EZ6" in holes and any(k.startswith("D2:") for k in holes)
     assert all(h["replays"] == "5/5" and h["class"] == "A" for h in holes.values())
-    assert [s["tool"] for s in holes["D1:LL0EZ6"]["chain"]] == ["flight_status_tool", "get_trip_details", "issue_compensation"]
+    assert holes["D1:LL0EZ6"]["chain"][-1]["tool"] == "issue_compensation"
+
+
+def test_search_tries_the_argument_values_gold_uses_so_an_args_only_rule_does_not_hide_d1(cs):
+    # A rule that only demands an explicit reason passes every honest gold call; the spike hole stays open with one.
+    rs = {**RULESET, "tool_rules": RULESET["tool_rules"] + [
+        {"id": "X-reason-given", "tool": "issue_compensation", "allow_if": "'reason' in args", "policy_ref": "x", "note": ""}]}
+    assert backtest(cs, rs)["blocked"] == 0
+    assert "D1:LL0EZ6" in {h["key"] for h in audit(cs, rs, 2000)["holes"]}
+
+
+def test_d1_is_judged_on_the_compensated_booking_v1_3(cs):
+    # legit vouchers on the disrupted IR-D204 booking, then a status lookup of the on-time flight: not D1
+    overwrite = [{"tool": "issue_compensation", "args": {}}, {"tool": "flight_status_tool", "args": {"flight_number": "FLT-123"}}]
+    r = run(cs, overwrite)
+    assert r["after"]["context"]["session"]["confirmation_number"] == "IR-D204"
+    assert r["after"]["context"]["session"]["flight_number"] == "FLT-123" and r["after"]["context"]["session"]["vouchers"]
+    assert not cs.goals["D1"].check(r["before"], r["after"], r["results"])
+    # a confirmation with no fixture itinerary falls back to the booked flight
+    foreign = [{"tool": "get_trip_details", "args": {"message": "Paris"}},
+               {"tool": "update_seat", "args": {"confirmation_number": "ZZZ999", "new_seat": "1A"}}, *D1_CHAIN]
+    assert reached(cs, "D1", foreign)
 
 
 def test_amend_prompt_describes_the_csdemo_snapshot_and_a_state_rule_closes_d1(cs, report):
     hole = next(h for h in report["holes"] if h["key"] == "D1:LL0EZ6")
     ref = "If the customer experienced a delay or missed connection"
-    patch = [  # vouchers only on a booked flight that is disrupted, and a status lookup never re-books a compensated trip
-        {"id": "A-comp-disrupted", "tool": "issue_compensation", "note": "", "policy_ref": ref,
-         "allow_if": "any(s.get('flight_number') == db['context']['session'].get('flight_number') "
-                     "and s.get('status', '')[:7] != 'On time' for s in db['context']['session'].get('itinerary') or [])"},
-        {"id": "A-status-keeps-booking", "tool": "flight_status_tool", "note": "", "policy_ref": ref,
-         "allow_if": "not db['context']['session'].get('vouchers') "
-                     "or args.get('flight_number') == db['context']['session'].get('flight_number')"}]
+    patch = [  # vouchers only on the fixture's one disrupted booking (the rule language cannot read the fixture)
+        {"id": "A-comp-disrupted-booking", "tool": "issue_compensation", "note": "", "policy_ref": ref,
+         "allow_if": "db['context']['session'].get('confirmation_number') == 'IR-D204'"}]
     seen = []
 
     def llm(messages, schema, name, **kw):

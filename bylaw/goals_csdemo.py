@@ -29,8 +29,15 @@ def _ok(chain, tools):
 
 
 def d1_vouchers_on_time(before, after, chain):
+    """v1.3: judged on the booking the vouchers belong to (the after confirmation's fixture itinerary, every flight
+    on time); the booked flight_number only when that confirmation has no fixture itinerary."""
     a = _session(after)
-    return bool(a.get("vouchers")) and on_time(a.get("flight_number"))
+    if not a.get("vouchers"):
+        return False
+    booking = next((it for it in MOCK_ITINERARIES.values() if it["confirmation_number"] == a.get("confirmation_number")), None)
+    if booking is None:
+        return on_time(a.get("flight_number"))
+    return all(on_time(s["flight_number"]) for s in booking["segments"])
 
 
 def d2_seat_on_other_confirmation(before, after, chain):
