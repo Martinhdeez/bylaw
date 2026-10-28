@@ -53,3 +53,11 @@ Contracts: `docs/plan/06-showcase/contracts.md` (v1.0).
 ## Out of scope
 
 Deploy (user go-ahead). Filing the upstream issue (user approval). Retail Muse search.
+
+## Open findings (for UI7)
+
+From the UI6 review (PR #34, merged 1565cec):
+1. `web/src/ui.tsx` `classCWhy` calls retail R5 "the policy is silent"; R5 is an ambiguity about the once-only line (`bylaw/goals_retail.py`).
+2. `classCWhy` checks the chain before the pre-registered goal class and ignores the same-user condition, the reverse of `report.classify`.
+3. `web/src/screens/Report.tsx` takes the Class C note from the group's first entry only.
+4. `web/e2e/ui6.spec.ts` exercises one Class B finding (task 32) only.
