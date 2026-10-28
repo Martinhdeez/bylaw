@@ -27,6 +27,12 @@ Contracts: `docs/plan/06-showcase/contracts.md` (v1.0).
 
 "Make the process graphic, not just a load bar or something like that, we need something so visual." Scan and Fix are scenes, not progress indicators: tools as a graph, chains as paths travelling it, state as a live object, the hole as a crack; the fix as a rule slotting into the cut edge and the attack stopped at the proxy gate. Model moves read fluid and violet; application moves read rigid and stamped.
 
+## Design decisions (user, 2026-10-28, after VZ1 v1)
+
+- "The most useful part is the Live": Live (the agent app with Bylaw checking every action, without and with Bylaw) is the hero screen and the video's backbone; Scan and Fix are short sequences that feed it.
+- "Remove the AI slop": the designer uses the Impeccable skill (installed for this project, not committed: `.claude/skills/impeccable/`) and the anti-slop ban list; detector must run clean.
+- "I want to understand the application just by seeing it": the screen alone explains Bylaw to a newcomer.
+
 ## Requirements
 
 | Id | Requirement | Surface |
