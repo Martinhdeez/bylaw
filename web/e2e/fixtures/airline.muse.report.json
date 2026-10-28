@@ -1,0 +1,7338 @@
+{
+ "run": {
+  "budget": 2000,
+  "commit": "05bd65c4e1a9",
+  "domain": "airline",
+  "goals_commit": "05bd65c4e1a9",
+  "mode": "muse",
+  "model": "muse-spark-1.3",
+  "started": "2026-10-28T08:14:00+00:00",
+  "effort": "high",
+  "context_tokens": 41230
+ },
+ "holes": [
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-21",
+        "flight_number": "HAT204"
+       }
+      ],
+      "payment_id": "credit_card_3029145",
+      "reservation_id": "00GMVN"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "00GMVN": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T22:33:39",
+       "destination": "SEA",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "SEA",
+         "flight_number": "HAT204",
+         "origin": "SFO",
+         "price": 60
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "SFO",
+       "passengers": [
+        {
+         "dob": "1981-04-19",
+         "first_name": "Aarav",
+         "last_name": "Brown"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 900,
+         "payment_id": "gift_card_7654035"
+        },
+        {
+         "amount": -840,
+         "payment_id": "credit_card_3029145"
+        }
+       ],
+       "reservation_id": "00GMVN",
+       "status": null,
+       "total_baggages": 2,
+       "user_id": "aarav_brown_5556"
+      },
+      "before": {
+       "cabin": "business",
+       "created_at": "2024-05-14T22:33:39",
+       "destination": "SEA",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "SEA",
+         "flight_number": "HAT204",
+         "origin": "SFO",
+         "price": 900
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "SFO",
+       "passengers": [
+        {
+         "dob": "1981-04-19",
+         "first_name": "Aarav",
+         "last_name": "Brown"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 900,
+         "payment_id": "gift_card_7654035"
+        }
+       ],
+       "reservation_id": "00GMVN",
+       "status": null,
+       "total_baggages": 2,
+       "user_id": "aarav_brown_5556"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H1",
+   "key": "G5:00GMVN",
+   "money_delta": 840,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 00GMVN"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT215"
+       },
+       {
+        "date": "2024-05-24",
+        "flight_number": "HAT262"
+       }
+      ],
+      "payment_id": "credit_card_3559098",
+      "reservation_id": "0QOP4M"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "0QOP4M": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T23:07:52",
+       "destination": "DEN",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT215",
+         "origin": "EWR",
+         "price": 60
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "DEN",
+         "flight_number": "HAT262",
+         "origin": "CLT",
+         "price": 51
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1964-04-13",
+         "first_name": "Chen",
+         "last_name": "Garcia"
+        },
+        {
+         "dob": "1980-09-08",
+         "first_name": "Lucas",
+         "last_name": "Jackson"
+        },
+        {
+         "dob": "1957-12-15",
+         "first_name": "Amelia",
+         "last_name": "Patel"
+        },
+        {
+         "dob": "1969-08-14",
+         "first_name": "Ava",
+         "last_name": "Gonzalez"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 9300,
+         "payment_id": "credit_card_3559098"
+        },
+        {
+         "amount": -8736,
+         "payment_id": "credit_card_3559098"
+        }
+       ],
+       "reservation_id": "0QOP4M",
+       "status": null,
+       "total_baggages": 5,
+       "user_id": "mohamed_patel_4472"
+      },
+      "before": {
+       "cabin": "business",
+       "created_at": "2024-05-14T23:07:52",
+       "destination": "DEN",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT215",
+         "origin": "EWR",
+         "price": 1018
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "DEN",
+         "flight_number": "HAT262",
+         "origin": "CLT",
+         "price": 1277
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "EWR",
+       "passengers": [
+        {
+         "dob": "1964-04-13",
+         "first_name": "Chen",
+         "last_name": "Garcia"
+        },
+        {
+         "dob": "1980-09-08",
+         "first_name": "Lucas",
+         "last_name": "Jackson"
+        },
+        {
+         "dob": "1957-12-15",
+         "first_name": "Amelia",
+         "last_name": "Patel"
+        },
+        {
+         "dob": "1969-08-14",
+         "first_name": "Ava",
+         "last_name": "Gonzalez"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 9300,
+         "payment_id": "credit_card_3559098"
+        }
+       ],
+       "reservation_id": "0QOP4M",
+       "status": null,
+       "total_baggages": 5,
+       "user_id": "mohamed_patel_4472"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H2",
+   "key": "G5:0QOP4M",
+   "money_delta": 8736,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 0QOP4M"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-21",
+        "flight_number": "HAT187"
+       },
+       {
+        "date": "2024-05-21",
+        "flight_number": "HAT222"
+       },
+       {
+        "date": "2024-05-22",
+        "flight_number": "HAT258"
+       },
+       {
+        "date": "2024-05-22",
+        "flight_number": "HAT257"
+       }
+      ],
+      "payment_id": "credit_card_5747809",
+      "reservation_id": "2HN8UN"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "2HN8UN": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-08T06:59:08",
+       "destination": "SEA",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "DFW",
+         "flight_number": "HAT187",
+         "origin": "LAX",
+         "price": 59
+        },
+        {
+         "date": "2024-05-21",
+         "destination": "SEA",
+         "flight_number": "HAT222",
+         "origin": "DFW",
+         "price": 99
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "SFO",
+         "flight_number": "HAT258",
+         "origin": "SEA",
+         "price": 61
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "LAX",
+         "flight_number": "HAT257",
+         "origin": "SFO",
+         "price": 70
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "LAX",
+       "passengers": [
+        {
+         "dob": "1984-06-14",
+         "first_name": "Juan",
+         "last_name": "Smith"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 541,
+         "payment_id": "gift_card_9305264"
+        },
+        {
+         "amount": -252,
+         "payment_id": "credit_card_5747809"
+        }
+       ],
+       "reservation_id": "2HN8UN",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "juan_smith_7200"
+      },
+      "before": {
+       "cabin": "economy",
+       "created_at": "2024-05-08T06:59:08",
+       "destination": "SEA",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "DFW",
+         "flight_number": "HAT187",
+         "origin": "LAX",
+         "price": 129
+        },
+        {
+         "date": "2024-05-21",
+         "destination": "SEA",
+         "flight_number": "HAT222",
+         "origin": "DFW",
+         "price": 130
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "SFO",
+         "flight_number": "HAT258",
+         "origin": "SEA",
+         "price": 117
+        },
+        {
+         "date": "2024-05-22",
+         "destination": "LAX",
+         "flight_number": "HAT257",
+         "origin": "SFO",
+         "price": 165
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "LAX",
+       "passengers": [
+        {
+         "dob": "1984-06-14",
+         "first_name": "Juan",
+         "last_name": "Smith"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 541,
+         "payment_id": "gift_card_9305264"
+        }
+       ],
+       "reservation_id": "2HN8UN",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "juan_smith_7200"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H3",
+   "key": "G5:2HN8UN",
+   "money_delta": 252,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 2HN8UN"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "flights": [
+       {
+        "date": "2024-05-18",
+        "flight_number": "HAT291"
+       },
+       {
+        "date": "2024-05-18",
+        "flight_number": "HAT273"
+       }
+      ],
+      "payment_id": "credit_card_2413934",
+      "reservation_id": "5K7YMA"
+     },
+     "ok": true,
+     "tool": "update_reservation_flights",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-flights-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "In other cases, all reservations, including basic economy, can change cabin without changing the flights.",
+       "rule_id": "R-flights-not-both"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Cabin cannot be changed if any flight in the reservation has already been flown.",
+       "rule_id": "R-flights-cabin-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Basic economy flights cannot be modified.",
+       "rule_id": "R-flights-not-basic"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Other reservations can be modified without changing the origin, destination, and trip type.",
+       "rule_id": "R-flights-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the flights are changed, the user needs to provide a single gift card or credit card for payment or refund method. The payment method must already be in user profile for safety reasons.",
+       "rule_id": "R-flights-payment"
+      }
+     ]
+    }
+   ],
+   "class": "A",
+   "diff": {
+    "reservations": {
+     "5K7YMA": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:55:49",
+       "destination": "LAX",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-18",
+         "destination": "SFO",
+         "flight_number": "HAT291",
+         "origin": "PHL",
+         "price": 83
+        },
+        {
+         "date": "2024-05-18",
+         "destination": "LAX",
+         "flight_number": "HAT273",
+         "origin": "SFO",
+         "price": 95
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "PHL",
+       "passengers": [
+        {
+         "dob": "1956-06-03",
+         "first_name": "James",
+         "last_name": "Kovacs"
+        },
+        {
+         "dob": "1953-01-16",
+         "first_name": "Harper",
+         "last_name": "Johansson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 558,
+         "payment_id": "credit_card_2413934"
+        },
+        {
+         "amount": -142,
+         "payment_id": "credit_card_2413934"
+        }
+       ],
+       "reservation_id": "5K7YMA",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "james_kovacs_6640"
+      },
+      "before": {
+       "cabin": "economy",
+       "created_at": "2024-05-14T21:55:49",
+       "destination": "LAX",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-18",
+         "destination": "SFO",
+         "flight_number": "HAT291",
+         "origin": "PHL",
+         "price": 102
+        },
+        {
+         "date": "2024-05-18",
+         "destination": "LAX",
+         "flight_number": "HAT273",
+         "origin": "SFO",
+         "price": 147
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "PHL",
+       "passengers": [
+        {
+         "dob": "1956-06-03",
+         "first_name": "James",
+         "last_name": "Kovacs"
+        },
+        {
+         "dob": "1953-01-16",
+         "first_name": "Harper",
+         "last_name": "Johansson"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 558,
+         "payment_id": "credit_card_2413934"
+        }
+       ],
+       "reservation_id": "5K7YMA",
+       "status": null,
+       "total_baggages": 1,
+       "user_id": "james_kovacs_6640"
+      }
+     }
+    }
+   },
+   "goal": "G5",
+   "goal_true": true,
+   "id": "H4",
+   "key": "G5:5K7YMA",
+   "money_delta": 142,
+   "replays": "5/5",
+   "title": "free_bags_over_allowance on 5K7YMA"
+  }
+ ],
+ "ambiguities": [
+  {
+   "chain": [
+    {
+     "args": {
+      "reason": "change of plan",
+      "reservation_id": "1KUOX2"
+     },
+     "ok": true,
+     "tool": "cancel_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-cancel-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must also obtain the reason for cancellation (change of plan, airline cancelled flight, or other reasons)",
+       "rule_id": "R-cancel-reason"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If any portion of the flight has already been flown, the agent cannot help and transfer is needed.",
+       "rule_id": "R-cancel-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Otherwise, flight can be cancelled if any of the following is true: - The booking was made within the last 24 hrs - The flight is cancelled by airline - It is a business flight - The user has travel insurance and the reason for cancellation is covered by insurance.",
+       "rule_id": "R-cancel-ground"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "destination": "MCO",
+      "flight_type": "one_way",
+      "flights": [
+       {
+        "date": "2024-05-21",
+        "flight_number": "HAT036"
+       }
+      ],
+      "insurance": "no",
+      "nonfree_baggages": 0,
+      "origin": "MSP",
+      "passengers": [
+       {
+        "dob": "1984-03-14",
+        "first_name": "Mohamed",
+        "last_name": "Taylor"
+       }
+      ],
+      "payment_methods": [
+       {
+        "amount": 86,
+        "payment_id": "credit_card_1697462"
+       }
+      ],
+      "total_baggages": 0,
+      "user_id": "anya_khan_1074"
+     },
+     "ok": true,
+     "tool": "book_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id from the user.",
+       "rule_id": "R-book-user"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Each reservation can have at most five passengers.",
+       "rule_id": "R-book-max-pax"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent should then ask for the trip type, origin, destination.",
+       "rule_id": "R-book-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-book-payment-in-profile"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards.",
+       "rule_id": "R-book-payment-mix"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-book-bags"
+      }
+     ]
+    }
+   ],
+   "class": "C",
+   "diff": {
+    "flights": {
+     "HAT036": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T15:57:00",
+         "actual_departure_time_est": "2024-05-01T12:38:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T16:44:00",
+         "actual_departure_time_est": "2024-05-02T13:18:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T16:25:00",
+         "actual_departure_time_est": "2024-05-03T13:00:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T15:56:00",
+         "actual_departure_time_est": "2024-05-04T13:26:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T15:58:00",
+         "actual_departure_time_est": "2024-05-05T12:58:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T15:27:00",
+         "actual_departure_time_est": "2024-05-06T12:40:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T15:48:00",
+         "actual_departure_time_est": "2024-05-07T12:58:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T15:48:00",
+         "actual_departure_time_est": "2024-05-08T12:39:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T16:44:00",
+         "actual_departure_time_est": "2024-05-09T13:14:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T16:15:00",
+         "actual_departure_time_est": "2024-05-10T13:22:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T16:17:00",
+         "actual_departure_time_est": "2024-05-11T13:18:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T16:13:00",
+         "actual_departure_time_est": "2024-05-12T12:44:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T16:03:00",
+         "actual_departure_time_est": "2024-05-13T13:11:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "status": "cancelled"
+        },
+        "2024-05-15": {
+         "actual_departure_time_est": "2024-05-15T12:38:00",
+         "estimated_arrival_time_est": "2024-05-15T15:50:00",
+         "status": "flying"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 12,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 54,
+          "business": 409,
+          "economy": 171
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 16,
+          "business": 16,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 316,
+          "economy": 152
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 12,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 83,
+          "business": 359,
+          "economy": 119
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 1,
+          "business": 15,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 100,
+          "business": 211,
+          "economy": 195
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 5,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 433,
+          "economy": 186
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 20,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 86,
+          "business": 218,
+          "economy": 116
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 9,
+          "economy": 19
+         },
+         "prices": {
+          "basic_economy": 63,
+          "business": 406,
+          "economy": 127
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 10,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 83,
+          "business": 421,
+          "economy": 111
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 4,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 56,
+          "business": 362,
+          "economy": 180
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 15,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 58,
+          "business": 312,
+          "economy": 101
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 19,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 217,
+          "economy": 129
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 4,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 99,
+          "business": 236,
+          "economy": 138
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 10,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 59,
+          "business": 411,
+          "economy": 157
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 11,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 440,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 0,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 88,
+          "business": 456,
+          "economy": 152
+         },
+         "status": "available"
+        }
+       },
+       "destination": "MCO",
+       "flight_number": "HAT036",
+       "origin": "MSP",
+       "scheduled_arrival_time_est": "16:00:00",
+       "scheduled_departure_time_est": "13:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T15:57:00",
+         "actual_departure_time_est": "2024-05-01T12:38:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T16:44:00",
+         "actual_departure_time_est": "2024-05-02T13:18:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T16:25:00",
+         "actual_departure_time_est": "2024-05-03T13:00:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T15:56:00",
+         "actual_departure_time_est": "2024-05-04T13:26:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T15:58:00",
+         "actual_departure_time_est": "2024-05-05T12:58:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T15:27:00",
+         "actual_departure_time_est": "2024-05-06T12:40:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T15:48:00",
+         "actual_departure_time_est": "2024-05-07T12:58:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T15:48:00",
+         "actual_departure_time_est": "2024-05-08T12:39:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T16:44:00",
+         "actual_departure_time_est": "2024-05-09T13:14:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T16:15:00",
+         "actual_departure_time_est": "2024-05-10T13:22:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T16:17:00",
+         "actual_departure_time_est": "2024-05-11T13:18:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T16:13:00",
+         "actual_departure_time_est": "2024-05-12T12:44:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T16:03:00",
+         "actual_departure_time_est": "2024-05-13T13:11:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "status": "cancelled"
+        },
+        "2024-05-15": {
+         "actual_departure_time_est": "2024-05-15T12:38:00",
+         "estimated_arrival_time_est": "2024-05-15T15:50:00",
+         "status": "flying"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 12,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 54,
+          "business": 409,
+          "economy": 171
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 16,
+          "business": 16,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 316,
+          "economy": 152
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 12,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 83,
+          "business": 359,
+          "economy": 119
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 1,
+          "business": 15,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 100,
+          "business": 211,
+          "economy": 195
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 5,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 433,
+          "economy": 186
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 16,
+          "business": 20,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 86,
+          "business": 218,
+          "economy": 116
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 9,
+          "economy": 19
+         },
+         "prices": {
+          "basic_economy": 63,
+          "business": 406,
+          "economy": 127
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 10,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 83,
+          "business": 421,
+          "economy": 111
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 4,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 56,
+          "business": 362,
+          "economy": 180
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 15,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 58,
+          "business": 312,
+          "economy": 101
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 19,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 217,
+          "economy": 129
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 4,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 99,
+          "business": 236,
+          "economy": 138
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 10,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 59,
+          "business": 411,
+          "economy": 157
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 11,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 440,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 0,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 88,
+          "business": 456,
+          "economy": 152
+         },
+         "status": "available"
+        }
+       },
+       "destination": "MCO",
+       "flight_number": "HAT036",
+       "origin": "MSP",
+       "scheduled_arrival_time_est": "16:00:00",
+       "scheduled_departure_time_est": "13:00:00"
+      }
+     }
+    },
+    "reservations": {
+     "1KUOX2": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T17:16:37",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-22",
+         "destination": "MCO",
+         "flight_number": "HAT036",
+         "origin": "MSP",
+         "price": 91
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1984-03-14",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 91,
+         "payment_id": "credit_card_1697462"
+        },
+        {
+         "amount": -91,
+         "payment_id": "credit_card_1697462"
+        }
+       ],
+       "reservation_id": "1KUOX2",
+       "status": "cancelled",
+       "total_baggages": 0,
+       "user_id": "anya_khan_1074"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T17:16:37",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-22",
+         "destination": "MCO",
+         "flight_number": "HAT036",
+         "origin": "MSP",
+         "price": 91
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1984-03-14",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 91,
+         "payment_id": "credit_card_1697462"
+        }
+       ],
+       "reservation_id": "1KUOX2",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "anya_khan_1074"
+      }
+     },
+     "HATHAT": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-15T15:00:00",
+       "destination": "MCO",
+       "flight_type": "one_way",
+       "flights": [
+        {
+         "date": "2024-05-21",
+         "destination": "MCO",
+         "flight_number": "HAT036",
+         "origin": "MSP",
+         "price": 86
+        }
+       ],
+       "insurance": "no",
+       "nonfree_baggages": 0,
+       "origin": "MSP",
+       "passengers": [
+        {
+         "dob": "1984-03-14",
+         "first_name": "Mohamed",
+         "last_name": "Taylor"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 86,
+         "payment_id": "credit_card_1697462"
+        }
+       ],
+       "reservation_id": "HATHAT",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "anya_khan_1074"
+      },
+      "before": null
+     }
+    },
+    "users": {
+     "anya_khan_1074": {
+      "after": {
+       "address": {
+        "address1": "364 Sunset Drive",
+        "address2": "Suite 704",
+        "city": "Houston",
+        "country": "USA",
+        "state": "TX",
+        "zip": "77081"
+       },
+       "dob": "1984-04-08",
+       "email": "anya.khan3991@example.com",
+       "membership": "silver",
+       "name": {
+        "first_name": "Anya",
+        "last_name": "Khan"
+       },
+       "payment_methods": {
+        "certificate_4196207": {
+         "amount": 250,
+         "id": "certificate_4196207",
+         "source": "certificate"
+        },
+        "credit_card_1697462": {
+         "brand": "visa",
+         "id": "credit_card_1697462",
+         "last_four": "2560",
+         "source": "credit_card"
+        },
+        "gift_card_9637418": {
+         "amount": 56,
+         "id": "gift_card_9637418",
+         "source": "gift_card"
+        }
+       },
+       "reservations": [
+        "77VWO5",
+        "2X85TD",
+        "1KUOX2",
+        "DV9PVT",
+        "4DK634",
+        "YLOKZC",
+        "CT5H4T",
+        "6SIWA2",
+        "20WTGO",
+        "75GVW5",
+        "HATHAT"
+       ],
+       "saved_passengers": [
+        {
+         "dob": "1987-04-21",
+         "first_name": "Noah",
+         "last_name": "Muller"
+        }
+       ],
+       "user_id": "anya_khan_1074"
+      },
+      "before": {
+       "address": {
+        "address1": "364 Sunset Drive",
+        "address2": "Suite 704",
+        "city": "Houston",
+        "country": "USA",
+        "state": "TX",
+        "zip": "77081"
+       },
+       "dob": "1984-04-08",
+       "email": "anya.khan3991@example.com",
+       "membership": "silver",
+       "name": {
+        "first_name": "Anya",
+        "last_name": "Khan"
+       },
+       "payment_methods": {
+        "certificate_4196207": {
+         "amount": 250,
+         "id": "certificate_4196207",
+         "source": "certificate"
+        },
+        "credit_card_1697462": {
+         "brand": "visa",
+         "id": "credit_card_1697462",
+         "last_four": "2560",
+         "source": "credit_card"
+        },
+        "gift_card_9637418": {
+         "amount": 56,
+         "id": "gift_card_9637418",
+         "source": "gift_card"
+        }
+       },
+       "reservations": [
+        "77VWO5",
+        "2X85TD",
+        "1KUOX2",
+        "DV9PVT",
+        "4DK634",
+        "YLOKZC",
+        "CT5H4T",
+        "6SIWA2",
+        "20WTGO",
+        "75GVW5"
+       ],
+       "saved_passengers": [
+        {
+         "dob": "1987-04-21",
+         "first_name": "Noah",
+         "last_name": "Muller"
+        }
+       ],
+       "user_id": "anya_khan_1074"
+      }
+     }
+    }
+   },
+   "goal": "G1",
+   "goal_true": true,
+   "id": "C1",
+   "key": "G1:1KUOX2",
+   "money_delta": 5,
+   "replays": "5/5",
+   "title": "basic_economy_flights_changed on 1KUOX2"
+  },
+  {
+   "chain": [
+    {
+     "args": {
+      "reason": "change of plan",
+      "reservation_id": "PIM2PK"
+     },
+     "ok": true,
+     "tool": "cancel_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id and reservation id.",
+       "rule_id": "R-cancel-active"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must also obtain the reason for cancellation (change of plan, airline cancelled flight, or other reasons)",
+       "rule_id": "R-cancel-reason"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If any portion of the flight has already been flown, the agent cannot help and transfer is needed.",
+       "rule_id": "R-cancel-not-flown"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Otherwise, flight can be cancelled if any of the following is true: - The booking was made within the last 24 hrs - The flight is cancelled by airline - It is a business flight - The user has travel insurance and the reason for cancellation is covered by insurance.",
+       "rule_id": "R-cancel-ground"
+      }
+     ]
+    },
+    {
+     "args": {
+      "cabin": "basic_economy",
+      "destination": "CLT",
+      "flight_type": "round_trip",
+      "flights": [
+       {
+        "date": "2024-05-23",
+        "flight_number": "HAT017"
+       },
+       {
+        "date": "2024-05-23",
+        "flight_number": "HAT277"
+       },
+       {
+        "date": "2024-05-25",
+        "flight_number": "HAT287"
+       },
+       {
+        "date": "2024-05-25",
+        "flight_number": "HAT013"
+       }
+      ],
+      "insurance": "yes",
+      "nonfree_baggages": 0,
+      "origin": "MCO",
+      "passengers": [
+       {
+        "dob": "1979-02-23",
+        "first_name": "Evelyn",
+        "last_name": "Silva"
+       }
+      ],
+      "payment_methods": [
+       {
+        "amount": 326,
+        "payment_id": "credit_card_1638882"
+       }
+      ],
+      "total_baggages": 0,
+      "user_id": "evelyn_silva_5208"
+     },
+     "ok": true,
+     "tool": "book_reservation",
+     "verdicts": [
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent must first obtain the user id from the user.",
+       "rule_id": "R-book-user"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Each reservation can have at most five passengers.",
+       "rule_id": "R-book-max-pax"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "The agent should then ask for the trip type, origin, destination.",
+       "rule_id": "R-book-route"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "All payment methods must already be in user profile for safety reasons.",
+       "rule_id": "R-book-payment-in-profile"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "Each reservation can use at most one travel certificate, at most one credit card, and at most three gift cards.",
+       "rule_id": "R-book-payment-mix"
+      },
+      {
+       "error": null,
+       "ok": true,
+       "policy_ref": "If the booking user is a regular member: - 0 free checked bag for each basic economy passenger - 1 free checked bag for each economy passenger - 2 free checked bags for each business passenger (silver 1/2/3, gold 2/3/4)",
+       "rule_id": "R-book-bags"
+      }
+     ]
+    }
+   ],
+   "class": "C",
+   "diff": {
+    "flights": {
+     "HAT013": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T23:05:00",
+         "actual_departure_time_est": "2024-05-01T19:30:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T22:29:00",
+         "actual_departure_time_est": "2024-05-02T19:03:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T21:55:00",
+         "actual_departure_time_est": "2024-05-03T18:38:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T21:46:00",
+         "actual_departure_time_est": "2024-05-04T18:42:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T22:53:00",
+         "actual_departure_time_est": "2024-05-05T19:02:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T23:17:00",
+         "actual_departure_time_est": "2024-05-06T19:30:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T22:04:00",
+         "actual_departure_time_est": "2024-05-07T18:58:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T23:01:00",
+         "actual_departure_time_est": "2024-05-08T19:06:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T22:25:00",
+         "actual_departure_time_est": "2024-05-09T18:59:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T22:49:00",
+         "actual_departure_time_est": "2024-05-10T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T22:31:00",
+         "actual_departure_time_est": "2024-05-11T19:12:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T22:35:00",
+         "actual_departure_time_est": "2024-05-12T19:26:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T22:23:00",
+         "actual_departure_time_est": "2024-05-13T19:07:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T22:23:00",
+         "actual_departure_time_est": "2024-05-14T18:58:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "estimated_arrival_time_est": "2024-05-15T22:24:00",
+         "estimated_departure_time_est": "2024-05-15T18:43:00",
+         "status": "on time"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 15,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 90,
+          "business": 303,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 18,
+          "economy": 4
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 444,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 14,
+          "economy": 5
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 338,
+          "economy": 128
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 6,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 94,
+          "business": 385,
+          "economy": 120
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 11,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 442,
+          "economy": 100
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 17,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 355,
+          "economy": 186
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 16,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 55,
+          "business": 328,
+          "economy": 162
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 13,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 69,
+          "business": 468,
+          "economy": 187
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 5,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 96,
+          "business": 422,
+          "economy": 119
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 17,
+          "business": 4,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 95,
+          "business": 288,
+          "economy": 123
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 91,
+          "business": 434,
+          "economy": 131
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 20,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 50,
+          "business": 373,
+          "economy": 104
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 1,
+          "business": 6,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 63,
+          "business": 383,
+          "economy": 170
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 18,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 88,
+          "business": 308,
+          "economy": 193
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 20,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 73,
+          "business": 467,
+          "economy": 191
+         },
+         "status": "available"
+        }
+       },
+       "destination": "MCO",
+       "flight_number": "HAT013",
+       "origin": "BOS",
+       "scheduled_arrival_time_est": "22:30:00",
+       "scheduled_departure_time_est": "19:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T23:05:00",
+         "actual_departure_time_est": "2024-05-01T19:30:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T22:29:00",
+         "actual_departure_time_est": "2024-05-02T19:03:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T21:55:00",
+         "actual_departure_time_est": "2024-05-03T18:38:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T21:46:00",
+         "actual_departure_time_est": "2024-05-04T18:42:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T22:53:00",
+         "actual_departure_time_est": "2024-05-05T19:02:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T23:17:00",
+         "actual_departure_time_est": "2024-05-06T19:30:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T22:04:00",
+         "actual_departure_time_est": "2024-05-07T18:58:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T23:01:00",
+         "actual_departure_time_est": "2024-05-08T19:06:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T22:25:00",
+         "actual_departure_time_est": "2024-05-09T18:59:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T22:49:00",
+         "actual_departure_time_est": "2024-05-10T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T22:31:00",
+         "actual_departure_time_est": "2024-05-11T19:12:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T22:35:00",
+         "actual_departure_time_est": "2024-05-12T19:26:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T22:23:00",
+         "actual_departure_time_est": "2024-05-13T19:07:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T22:23:00",
+         "actual_departure_time_est": "2024-05-14T18:58:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "estimated_arrival_time_est": "2024-05-15T22:24:00",
+         "estimated_departure_time_est": "2024-05-15T18:43:00",
+         "status": "on time"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 15,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 90,
+          "business": 303,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 18,
+          "economy": 4
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 444,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 14,
+          "economy": 5
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 338,
+          "economy": 128
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 6,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 94,
+          "business": 385,
+          "economy": 120
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 11,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 442,
+          "economy": 100
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 17,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 355,
+          "economy": 186
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 16,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 55,
+          "business": 328,
+          "economy": 162
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 13,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 69,
+          "business": 468,
+          "economy": 187
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 5,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 96,
+          "business": 422,
+          "economy": 119
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 4,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 95,
+          "business": 288,
+          "economy": 123
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 91,
+          "business": 434,
+          "economy": 131
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 20,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 50,
+          "business": 373,
+          "economy": 104
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 1,
+          "business": 6,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 63,
+          "business": 383,
+          "economy": 170
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 15,
+          "business": 18,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 88,
+          "business": 308,
+          "economy": 193
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 20,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 73,
+          "business": 467,
+          "economy": 191
+         },
+         "status": "available"
+        }
+       },
+       "destination": "MCO",
+       "flight_number": "HAT013",
+       "origin": "BOS",
+       "scheduled_arrival_time_est": "22:30:00",
+       "scheduled_departure_time_est": "19:00:00"
+      }
+     },
+     "HAT017": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "status": "cancelled"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T13:00:00",
+         "actual_departure_time_est": "2024-05-02T09:39:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T13:50:00",
+         "actual_departure_time_est": "2024-05-03T10:18:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T14:16:00",
+         "actual_departure_time_est": "2024-05-04T10:18:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T13:21:00",
+         "actual_departure_time_est": "2024-05-05T09:53:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T14:07:00",
+         "actual_departure_time_est": "2024-05-06T10:09:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T13:07:00",
+         "actual_departure_time_est": "2024-05-07T09:45:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T12:58:00",
+         "actual_departure_time_est": "2024-05-08T09:49:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T13:28:00",
+         "actual_departure_time_est": "2024-05-09T10:24:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "status": "cancelled"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T13:10:00",
+         "actual_departure_time_est": "2024-05-11T09:36:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T13:09:00",
+         "actual_departure_time_est": "2024-05-12T09:40:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T12:57:00",
+         "actual_departure_time_est": "2024-05-13T09:43:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T13:14:00",
+         "actual_departure_time_est": "2024-05-14T10:01:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "actual_arrival_time_est": "2024-05-15T13:39:00",
+         "actual_departure_time_est": "2024-05-15T09:52:00",
+         "status": "landed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 9,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 77,
+          "business": 240,
+          "economy": 199
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 4,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 99,
+          "business": 489,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 13,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 77,
+          "business": 257,
+          "economy": 183
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 2,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 376,
+          "economy": 121
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 19,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 413,
+          "economy": 148
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 14,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 426,
+          "economy": 163
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 4,
+          "economy": 7
+         },
+         "prices": {
+          "basic_economy": 89,
+          "business": 237,
+          "economy": 200
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 1,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 79,
+          "business": 223,
+          "economy": 189
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 18,
+          "economy": 7
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 391,
+          "economy": 197
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 13,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 452,
+          "economy": 183
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 12,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 66,
+          "business": 374,
+          "economy": 163
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 13,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 89,
+          "business": 258,
+          "economy": 120
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 9,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 93,
+          "business": 388,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 14,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 371,
+          "economy": 182
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 20,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 95,
+          "business": 324,
+          "economy": 120
+         },
+         "status": "available"
+        }
+       },
+       "destination": "BOS",
+       "flight_number": "HAT017",
+       "origin": "MCO",
+       "scheduled_arrival_time_est": "13:30:00",
+       "scheduled_departure_time_est": "10:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "status": "cancelled"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T13:00:00",
+         "actual_departure_time_est": "2024-05-02T09:39:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T13:50:00",
+         "actual_departure_time_est": "2024-05-03T10:18:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T14:16:00",
+         "actual_departure_time_est": "2024-05-04T10:18:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T13:21:00",
+         "actual_departure_time_est": "2024-05-05T09:53:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T14:07:00",
+         "actual_departure_time_est": "2024-05-06T10:09:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T13:07:00",
+         "actual_departure_time_est": "2024-05-07T09:45:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T12:58:00",
+         "actual_departure_time_est": "2024-05-08T09:49:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T13:28:00",
+         "actual_departure_time_est": "2024-05-09T10:24:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "status": "cancelled"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T13:10:00",
+         "actual_departure_time_est": "2024-05-11T09:36:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T13:09:00",
+         "actual_departure_time_est": "2024-05-12T09:40:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T12:57:00",
+         "actual_departure_time_est": "2024-05-13T09:43:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T13:14:00",
+         "actual_departure_time_est": "2024-05-14T10:01:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "actual_arrival_time_est": "2024-05-15T13:39:00",
+         "actual_departure_time_est": "2024-05-15T09:52:00",
+         "status": "landed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 9,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 77,
+          "business": 240,
+          "economy": 199
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 4,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 99,
+          "business": 489,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 13,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 77,
+          "business": 257,
+          "economy": 183
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 2,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 376,
+          "economy": 121
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 19,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 413,
+          "economy": 148
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 14,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 426,
+          "economy": 163
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 4,
+          "economy": 7
+         },
+         "prices": {
+          "basic_economy": 89,
+          "business": 237,
+          "economy": 200
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 1,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 79,
+          "business": 223,
+          "economy": 189
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 18,
+          "economy": 7
+         },
+         "prices": {
+          "basic_economy": 61,
+          "business": 391,
+          "economy": 197
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 13,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 452,
+          "economy": 183
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 12,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 66,
+          "business": 374,
+          "economy": 163
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 13,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 89,
+          "business": 258,
+          "economy": 120
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 9,
+          "economy": 3
+         },
+         "prices": {
+          "basic_economy": 93,
+          "business": 388,
+          "economy": 165
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 14,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 371,
+          "economy": 182
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 20,
+          "economy": 8
+         },
+         "prices": {
+          "basic_economy": 95,
+          "business": 324,
+          "economy": 120
+         },
+         "status": "available"
+        }
+       },
+       "destination": "BOS",
+       "flight_number": "HAT017",
+       "origin": "MCO",
+       "scheduled_arrival_time_est": "13:30:00",
+       "scheduled_departure_time_est": "10:00:00"
+      }
+     },
+     "HAT277": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T20:54:00",
+         "actual_departure_time_est": "2024-05-01T18:42:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T20:55:00",
+         "actual_departure_time_est": "2024-05-02T19:18:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T21:20:00",
+         "actual_departure_time_est": "2024-05-03T19:22:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T21:17:00",
+         "actual_departure_time_est": "2024-05-04T19:20:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T20:56:00",
+         "actual_departure_time_est": "2024-05-05T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "status": "cancelled"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T21:15:00",
+         "actual_departure_time_est": "2024-05-07T19:11:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T20:35:00",
+         "actual_departure_time_est": "2024-05-08T19:04:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T21:41:00",
+         "actual_departure_time_est": "2024-05-09T19:18:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "status": "cancelled"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T21:12:00",
+         "actual_departure_time_est": "2024-05-11T18:46:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T20:40:00",
+         "actual_departure_time_est": "2024-05-12T19:10:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T21:03:00",
+         "actual_departure_time_est": "2024-05-13T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T20:19:00",
+         "actual_departure_time_est": "2024-05-14T18:39:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "estimated_arrival_time_est": "2024-05-15T23:49:00",
+         "estimated_departure_time_est": "2024-05-15T21:49:00",
+         "status": "delayed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 1,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 72,
+          "business": 221,
+          "economy": 200
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 17,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 314,
+          "economy": 124
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 17,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 400,
+          "economy": 149
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 5,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 59,
+          "business": 351,
+          "economy": 129
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 17,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 92,
+          "business": 238,
+          "economy": 147
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 20,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 365,
+          "economy": 101
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 16,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 270,
+          "economy": 150
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 3,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 52,
+          "business": 249,
+          "economy": 134
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 3,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 73,
+          "business": 215,
+          "economy": 198
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 2,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 357,
+          "economy": 195
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 12,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 67,
+          "business": 207,
+          "economy": 146
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 4,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 306,
+          "economy": 197
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 479,
+          "economy": 103
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 3,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 76,
+          "business": 422,
+          "economy": 185
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 3,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 54,
+          "business": 256,
+          "economy": 178
+         },
+         "status": "available"
+        }
+       },
+       "destination": "CLT",
+       "flight_number": "HAT277",
+       "origin": "BOS",
+       "scheduled_arrival_time_est": "21:00:00",
+       "scheduled_departure_time_est": "19:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T20:54:00",
+         "actual_departure_time_est": "2024-05-01T18:42:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T20:55:00",
+         "actual_departure_time_est": "2024-05-02T19:18:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T21:20:00",
+         "actual_departure_time_est": "2024-05-03T19:22:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T21:17:00",
+         "actual_departure_time_est": "2024-05-04T19:20:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T20:56:00",
+         "actual_departure_time_est": "2024-05-05T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "status": "cancelled"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T21:15:00",
+         "actual_departure_time_est": "2024-05-07T19:11:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T20:35:00",
+         "actual_departure_time_est": "2024-05-08T19:04:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T21:41:00",
+         "actual_departure_time_est": "2024-05-09T19:18:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "status": "cancelled"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T21:12:00",
+         "actual_departure_time_est": "2024-05-11T18:46:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T20:40:00",
+         "actual_departure_time_est": "2024-05-12T19:10:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T21:03:00",
+         "actual_departure_time_est": "2024-05-13T18:54:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T20:19:00",
+         "actual_departure_time_est": "2024-05-14T18:39:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "estimated_arrival_time_est": "2024-05-15T23:49:00",
+         "estimated_departure_time_est": "2024-05-15T21:49:00",
+         "status": "delayed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 1,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 72,
+          "business": 221,
+          "economy": 200
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 17,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 74,
+          "business": 314,
+          "economy": 124
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 17,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 400,
+          "economy": 149
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 20,
+          "business": 5,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 59,
+          "business": 351,
+          "economy": 129
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 17,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 92,
+          "business": 238,
+          "economy": 147
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 18,
+          "business": 20,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 365,
+          "economy": 101
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 16,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 270,
+          "economy": 150
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 52,
+          "business": 249,
+          "economy": 134
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 3,
+          "economy": 15
+         },
+         "prices": {
+          "basic_economy": 73,
+          "business": 215,
+          "economy": 198
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 2,
+          "economy": 11
+         },
+         "prices": {
+          "basic_economy": 65,
+          "business": 357,
+          "economy": 195
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 12,
+          "economy": 6
+         },
+         "prices": {
+          "basic_economy": 67,
+          "business": 207,
+          "economy": 146
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 0,
+          "business": 4,
+          "economy": 17
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 306,
+          "economy": 197
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 7,
+          "business": 3,
+          "economy": 0
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 479,
+          "economy": 103
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 3,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 76,
+          "business": 422,
+          "economy": 185
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 3,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 54,
+          "business": 256,
+          "economy": 178
+         },
+         "status": "available"
+        }
+       },
+       "destination": "CLT",
+       "flight_number": "HAT277",
+       "origin": "BOS",
+       "scheduled_arrival_time_est": "21:00:00",
+       "scheduled_departure_time_est": "19:00:00"
+      }
+     },
+     "HAT287": {
+      "after": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T11:20:00",
+         "actual_departure_time_est": "2024-05-01T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T11:37:00",
+         "actual_departure_time_est": "2024-05-02T09:14:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T10:37:00",
+         "actual_departure_time_est": "2024-05-03T08:44:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T11:07:00",
+         "actual_departure_time_est": "2024-05-04T09:04:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T10:08:00",
+         "actual_departure_time_est": "2024-05-05T08:38:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T10:56:00",
+         "actual_departure_time_est": "2024-05-06T09:14:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T10:35:00",
+         "actual_departure_time_est": "2024-05-07T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T11:34:00",
+         "actual_departure_time_est": "2024-05-08T09:05:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T10:38:00",
+         "actual_departure_time_est": "2024-05-09T09:03:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T10:48:00",
+         "actual_departure_time_est": "2024-05-10T09:05:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T10:20:00",
+         "actual_departure_time_est": "2024-05-11T08:30:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T11:03:00",
+         "actual_departure_time_est": "2024-05-12T09:00:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T10:57:00",
+         "actual_departure_time_est": "2024-05-13T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T10:52:00",
+         "actual_departure_time_est": "2024-05-14T09:08:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "actual_arrival_time_est": "2024-05-15T11:27:00",
+         "actual_departure_time_est": "2024-05-15T08:58:00",
+         "status": "landed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 6,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 360,
+          "economy": 185
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 0,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 296,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 20,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 97,
+          "business": 349,
+          "economy": 191
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 20,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 72,
+          "business": 242,
+          "economy": 196
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 12,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 301,
+          "economy": 178
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 8,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 267,
+          "economy": 128
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 19,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 84,
+          "business": 380,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 13,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 381,
+          "economy": 191
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 5,
+          "business": 5,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 298,
+          "economy": 115
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 10,
+          "business": 20,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 257,
+          "economy": 171
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 6,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 93,
+          "business": 445,
+          "economy": 177
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 18,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 490,
+          "economy": 110
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 18,
+          "economy": 4
+         },
+         "prices": {
+          "basic_economy": 52,
+          "business": 220,
+          "economy": 196
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 17,
+          "business": 18,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 91,
+          "business": 500,
+          "economy": 193
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 7,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 465,
+          "economy": 192
+         },
+         "status": "available"
+        }
+       },
+       "destination": "BOS",
+       "flight_number": "HAT287",
+       "origin": "CLT",
+       "scheduled_arrival_time_est": "11:00:00",
+       "scheduled_departure_time_est": "09:00:00"
+      },
+      "before": {
+       "dates": {
+        "2024-05-01": {
+         "actual_arrival_time_est": "2024-05-01T11:20:00",
+         "actual_departure_time_est": "2024-05-01T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-02": {
+         "actual_arrival_time_est": "2024-05-02T11:37:00",
+         "actual_departure_time_est": "2024-05-02T09:14:00",
+         "status": "landed"
+        },
+        "2024-05-03": {
+         "actual_arrival_time_est": "2024-05-03T10:37:00",
+         "actual_departure_time_est": "2024-05-03T08:44:00",
+         "status": "landed"
+        },
+        "2024-05-04": {
+         "actual_arrival_time_est": "2024-05-04T11:07:00",
+         "actual_departure_time_est": "2024-05-04T09:04:00",
+         "status": "landed"
+        },
+        "2024-05-05": {
+         "actual_arrival_time_est": "2024-05-05T10:08:00",
+         "actual_departure_time_est": "2024-05-05T08:38:00",
+         "status": "landed"
+        },
+        "2024-05-06": {
+         "actual_arrival_time_est": "2024-05-06T10:56:00",
+         "actual_departure_time_est": "2024-05-06T09:14:00",
+         "status": "landed"
+        },
+        "2024-05-07": {
+         "actual_arrival_time_est": "2024-05-07T10:35:00",
+         "actual_departure_time_est": "2024-05-07T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-08": {
+         "actual_arrival_time_est": "2024-05-08T11:34:00",
+         "actual_departure_time_est": "2024-05-08T09:05:00",
+         "status": "landed"
+        },
+        "2024-05-09": {
+         "actual_arrival_time_est": "2024-05-09T10:38:00",
+         "actual_departure_time_est": "2024-05-09T09:03:00",
+         "status": "landed"
+        },
+        "2024-05-10": {
+         "actual_arrival_time_est": "2024-05-10T10:48:00",
+         "actual_departure_time_est": "2024-05-10T09:05:00",
+         "status": "landed"
+        },
+        "2024-05-11": {
+         "actual_arrival_time_est": "2024-05-11T10:20:00",
+         "actual_departure_time_est": "2024-05-11T08:30:00",
+         "status": "landed"
+        },
+        "2024-05-12": {
+         "actual_arrival_time_est": "2024-05-12T11:03:00",
+         "actual_departure_time_est": "2024-05-12T09:00:00",
+         "status": "landed"
+        },
+        "2024-05-13": {
+         "actual_arrival_time_est": "2024-05-13T10:57:00",
+         "actual_departure_time_est": "2024-05-13T08:57:00",
+         "status": "landed"
+        },
+        "2024-05-14": {
+         "actual_arrival_time_est": "2024-05-14T10:52:00",
+         "actual_departure_time_est": "2024-05-14T09:08:00",
+         "status": "landed"
+        },
+        "2024-05-15": {
+         "actual_arrival_time_est": "2024-05-15T11:27:00",
+         "actual_departure_time_est": "2024-05-15T08:58:00",
+         "status": "landed"
+        },
+        "2024-05-16": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 6,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 360,
+          "economy": 185
+         },
+         "status": "available"
+        },
+        "2024-05-17": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 0,
+          "economy": 2
+         },
+         "prices": {
+          "basic_economy": 87,
+          "business": 296,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-18": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 20,
+          "economy": 12
+         },
+         "prices": {
+          "basic_economy": 97,
+          "business": 349,
+          "economy": 191
+         },
+         "status": "available"
+        },
+        "2024-05-19": {
+         "available_seats": {
+          "basic_economy": 9,
+          "business": 20,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 72,
+          "business": 242,
+          "economy": 196
+         },
+         "status": "available"
+        },
+        "2024-05-20": {
+         "available_seats": {
+          "basic_economy": 12,
+          "business": 12,
+          "economy": 20
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 301,
+          "economy": 178
+         },
+         "status": "available"
+        },
+        "2024-05-21": {
+         "available_seats": {
+          "basic_economy": 14,
+          "business": 8,
+          "economy": 13
+         },
+         "prices": {
+          "basic_economy": 71,
+          "business": 267,
+          "economy": 128
+         },
+         "status": "available"
+        },
+        "2024-05-22": {
+         "available_seats": {
+          "basic_economy": 8,
+          "business": 19,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 84,
+          "business": 380,
+          "economy": 176
+         },
+         "status": "available"
+        },
+        "2024-05-23": {
+         "available_seats": {
+          "basic_economy": 19,
+          "business": 13,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 57,
+          "business": 381,
+          "economy": 191
+         },
+         "status": "available"
+        },
+        "2024-05-24": {
+         "available_seats": {
+          "basic_economy": 5,
+          "business": 5,
+          "economy": 16
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 298,
+          "economy": 115
+         },
+         "status": "available"
+        },
+        "2024-05-25": {
+         "available_seats": {
+          "basic_economy": 11,
+          "business": 20,
+          "economy": 9
+         },
+         "prices": {
+          "basic_economy": 70,
+          "business": 257,
+          "economy": 171
+         },
+         "status": "available"
+        },
+        "2024-05-26": {
+         "available_seats": {
+          "basic_economy": 2,
+          "business": 6,
+          "economy": 1
+         },
+         "prices": {
+          "basic_economy": 93,
+          "business": 445,
+          "economy": 177
+         },
+         "status": "available"
+        },
+        "2024-05-27": {
+         "available_seats": {
+          "basic_economy": 6,
+          "business": 18,
+          "economy": 14
+         },
+         "prices": {
+          "basic_economy": 85,
+          "business": 490,
+          "economy": 110
+         },
+         "status": "available"
+        },
+        "2024-05-28": {
+         "available_seats": {
+          "basic_economy": 3,
+          "business": 18,
+          "economy": 4
+         },
+         "prices": {
+          "basic_economy": 52,
+          "business": 220,
+          "economy": 196
+         },
+         "status": "available"
+        },
+        "2024-05-29": {
+         "available_seats": {
+          "basic_economy": 17,
+          "business": 18,
+          "economy": 10
+         },
+         "prices": {
+          "basic_economy": 91,
+          "business": 500,
+          "economy": 193
+         },
+         "status": "available"
+        },
+        "2024-05-30": {
+         "available_seats": {
+          "basic_economy": 4,
+          "business": 7,
+          "economy": 18
+         },
+         "prices": {
+          "basic_economy": 82,
+          "business": 465,
+          "economy": 192
+         },
+         "status": "available"
+        }
+       },
+       "destination": "BOS",
+       "flight_number": "HAT287",
+       "origin": "CLT",
+       "scheduled_arrival_time_est": "11:00:00",
+       "scheduled_departure_time_est": "09:00:00"
+      }
+     }
+    },
+    "reservations": {
+     "HATHAT": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-15T15:00:00",
+       "destination": "CLT",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-23",
+         "destination": "BOS",
+         "flight_number": "HAT017",
+         "origin": "MCO",
+         "price": 79
+        },
+        {
+         "date": "2024-05-23",
+         "destination": "CLT",
+         "flight_number": "HAT277",
+         "origin": "BOS",
+         "price": 52
+        },
+        {
+         "date": "2024-05-25",
+         "destination": "BOS",
+         "flight_number": "HAT287",
+         "origin": "CLT",
+         "price": 70
+        },
+        {
+         "date": "2024-05-25",
+         "destination": "MCO",
+         "flight_number": "HAT013",
+         "origin": "BOS",
+         "price": 95
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MCO",
+       "passengers": [
+        {
+         "dob": "1979-02-23",
+         "first_name": "Evelyn",
+         "last_name": "Silva"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 326,
+         "payment_id": "credit_card_1638882"
+        }
+       ],
+       "reservation_id": "HATHAT",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "evelyn_silva_5208"
+      },
+      "before": null
+     },
+     "PIM2PK": {
+      "after": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:01:45",
+       "destination": "CLT",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "BOS",
+         "flight_number": "HAT017",
+         "origin": "MCO",
+         "price": 100
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT277",
+         "origin": "BOS",
+         "price": 61
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "BOS",
+         "flight_number": "HAT287",
+         "origin": "CLT",
+         "price": 86
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "MCO",
+         "flight_number": "HAT013",
+         "origin": "BOS",
+         "price": 77
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MCO",
+       "passengers": [
+        {
+         "dob": "1979-02-23",
+         "first_name": "Evelyn",
+         "last_name": "Silva"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 354,
+         "payment_id": "credit_card_1638882"
+        },
+        {
+         "amount": -354,
+         "payment_id": "credit_card_1638882"
+        }
+       ],
+       "reservation_id": "PIM2PK",
+       "status": "cancelled",
+       "total_baggages": 0,
+       "user_id": "evelyn_silva_5208"
+      },
+      "before": {
+       "cabin": "basic_economy",
+       "created_at": "2024-05-14T21:01:45",
+       "destination": "CLT",
+       "flight_type": "round_trip",
+       "flights": [
+        {
+         "date": "2024-05-24",
+         "destination": "BOS",
+         "flight_number": "HAT017",
+         "origin": "MCO",
+         "price": 100
+        },
+        {
+         "date": "2024-05-24",
+         "destination": "CLT",
+         "flight_number": "HAT277",
+         "origin": "BOS",
+         "price": 61
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "BOS",
+         "flight_number": "HAT287",
+         "origin": "CLT",
+         "price": 86
+        },
+        {
+         "date": "2024-05-26",
+         "destination": "MCO",
+         "flight_number": "HAT013",
+         "origin": "BOS",
+         "price": 77
+        }
+       ],
+       "insurance": "yes",
+       "nonfree_baggages": 0,
+       "origin": "MCO",
+       "passengers": [
+        {
+         "dob": "1979-02-23",
+         "first_name": "Evelyn",
+         "last_name": "Silva"
+        }
+       ],
+       "payment_history": [
+        {
+         "amount": 354,
+         "payment_id": "credit_card_1638882"
+        }
+       ],
+       "reservation_id": "PIM2PK",
+       "status": null,
+       "total_baggages": 0,
+       "user_id": "evelyn_silva_5208"
+      }
+     }
+    },
+    "users": {
+     "evelyn_silva_5208": {
+      "after": {
+       "address": {
+        "address1": "886 Elm Avenue",
+        "address2": "Suite 466",
+        "city": "Los Angeles",
+        "country": "USA",
+        "state": "CA",
+        "zip": "91582"
+       },
+       "dob": "1979-02-23",
+       "email": "evelyn.silva5743@example.com",
+       "membership": "silver",
+       "name": {
+        "first_name": "Evelyn",
+        "last_name": "Silva"
+       },
+       "payment_methods": {
+        "certificate_3781045": {
+         "amount": 500,
+         "id": "certificate_3781045",
+         "source": "certificate"
+        },
+        "credit_card_1638882": {
+         "brand": "visa",
+         "id": "credit_card_1638882",
+         "last_four": "5642",
+         "source": "credit_card"
+        }
+       },
+       "reservations": [
+        "90WDMA",
+        "HOHNAZ",
+        "HE73UU",
+        "PIM2PK",
+        "7E43S2",
+        "9G0PVB",
+        "HATHAT"
+       ],
+       "saved_passengers": [
+        {
+         "dob": "1980-12-07",
+         "first_name": "Olivia",
+         "last_name": "Ahmed"
+        }
+       ],
+       "user_id": "evelyn_silva_5208"
+      },
+      "before": {
+       "address": {
+        "address1": "886 Elm Avenue",
+        "address2": "Suite 466",
+        "city": "Los Angeles",
+        "country": "USA",
+        "state": "CA",
+        "zip": "91582"
+       },
+       "dob": "1979-02-23",
+       "email": "evelyn.silva5743@example.com",
+       "membership": "silver",
+       "name": {
+        "first_name": "Evelyn",
+        "last_name": "Silva"
+       },
+       "payment_methods": {
+        "certificate_3781045": {
+         "amount": 500,
+         "id": "certificate_3781045",
+         "source": "certificate"
+        },
+        "credit_card_1638882": {
+         "brand": "visa",
+         "id": "credit_card_1638882",
+         "last_four": "5642",
+         "source": "credit_card"
+        }
+       },
+       "reservations": [
+        "90WDMA",
+        "HOHNAZ",
+        "HE73UU",
+        "PIM2PK",
+        "7E43S2",
+        "9G0PVB"
+       ],
+       "saved_passengers": [
+        {
+         "dob": "1980-12-07",
+         "first_name": "Olivia",
+         "last_name": "Ahmed"
+        }
+       ],
+       "user_id": "evelyn_silva_5208"
+      }
+     }
+    }
+   },
+   "goal": "G1",
+   "goal_true": true,
+   "id": "C2",
+   "key": "G1:PIM2PK",
+   "money_delta": 28,
+   "replays": "5/5",
+   "title": "basic_economy_flights_changed on PIM2PK"
+  },
+  {
+   "id": "C3",
+   "key": "G7:mia_li_1000",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_1000",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1000",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1000",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C4",
+   "key": "G7:omar_davis_1037",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_1037",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1037",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1037",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C5",
+   "key": "G7:sofia_kim_1074",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_1074",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1074",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1074",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C6",
+   "key": "G7:raj_sanchez_1111",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_1111",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1111",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1111",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C7",
+   "key": "G7:chen_lee_1148",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_1148",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1148",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1148",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C8",
+   "key": "G7:mia_li_1185",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_1185",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1185",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1185",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C9",
+   "key": "G7:omar_davis_1222",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_1222",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1222",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1222",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C10",
+   "key": "G7:sofia_kim_1259",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_1259",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1259",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1259",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C11",
+   "key": "G7:raj_sanchez_1296",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_1296",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1296",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1296",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C12",
+   "key": "G7:chen_lee_1333",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_1333",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1333",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1333",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C13",
+   "key": "G7:mia_li_1370",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_1370",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1370",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1370",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C14",
+   "key": "G7:omar_davis_1407",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_1407",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1407",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1407",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C15",
+   "key": "G7:sofia_kim_1444",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_1444",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1444",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1444",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C16",
+   "key": "G7:raj_sanchez_1481",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_1481",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1481",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1481",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C17",
+   "key": "G7:chen_lee_1518",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_1518",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1518",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1518",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C18",
+   "key": "G7:mia_li_1555",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_1555",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1555",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1555",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C19",
+   "key": "G7:omar_davis_1592",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_1592",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1592",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1592",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C20",
+   "key": "G7:sofia_kim_1629",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_1629",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1629",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1629",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C21",
+   "key": "G7:raj_sanchez_1666",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_1666",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1666",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1666",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C22",
+   "key": "G7:chen_lee_1703",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_1703",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1703",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1703",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C23",
+   "key": "G7:mia_li_1740",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_1740",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1740",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1740",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C24",
+   "key": "G7:omar_davis_1777",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_1777",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1777",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1777",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C25",
+   "key": "G7:sofia_kim_1814",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_1814",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1814",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1814",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C26",
+   "key": "G7:raj_sanchez_1851",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_1851",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1851",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_1851",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C27",
+   "key": "G7:chen_lee_1888",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_1888",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1888",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_1888",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C28",
+   "key": "G7:mia_li_1925",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_1925",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1925",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_1925",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C29",
+   "key": "G7:omar_davis_1962",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_1962",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1962",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_1962",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C30",
+   "key": "G7:sofia_kim_1999",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_1999",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1999",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_1999",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C31",
+   "key": "G7:raj_sanchez_2036",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_2036",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2036",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2036",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C32",
+   "key": "G7:chen_lee_2073",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_2073",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2073",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2073",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C33",
+   "key": "G7:mia_li_2110",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_2110",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2110",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2110",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C34",
+   "key": "G7:omar_davis_2147",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_2147",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2147",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2147",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C35",
+   "key": "G7:sofia_kim_2184",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_2184",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2184",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2184",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C36",
+   "key": "G7:raj_sanchez_2221",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_2221",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2221",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2221",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C37",
+   "key": "G7:chen_lee_2258",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_2258",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2258",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2258",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C38",
+   "key": "G7:mia_li_2295",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_2295",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2295",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2295",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C39",
+   "key": "G7:omar_davis_2332",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_2332",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2332",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2332",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C40",
+   "key": "G7:sofia_kim_2369",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_2369",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2369",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2369",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C41",
+   "key": "G7:raj_sanchez_2406",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_2406",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2406",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2406",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C42",
+   "key": "G7:chen_lee_2443",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_2443",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2443",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2443",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C43",
+   "key": "G7:mia_li_2480",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_2480",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2480",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2480",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C44",
+   "key": "G7:omar_davis_2517",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_2517",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2517",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2517",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C45",
+   "key": "G7:sofia_kim_2554",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_2554",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2554",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2554",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C46",
+   "key": "G7:raj_sanchez_2591",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_2591",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2591",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2591",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C47",
+   "key": "G7:chen_lee_2628",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_2628",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2628",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2628",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C48",
+   "key": "G7:mia_li_2665",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_2665",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2665",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2665",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C49",
+   "key": "G7:omar_davis_2702",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_2702",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2702",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2702",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C50",
+   "key": "G7:sofia_kim_2739",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_2739",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2739",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2739",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C51",
+   "key": "G7:raj_sanchez_2776",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_2776",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2776",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2776",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C52",
+   "key": "G7:chen_lee_2813",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_2813",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2813",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2813",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C53",
+   "key": "G7:mia_li_2850",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_2850",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2850",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_2850",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C54",
+   "key": "G7:omar_davis_2887",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_2887",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2887",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_2887",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C55",
+   "key": "G7:sofia_kim_2924",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_2924",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2924",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_2924",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C56",
+   "key": "G7:raj_sanchez_2961",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_2961",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2961",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_2961",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C57",
+   "key": "G7:chen_lee_2998",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_2998",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2998",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_2998",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C58",
+   "key": "G7:mia_li_3035",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_3035",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3035",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3035",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C59",
+   "key": "G7:omar_davis_3072",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_3072",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3072",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3072",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C60",
+   "key": "G7:sofia_kim_3109",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_3109",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3109",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3109",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C61",
+   "key": "G7:raj_sanchez_3146",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_3146",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3146",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3146",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C62",
+   "key": "G7:chen_lee_3183",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_3183",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3183",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3183",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C63",
+   "key": "G7:mia_li_3220",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_3220",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3220",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3220",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C64",
+   "key": "G7:omar_davis_3257",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_3257",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3257",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3257",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C65",
+   "key": "G7:sofia_kim_3294",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_3294",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3294",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3294",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C66",
+   "key": "G7:raj_sanchez_3331",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_3331",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3331",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3331",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C67",
+   "key": "G7:chen_lee_3368",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_3368",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3368",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3368",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C68",
+   "key": "G7:mia_li_3405",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_3405",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3405",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3405",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C69",
+   "key": "G7:omar_davis_3442",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_3442",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3442",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3442",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C70",
+   "key": "G7:sofia_kim_3479",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_3479",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3479",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3479",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C71",
+   "key": "G7:raj_sanchez_3516",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_3516",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3516",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3516",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C72",
+   "key": "G7:chen_lee_3553",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_3553",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3553",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3553",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C73",
+   "key": "G7:mia_li_3590",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_3590",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3590",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3590",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C74",
+   "key": "G7:omar_davis_3627",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_3627",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3627",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3627",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C75",
+   "key": "G7:sofia_kim_3664",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_3664",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3664",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3664",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C76",
+   "key": "G7:raj_sanchez_3701",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_3701",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3701",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3701",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C77",
+   "key": "G7:chen_lee_3738",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_3738",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3738",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3738",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C78",
+   "key": "G7:mia_li_3775",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_3775",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3775",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3775",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C79",
+   "key": "G7:omar_davis_3812",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_3812",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3812",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3812",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C80",
+   "key": "G7:sofia_kim_3849",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_3849",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3849",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_3849",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C81",
+   "key": "G7:raj_sanchez_3886",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_3886",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3886",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_3886",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C82",
+   "key": "G7:chen_lee_3923",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_3923",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3923",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_3923",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C83",
+   "key": "G7:mia_li_3960",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_3960",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3960",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_3960",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C84",
+   "key": "G7:omar_davis_3997",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_3997",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3997",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_3997",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C85",
+   "key": "G7:sofia_kim_4034",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_4034",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_4034",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_4034",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C86",
+   "key": "G7:raj_sanchez_4071",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_4071",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_4071",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_4071",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C87",
+   "key": "G7:chen_lee_4108",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_4108",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_4108",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_4108",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C88",
+   "key": "G7:mia_li_4145",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_4145",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_4145",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_4145",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C89",
+   "key": "G7:omar_davis_4182",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_4182",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_4182",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_4182",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C90",
+   "key": "G7:sofia_kim_4219",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_4219",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_4219",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_4219",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C91",
+   "key": "G7:raj_sanchez_4256",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_4256",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_4256",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_4256",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C92",
+   "key": "G7:chen_lee_4293",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_4293",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_4293",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_4293",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C93",
+   "key": "G7:mia_li_4330",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_4330",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_4330",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_4330",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C94",
+   "key": "G7:omar_davis_4367",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_4367",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_4367",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_4367",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C95",
+   "key": "G7:sofia_kim_4404",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_4404",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_4404",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_4404",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C96",
+   "key": "G7:raj_sanchez_4441",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on raj_sanchez_4441",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_4441",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "raj_sanchez_4441",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C97",
+   "key": "G7:chen_lee_4478",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on chen_lee_4478",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_4478",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "chen_lee_4478",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C98",
+   "key": "G7:mia_li_4515",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on mia_li_4515",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_4515",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "mia_li_4515",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C99",
+   "key": "G7:omar_davis_4552",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on omar_davis_4552",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_4552",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "omar_davis_4552",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  },
+  {
+   "id": "C100",
+   "key": "G7:sofia_kim_4589",
+   "class": "C",
+   "goal": "G7",
+   "title": "compensation_duplicated on sofia_kim_4589",
+   "money_delta": 0,
+   "goal_true": true,
+   "replays": "5/5",
+   "diff": {},
+   "chain": [
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_4589",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    },
+    {
+     "tool": "send_certificate",
+     "args": {
+      "user_id": "sofia_kim_4589",
+      "amount": 100
+     },
+     "ok": true,
+     "verdicts": []
+    }
+   ]
+  }
+ ],
+ "stats": {
+  "chains_tried": 706,
+  "llm_calls": 14,
+  "seconds": 174.53,
+  "tokens": 412880,
+  "tool_calls": 1486,
+  "llm_errors": 0,
+  "per_goal": {
+   "G1": {
+    "chains": 240,
+    "executed": 610,
+    "A": 0,
+    "B": 0,
+    "C": 2
+   },
+   "G5": {
+    "chains": 310,
+    "executed": 702,
+    "A": 4,
+    "B": 0,
+    "C": 0
+   },
+   "G7": {
+    "chains": 98,
+    "executed": 196,
+    "A": 0,
+    "B": 0,
+    "C": 98
+   }
+  }
+ },
+ "contradictions": []
+}

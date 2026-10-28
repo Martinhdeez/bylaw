@@ -38,6 +38,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
       await shot(page, "4-amendment");
 
       await page.goto("/#/airline/report");
+      await page.locator(".amb-goal summary").first().click();
       await page.locator(".amb a").first().click();
       await expect(page.getByText("Class C ambiguity")).toBeVisible();
       await expect(page.getByTestId("outcome")).toContainText("forbidden", { timeout: 10_000 });

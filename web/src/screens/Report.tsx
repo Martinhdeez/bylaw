@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { AlertTriangle, ArrowRight, FileSearch, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, ChevronRight, FileSearch, ShieldCheck } from "lucide-react";
 import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Load, type Ratified, type Report } from "../api";
 import { Crumbs, Failure, Loading, Muse, Ticker, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
 
@@ -72,7 +72,10 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
         <div className="panel stat">
           <span className="label">Run</span>
           <span className="mono" style={{ fontSize: 13 }}>{when(run.started)}{run.commit && `, ${run.commit.slice(0, 7)}`}</span>
-          <span className="s">mode {run.mode}{run.model ? `, model ${run.model}` : ""}{run.effort ? `, effort ${run.effort}` : ""}, {int(stats.tokens)} tokens</span>
+          <span className="s" data-testid="run-meta">
+            mode {run.mode}{run.model ? `, model ${run.model}` : ""}{run.effort ? `, effort ${run.effort}` : ""}, {int(stats.tokens)} tokens
+            {run.mode === "muse" && `, peak context ${run.context_tokens == null ? "unknown" : `${int(run.context_tokens)} tokens`}`}
+          </span>
         </div>
         <div className="panel stat"><span className="label">Class A holes</span><Ticker className={`v ${holes.length ? "r" : ""}`} value={holes.length} /><span className="s">{goalCount} forbidden {goalCount === 1 ? "goal" : "goals"} reached</span></div>
         <div className="panel stat"><span className="label">Policy vs practice</span><Ticker className={`v ${contradictions.length ? "b" : ""}`} value={contradictions.length} /><span className="s">class B, gold tasks do it too</span></div>
@@ -112,24 +115,34 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
             <span className="label">{ambiguities.length} listed for review</span>
           </div>
           <p className="amb-note">{CLASS_C_NOTE}</p>
-          <ul className="amb">
-            {ambiguities.map((a) => {
-              const t = humanize(a.title, a.key);
-              return (
-                <li key={a.key}>
-                  <a href={holeHref(domain, a.key)}>
-                    <span className="id">{a.id}</span>
-                    <span>
-                      <span className="t">{t.name} <span className="mono" style={{ color: "var(--muted)" }}>{t.target}</span></span>
-                      <br />
-                      <span className="c">{a.chain.map((s) => s.tool).join(" → ")}</span>
-                    </span>
-                    <span className="tag">{a.goal}, {a.replays}</span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
+          {[...byGoal(ambiguities)].map(([gid, list]) => (
+            <details key={gid} className="amb-goal" data-testid="amb-goal">
+              <summary>
+                <span className="id">{gid}</span>
+                <span className="t">{humanize(goals.get(gid)?.name ?? list[0].title).name}</span>
+                <span className="tag">{list.length} {list.length === 1 ? "entry" : "entries"}</span>
+                <ChevronRight aria-hidden="true" />
+              </summary>
+              <ul className="amb">
+                {list.map((a) => {
+                  const t = humanize(a.title, a.key);
+                  return (
+                    <li key={a.key}>
+                      <a href={holeHref(domain, a.key)}>
+                        <span className="id">{a.id}</span>
+                        <span>
+                          <span className="t">{t.name} <span className="mono" style={{ color: "var(--muted)" }}>{t.target}</span></span>
+                          <br />
+                          <span className="c">{a.chain.map((s) => s.tool).join(" → ")}</span>
+                        </span>
+                        <span className="tag">{a.replays}</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          ))}
         </section>
       )}
     </Page>
@@ -137,12 +150,16 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
 }
 
 // One card per forbidden goal, with the bookings it was proven on.
+const byGoal = (entries: Hole[]) => {
+  const m = new Map<string, Hole[]>();
+  for (const h of entries) m.set(h.goal, [...(m.get(h.goal) ?? []), h]);
+  return m;
+};
+
 function Groups({ domain, entries, goals, fixed }: { domain: Domain; entries: Hole[]; goals: Map<string, ForbiddenGoal>; fixed: Set<string> }) {
-  const byGoal = new Map<string, Hole[]>();
-  for (const h of entries) byGoal.set(h.goal, [...(byGoal.get(h.goal) ?? []), h]);
   return (
     <>
-      {[...byGoal].map(([gid, list]) => {
+      {[...byGoal(entries)].map(([gid, list]) => {
         const g = goals.get(gid);
         const b = list[0].class === "B";
         const tasks = [...new Set(list.flatMap((h) => h.gold?.tasks ?? []))];

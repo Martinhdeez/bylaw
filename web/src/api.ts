@@ -29,7 +29,7 @@ export type Hole = {
 };
 export type Report = {
   // 01 v1.9: "bfs-fallback" = Muse was requested and every call failed; model is null unless a Muse call succeeded.
-  run: { commit: string; domain: string; model: string | null; mode: "bfs" | "muse" | "bfs-fallback"; effort?: string; started: string; budget: number; goals_commit: string };
+  run: { commit: string; domain: string; model: string | null; mode: "bfs" | "muse" | "bfs-fallback"; effort?: string; context_tokens?: number; started: string; budget: number; goals_commit: string };
   holes: Hole[]; // Class A
   contradictions?: Hole[]; // Class B, 01 v1.7
   ambiguities: Hole[];
