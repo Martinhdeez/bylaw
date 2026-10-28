@@ -17,6 +17,10 @@ Target app: OpenAI's MIT-licensed `openai-cs-agents-demo` (airline customer serv
 
 CS2 and VZ2 are planned after CS1 reports; their requirements and contracts are written then.
 
+## Visual direction (user, 2026-10-28)
+
+"Make the process graphic, not just a load bar or something like that, we need something so visual." Scan and Fix are scenes, not progress indicators: tools as a graph, chains as paths travelling it, state as a live object, the hole as a crack; the fix as a rule slotting into the cut edge and the attack stopped at the proxy gate. Model moves read fluid and violet; application moves read rigid and stamped.
+
 ## Requirements
 
 | Id | Requirement | Surface |
