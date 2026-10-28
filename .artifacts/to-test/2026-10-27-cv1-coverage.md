@@ -22,7 +22,7 @@ Missing feature. `bylaw/report.py:177` (`audit`, at 82e9c3e) builds `stats` with
 | `audit --domain airline --no-llm` (budget 2000) | no per-goal counts | 0 Class A, 15 Class B, 2 Class C; 906 chains, 1997 tool calls, 232.57 s (`.scratch/after/cv1-coverage/audit-airline-4bdca67.txt`, `report-airline-bfs-4bdca67.json`) |
 | `coverage` on that report | no subcommand | airline table below (`.scratch/after/cv1-coverage/coverage-airline-4bdca67.txt`, `coverage-airline-4bdca67.json`) |
 | `audit --domain retail --no-llm --budget 200` | no per-goal counts | 1 Class A, 0 B, 1 C; 660 chains, 199 tool calls, 61.75 s (`.scratch/after/cv1-coverage/audit-retail-4bdca67.txt`); retail table below (`coverage-retail-4bdca67.txt`, `coverage-retail-4bdca67.json`) |
-| Gate | n/a | GATE_LINE (`.scratch/after/cv1-coverage/gate.txt`) |
+| Gate | n/a | `gate: GREEN at e4d384c`; 422 passed, 1 skipped, 11 deselected in 2981.70 s; web build ok (`.scratch/after/cv1-coverage/gate.txt`; load at start 1.81, `gate-start-load.txt`) |
 
 Airline, offline BFS, budget 2000, at 4bdca67 (`.scratch/after/cv1-coverage/coverage-airline-4bdca67.txt`):
 
