@@ -120,7 +120,10 @@ def latest_report(domain: str) -> Path:
 
 def cmd_replay(a):
     from bylaw.backtest import load_gold
+    from bylaw.executor import diff
+    from bylaw.gold import goal_of
     from bylaw.proxy.core import Proxy
+    from bylaw.report import money_delta
 
     domain = get_domain(a.domain)
 
@@ -154,8 +157,13 @@ def cmd_replay(a):
     if hole is None:
         raise SystemExit(f"hole {a.hole} not in the report")
     proxy = Proxy(domain)
+    gid = goal_of(hole["key"])
     for n, s in enumerate(hole["chain"]):
         print(line(n, s["tool"], proxy.call(s["tool"], s["args"])))
+        if a.monitor:  # REQ-RM2-1: the hole's goal on the session so far, as the proxy's monitor reads it
+            after = proxy.snapshot()
+            reached = proxy.domain.goals[gid].check(proxy.start, after, proxy.history)
+            print(f"  monitor {gid} reached={'yes' if reached else 'no'} money_delta={money_delta(diff(proxy.start, after))}")
 
 
 def cmd_bench(a):
@@ -259,6 +267,7 @@ def main(argv=None):
     what.add_argument("--hole", help="hole key, e.g. G1:T1QOBS")
     what.add_argument("--gold", action="store_true", help="replay the tau2 gold tasks; prints blocked: N/total")
     rp.add_argument("--report", help="C4 report; default: the latest in the report store")
+    rp.add_argument("--monitor", action="store_true", help="with --hole: print the hole's goal state after each step")
     rp.set_defaults(fn=cmd_replay)
     be = sub.add_parser("bench", help="holes per tool-call budget, Muse-guided vs blind BFS")
     be.add_argument("--domain", required=True)

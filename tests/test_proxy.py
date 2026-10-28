@@ -1,5 +1,6 @@
 """PX1: the proxy checks every call against the RuleSet and a session goal monitor before it touches the DB (C11)."""
 import json
+from pathlib import Path
 
 from bylaw.domain import get_domain
 from bylaw.env.tau2_airline import RULESET
@@ -91,3 +92,42 @@ def test_replay_cli_prints_one_line_per_step(tmp_path, capsys, monkeypatch):
     policy = next(r["policy_ref"] for r in HAND["tool_rules"] if r["id"] == "R-cancel-ground")
     assert lines == ["0 BLOCKED cancel_reservation BLOCKED R-cancel-ground: " + policy,
                      "1 ALLOWED update_reservation_flights"]
+
+
+RETAIL_REPORT = Path(__file__).resolve().parents[1] / "reports" / "retail.json"
+
+
+def _replay(capsys, *argv):
+    from bylaw.__main__ import main
+
+    main(["replay", *argv])
+    return capsys.readouterr().out.splitlines()
+
+
+def test_replay_monitor_prints_the_hole_goal_state_after_each_step(tmp_path, capsys, monkeypatch):
+    # REQ-RM2-1: retail R6 on #W1068289; the audit measured money_delta 10359.84 once the whole chain has run.
+    monkeypatch.setenv("BYLAW_RATIFIED_DIR", str(tmp_path))
+    lines = _replay(capsys, "--domain", "retail", "--hole", "R6:#W1068289", "--report", str(RETAIL_REPORT), "--monitor")
+    assert len(lines) == 4
+    assert lines[0] == "0 ALLOWED modify_pending_order_payment"
+    assert lines[1].startswith("  monitor R6 reached=no money_delta=")
+    assert lines[2] == "1 ALLOWED cancel_pending_order"
+    assert lines[3] == "  monitor R6 reached=yes money_delta=10359.84"
+
+
+def test_replay_monitor_works_on_airline(tmp_path, capsys, monkeypatch):
+    # Upgrade then cancel refunds a non-refundable fare: G2 is reached only by the second step.
+    monkeypatch.setenv("BYLAW_RATIFIED_DIR", str(tmp_path))
+    chain = [{"tool": t, "args": a} for t, a in (UPGRADE, CANCEL)]
+    report = tmp_path / "r.json"
+    report.write_text(json.dumps({"holes": [{"key": "G2:T1QOBS", "chain": chain}], "ambiguities": []}))
+    lines = _replay(capsys, "--domain", "airline", "--hole", "G2:T1QOBS", "--report", str(report), "--monitor")
+    assert [ln.split(" money_delta=")[0] for ln in lines] == [
+        "0 ALLOWED update_reservation_flights", "  monitor G2 reached=no",
+        "1 ALLOWED cancel_reservation", "  monitor G2 reached=yes"]
+
+
+def test_replay_without_monitor_prints_only_the_c11_step_lines(tmp_path, capsys, monkeypatch):
+    monkeypatch.setenv("BYLAW_RATIFIED_DIR", str(tmp_path))
+    lines = _replay(capsys, "--domain", "retail", "--hole", "R6:#W1068289", "--report", str(RETAIL_REPORT))
+    assert lines == ["0 ALLOWED modify_pending_order_payment", "1 ALLOWED cancel_pending_order"]
