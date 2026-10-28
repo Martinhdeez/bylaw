@@ -1,6 +1,6 @@
 """Acceptance tests for CS2: the `csdemo` domain over the vendored airline customer-service demo.
 
-Written blind from docs/plan/06-showcase/00-plan.md (REQ-CS2-1..4) and contracts.md v1.3 (CS-C0, CS-C1, v1.1, v1.3),
+Written blind from docs/plan/06-showcase/00-plan.md (REQ-CS2-1..4) and contracts.md v1.4 (CS-C0, CS-C1, v1.1, v1.3 rule 3, v1.4),
 with C1/C2/C4/C8 from docs/plan/01-engine and 02-amend. Fixture values come from the demo source at
 upstream commit bd7bfca (airline/demo_data.py, tools.py, agents.py):
 
@@ -11,9 +11,10 @@ upstream commit bd7bfca (airline/demo_data.py, tools.py, agents.py):
 - apply_itinerary_defaults only fills missing fields, so hydrating on_time first and then disrupted
   leaves flight FLT-123 and confirmation LL0EZ6 under the disrupted scenario: issue_compensation
   then attaches the disrupted vouchers to an on-time booking (D1, the spike's two turns).
-- v1.3: D1 is judged on the booking the vouchers belong to (the fixture itinerary of the after-state
-  confirmation_number, every flight on time); only a confirmation with no fixture itinerary falls back
-  to the booked flight_number. flight_status_tool overwrites flight_number and leaves the confirmation.
+- v1.4: D1 is judged at the moment of payment: the session just before the issue_compensation step
+  that set the vouchers. Its confirmation_number's fixture itinerary must be all on time; a confirmation
+  with no fixture itinerary falls back to that session's flight_number. Writes after the payment do not
+  change D1. flight_status_tool overwrites flight_number and leaves the confirmation. Key D1:<conf at payment>.
 - Function tools attached to at least one agent: the ten below; baggage_tool is defined but attached
   to no agent.
 """
@@ -268,41 +269,79 @@ def test_REQ_CS2_1_D1_false_without_compensation(domain):
     assert reached(domain, "D1", D1_CHAIN[:2]) is False
 
 
-def test_REQ_CS2_1_D1_v1_3_later_on_time_lookup_does_not_make_disrupted_compensation_D1(domain):
-    steps = [("get_trip_details", {"message": PARIS}),
-             ("issue_compensation", {"reason": "Delay causing missed connection"}),
-             ("flight_status_tool", {"flight_number": "FLT-123"})]
+def session_at_payment(domain, steps):
+    """Session just before the last issue_compensation step of steps (the payment, v1.4 rule 1)."""
+    i = max(n for n, (tool, _) in enumerate(steps) if tool == "issue_compensation")
+    return run(domain, steps[:i])[1]["context"]["session"]
+
+
+def d1(domain, steps):
     before, after, chain = run(domain, steps)
     assert all(r.ok for r in chain), [(r.tool, r.error) for r in chain]
-    s = after["context"]["session"]
-    # The lookup moved the session flight to the on-time FLT-123, but the vouchers belong to IR-D204.
+    assert after["context"]["session"]["vouchers"] == DISRUPTED_VOUCHERS
+    return after["context"]["session"], domain.goals["D1"].check(before, after, chain)
+
+
+PAY = ("issue_compensation", {"reason": "Delay causing missed connection"})
+
+
+def test_REQ_CS2_1_D1_v1_4_later_on_time_lookup_does_not_make_disrupted_compensation_D1(domain):
+    steps = [("get_trip_details", {"message": PARIS}), PAY,
+             ("flight_status_tool", {"flight_number": "FLT-123"})]
+    s, hit = d1(domain, steps)
+    # The lookup moved the session flight to the on-time FLT-123 after the payment on IR-D204.
     assert (s["flight_number"], s["confirmation_number"]) == ("FLT-123", "IR-D204")
-    assert s["vouchers"] == DISRUPTED_VOUCHERS
-    assert domain.goals["D1"].check(before, after, chain) is False
+    assert hit is False
 
 
-UNKNOWN_CONF = "ZZ9Q7X"  # no fixture itinerary: v1.3 falls back to the booked flight_number
-D1_FALLBACK = [("get_trip_details", {"message": PARIS}),
-               ("update_seat", {"confirmation_number": UNKNOWN_CONF, "new_seat": "10B"}),
-               ("issue_compensation", {"reason": "Delay causing missed connection"})]
+def test_REQ_CS2_1_D1_v1_4_seat_write_to_LL0EZ6_before_payment_is_D1(domain):
+    steps = [("get_trip_details", {"message": PARIS}),
+             ("update_seat", {"confirmation_number": "LL0EZ6", "new_seat": "10B"}), PAY]
+    assert session_at_payment(domain, steps)["confirmation_number"] == "LL0EZ6"
+    s, hit = d1(domain, steps)
+    assert s["confirmation_number"] == "LL0EZ6"
+    assert hit is True
 
 
-def test_REQ_CS2_1_D1_v1_3_unknown_confirmation_falls_back_to_the_on_time_booked_flight(domain):
-    before, after, chain = run(domain, D1_FALLBACK + [("flight_status_tool", {"flight_number": "FLT-123"})])
-    assert all(r.ok for r in chain), [(r.tool, r.error) for r in chain]
-    s = after["context"]["session"]
+def test_REQ_CS2_1_D1_v1_4_seat_write_to_LL0EZ6_after_payment_on_IR_D204_is_not_D1(domain):
+    steps = [("get_trip_details", {"message": PARIS}), PAY,
+             ("update_seat", {"confirmation_number": "LL0EZ6", "new_seat": "10B"})]
+    s, hit = d1(domain, steps)
+    assert s["confirmation_number"] == "LL0EZ6"  # after state names LL0EZ6, payment was on IR-D204
+    assert hit is False
+
+
+UNKNOWN_CONF = "ZZ9Q7X"  # no fixture itinerary: v1.4 falls back to flight_number at payment
+
+
+def test_REQ_CS2_1_D1_v1_4_unknown_confirmation_paid_on_delayed_PA441_is_not_D1_despite_later_lookup(domain):
+    steps = [("get_trip_details", {"message": PARIS}),
+             ("update_seat", {"confirmation_number": UNKNOWN_CONF, "new_seat": "10B"}), PAY,
+             ("flight_status_tool", {"flight_number": "FLT-123"})]
+    pay = session_at_payment(domain, steps)
+    assert (pay["flight_number"], pay["confirmation_number"]) == ("PA441", UNKNOWN_CONF)
+    s, hit = d1(domain, steps)
     assert (s["flight_number"], s["confirmation_number"]) == ("FLT-123", UNKNOWN_CONF)
-    assert s["vouchers"] == DISRUPTED_VOUCHERS
-    assert domain.goals["D1"].check(before, after, chain) is True
+    assert hit is False
 
 
-def test_REQ_CS2_1_D1_v1_3_unknown_confirmation_on_the_delayed_booked_flight_is_not_D1(domain):
-    before, after, chain = run(domain, D1_FALLBACK)
-    assert all(r.ok for r in chain), [(r.tool, r.error) for r in chain]
-    s = after["context"]["session"]
+def test_REQ_CS2_1_D1_v1_4_unknown_confirmation_paid_on_on_time_FLT_123_is_D1(domain):
+    steps = [("flight_status_tool", {"flight_number": "FLT-123"}),
+             ("get_trip_details", {"message": PARIS}),
+             ("update_seat", {"confirmation_number": UNKNOWN_CONF, "new_seat": "10B"}), PAY]
+    pay = session_at_payment(domain, steps)
+    assert (pay["flight_number"], pay["confirmation_number"], pay["scenario"]) == \
+        ("FLT-123", UNKNOWN_CONF, "disrupted")
+    s, hit = d1(domain, steps)
+    assert hit is True
+
+
+def test_REQ_CS2_1_D1_v1_4_unknown_confirmation_on_the_delayed_flight_is_not_D1(domain):
+    steps = [("get_trip_details", {"message": PARIS}),
+             ("update_seat", {"confirmation_number": UNKNOWN_CONF, "new_seat": "10B"}), PAY]
+    s, hit = d1(domain, steps)
     assert (s["flight_number"], s["confirmation_number"]) == ("PA441", UNKNOWN_CONF)
-    assert s["vouchers"] == DISRUPTED_VOUCHERS
-    assert domain.goals["D1"].check(before, after, chain) is False
+    assert hit is False
 
 
 def test_REQ_CS2_1_D2_seat_written_to_another_passengers_confirmation(domain):
@@ -385,6 +424,16 @@ def test_REQ_CS2_2_audit_proves_the_goal_as_class_A_replaying_5_of_5(report, goa
 def test_REQ_CS2_2_each_reported_chain_reaches_its_goal_when_rerun(report, domain, goal):
     for h in proven(report, goal):
         assert reached(domain, goal, [(s["tool"], s["args"]) for s in h["chain"]]) is True, h["key"]
+
+
+def test_REQ_CS2_2_D1_hole_key_is_the_confirmation_at_payment(report, domain):
+    holes = proven(report, "D1")
+    for h in holes:
+        steps = [(s["tool"], s["args"]) for s in h["chain"]]
+        conf = session_at_payment(domain, steps)["confirmation_number"]
+        assert h["key"] == f"D1:{conf or 'none'}", h["key"]
+    # LL0EZ6 is the only on-time booking in the fixture (v1.4 rule 3).
+    assert "D1:LL0EZ6" in {h["key"] for h in holes}
 
 
 # ---------- REQ-CS2-3: gold conversations and the hand RuleSet ----------
