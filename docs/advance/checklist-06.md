@@ -1,9 +1,9 @@
 # Checklist 06 — Showcase: scan and fix, visible
 
-Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 3 / 9.
+Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 4 / 9.
 
 - [x] **CS1** Spike on openai-cs-agents-demo — assistant — go with changes (`.scratch/cs-demo-spike.md`)
-- [ ] **UI6** Copy and bench fixes — designer
+- [x] **UI6** Copy and bench fixes — designer — PR #34
 - [x] **RM2** `replay --monitor` — builder — PR #36
 - [x] **VN1** Vendor demo backend — assistant — PR #37
 - [ ] **CS2** `csdemo` domain — builder + test-author
