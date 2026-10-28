@@ -2,6 +2,7 @@
 
 Config (env / .env): MODEL_BASE_URL (or BASE_URL), MODEL, MODEL_API_KEY.
 BYLAW_NO_CACHE=1 bypasses the on-disk cache in .cache/llm/.
+BYLAW_EFFORT (e.g. low) overrides the reasoning effort every caller asks for.
 """
 import contextvars
 import hashlib
@@ -41,6 +42,10 @@ def model():
     return os.environ.get("MODEL") or DEFAULT_MODEL
 
 
+def effective_effort(requested=None):
+    return os.environ.get("BYLAW_EFFORT") or requested
+
+
 def caps(name=None):
     return CAPS.get(name or model(), DEFAULT_CAPS)
 
@@ -64,6 +69,7 @@ def _cache_path(payload):
 def _call(messages, response_format=None, effort=None, read_cache=True, **opts):
     name = opts.pop("model", None) or model()
     cap = caps(name)
+    effort = effective_effort(effort)  # part of the body, hence of the cache key
     body = {"model": name, "messages": messages, **opts}
     body["max_tokens"] = max(opts.get("max_tokens", 4000), cap["min_max_tokens"])
     if effort and cap["reasoning_effort"]:

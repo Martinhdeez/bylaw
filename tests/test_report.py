@@ -177,6 +177,67 @@ def test_a_failed_muse_call_is_counted_and_never_aborts_the_audit():
     assert any(e["goal"] == "G7" for e in r["ambiguities"])
 
 
+def test_every_failed_muse_call_is_logged_to_stderr_with_its_exception(capsys):
+    """FX1: a failed Muse call still falls back to BFS (C6 v1.8), but its cause is not dropped."""
+    def broken(messages, schema, name, **kw):
+        raise PermissionError("no MODEL_API_KEY")
+
+    r = audit(DOMAIN, RULES, budget=10, use_llm=True, llm=broken)
+    err = capsys.readouterr().err
+    assert r["stats"]["llm_errors"] == r["stats"]["llm_calls"] > 0
+    assert err.count("PermissionError: no MODEL_API_KEY") == r["stats"]["llm_calls"]
+
+
+def test_a_run_whose_every_muse_call_failed_is_labelled_bfs_fallback_with_no_model():
+    """FX1, C4 v1.9: Muse was requested and every call failed, so the run must not claim Muse or its model."""
+    def broken(messages, schema, name, **kw):
+        raise RuntimeError("401 Unauthorized")
+
+    r = audit(DOMAIN, RULES, budget=10, use_llm=True, llm=broken)
+    jsonschema.validate(r, REPORT_SCHEMA)
+    assert r["run"]["mode"] == "bfs-fallback" and r["run"]["model"] is None
+
+
+def test_a_partly_failed_muse_run_is_still_a_muse_run():
+    """C4 v1.9: bfs-fallback only when every call failed; one answer is enough to be a Muse run."""
+    from tests.test_proposer import G7_TWICE, ScriptedMuse
+
+    ok = ScriptedMuse({"G7": [G7_TWICE]})
+
+    def flaky(messages, schema, name, **kw):
+        if json.loads(messages[-1]["content"])["goal"]["id"] != "G7":
+            raise RuntimeError("empty reply")
+        return ok(messages, schema, name, **kw)
+
+    r = audit(DOMAIN, RULES, budget=10, use_llm=True, llm=flaky)
+    assert r["run"]["mode"] == "muse" and isinstance(r["run"]["model"], str) and r["run"]["model"]
+
+
+def test_run_effort_is_the_effort_sent_after_the_override_and_absent_for_bfs(report, monkeypatch):
+    """C4 v1.9: run.effort is what was actually sent (BYLAW_EFFORT wins over the callers' "high")."""
+    from tests.test_proposer import G7_TWICE, ScriptedMuse
+
+    monkeypatch.setenv("MODEL", "muse-spark-1.3")
+    monkeypatch.setenv("BYLAW_EFFORT", "low")
+    r = audit(DOMAIN, RULES, budget=10, use_llm=True, llm=ScriptedMuse({"G7": [G7_TWICE]}))
+    jsonschema.validate(r, REPORT_SCHEMA)
+    assert r["run"]["effort"] == "low"
+    assert "effort" not in report["run"] and report["run"]["model"] is None
+
+
+def test_the_cli_warns_when_every_muse_call_failed(tmp_path, monkeypatch, capsys):
+    """FX1: an audit run as Muse whose every call failed must not pass silently as a Muse run (REQ-DM1-1)."""
+    from bylaw import llm
+    from bylaw.__main__ import main
+
+    def broken(messages, schema, name, **kw):
+        raise RuntimeError("401 Unauthorized")
+
+    monkeypatch.setattr(llm, "structured", broken)
+    main(["audit", "--domain", "airline", "--budget", "10", "-o", str(tmp_path / "r.json")])
+    assert "WARNING: every Muse call failed" in capsys.readouterr().err
+
+
 def test_a_hole_that_takes_the_key_from_an_ambiguity_is_fed_back_as_a_hit(monkeypatch):
     # C6 v1.8: hit means the chain proved a finding. The Class A chain to G1:1KUOX2 replaces the cancel+rebook
     # ambiguity under the same key: the entry count does not grow, but the chain still proved a finding.
