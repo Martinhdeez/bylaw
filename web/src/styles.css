@@ -407,6 +407,7 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .amb-goal summary:hover { background: var(--hover); }
 .amb-goal summary .id { font: 600 12px var(--mono); color: var(--muted); }
 .amb-goal summary .t { font-weight: 700; }
+.amb-goal summary .n { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; }
 .amb-goal summary > svg { width: 16px; height: 16px; color: var(--faint); transition: transform .2s var(--ease); }
 .amb-goal[open] summary > svg { transform: rotate(90deg); }
 .amb-goal .amb a { padding-left: 32px; }
