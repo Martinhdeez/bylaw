@@ -80,21 +80,32 @@ For a single server, run `cd web && npm run build` (also part of `make check`) a
 
 ## Results
 
-Live report figures (DM1) are pending. Every figure below is from one run, as recorded in the iteration close notes.
+Every figure below is from one run. It is not a rate, and a second run may differ. The demo reports are `reports/airline.json`, `reports/retail.json` and `reports/airline.bench.json` (DM1); their runs:
 
-| What | Value | Run |
+- Airline audit and amend: commit 05bd65c, `muse-spark-1.3`, `BYLAW_EFFORT=low`, budget 2000.
+- Retail audit: commit 9f13ae2, `--no-llm` (blind BFS, no Muse calls), budget 2000.
+- Airline bench: commit 9f13ae2, `muse-spark-1.3`, `BYLAW_EFFORT=low`, budget 200.
+
+| What | Value | Source |
 |---|---|---|
+| Retail Class A `R6:#W1068289` | `modify_pending_order_payment` then `cancel_pending_order`; replays 5/5; money_delta $10,359.84; the order ends with 2 payments and 4 refunds of $3,453.28 | `reports/retail.json` `holes[0]` |
+| Cause of `R6:#W1068289` | a τ² tool bug: `cancel_pending_order` refunds every `payment_history` entry, refund entries included (τ² `tools.py` L191, loop L218); reproduced with plain τ² code. An upstream issue is drafted, not filed | decision `docs/plan/decisions-2026-10-27-gold-adjudication.md` (addendum) |
+| Retail audit totals | Class A 1, Class B 0, Class C 1; 1997 tool calls, 372 s | `reports/retail.json` `holes`, `contradictions`, `ambiguities`, `stats` |
+| Airline audit | Class A 0, Class B 15 (G5 12, G1 2, G2 1), Class C 102 (G7 100, G1 2); 1997 tool calls, 7 Muse calls, 120,756 tokens, 425 s | `reports/airline.json` `holes`, `contradictions`, `ambiguities`, `stats` |
+| Gold tasks that take the Class B chains | task 18 (12 entries), task 32 (2), task 7 (1) | `reports/airline.json` `contradictions[].gold.tasks` |
+| Airline amendments | 15/15 close their goal; each blocks the gold task that takes its chain; 14 block that task only; B5 (`G1:1ERWZ8`) blocks 5 (7, 17, 22, 32, 44); baseline 0/43 | `reports/airline.json` `contradictions[].closes`, `.backtest` |
+| Muse vs BFS, budget 200 | Class B: BFS 9, Muse 7. Class A 0 and 0; Class C 2 and 48; tool calls 200 and 199; Muse 7 calls | `reports/airline.bench.json` `rows` |
+| Airline gold through the proxy, nothing ratified | 0/43 blocked (1 unknown) | `replay --domain airline --gold` at bada101 |
+| `G1:1ERWZ8` from the DM1 report, goal G1 monitored | step 0 allowed, step 1 blocked by G1 | `Proxy(domain, monitor_goals=["G1"])` on the chain, at bada101 |
 | Compiler match rate vs the hand airline RuleSet (28 rules) | 0.643 by parts, 0.607 strict | one live `compile --domain airline`, CP1 evidence `live-compile-v4.txt` (`docs/plan/01-engine/99-close.md`) |
-| Hand RuleSet vs airline gold | 0/43 blocked, 1 unknown (task 39) | `backtest --domain airline`, EN2 review (01 close) |
-| Blind BFS audit, airline, budget 2000 | 15 findings (classified before v1.7, all as Class A; goals G1, G2, G5), 2 Class C, about 170–210 s | `audit --domain airline --no-llm`, EX1/GA1 reviews (01 close) |
-| Muse vs BFS, Class A count per budget 25/50/100/200/2000 | 2/1, 4/4, 8/7, 38/9, 18/15 (Muse ≥ BFS at every budget); about 185k tokens and 7 LLM calls per Muse run | `bench --domain airline --modes bfs,muse` at commit c4c136f, PR1 evidence `bench-summary.txt` (01 close) |
-| Airline amendments | 15/15 close their goal; 14 block exactly the gold task that sanctions the goal (18, 7 or 32); the broad G1 amendment blocks 5 (7, 17, 22, 32, 44); baseline 0/43 | one live `amend report.json` at 74fce98, AM1 evidence `amend-table.md` (`docs/plan/02-amend/99-close.md`) |
-| Airline gold through the proxy, nothing ratified | 0/43 blocked (1 unknown) | `replay --domain airline --gold`, PX1 review (`docs/plan/04-proxy/99-close.md`) |
-| Retail gold through the proxy, nothing ratified | 2/112 blocked (tasks 64, 105; τ² also rejects those actions) | `replay --domain retail --gold`, PX1 `replay-gold-retail.txt` (04 close) |
-| Hole `G1:1ERWZ8` with goal G1 monitored | step 0 allowed, step 1 blocked by G1 | PX1 `replay-holes.txt` (04 close) |
-| Same hole with a hand-written stand-in amendment | step 0 blocked by the rule | PX1 `replay-holes.txt` (04 close) |
+| Retail gold through the proxy, nothing ratified | 2/112 blocked (tasks 64, 105; τ² also rejects those actions) | `replay --domain retail --gold`, PX1 `replay-gold-retail.txt` (`docs/plan/04-proxy/99-close.md`) |
 
-Limits stated in the close notes: one run per budget, so Muse variance is not measured (an earlier sweep gave 147 Class A at budget 2000 against 18 in this one); the compiler target of 90% match is unmet; the gold tasks that sanction G1, G2 and G5 chains (7, 18, 25, 32) make those findings Class B under v1.7.
+What the figures say and do not say:
+
+- The airline Class B chains are not holes. On tasks 7 and 32 the policy is ambiguous: basic economy cannot be cancelled or changed (policy L110, L143-147), but L117 allows the cabin upgrade first, and the gold tasks read it permissively. On task 18 the policy is silent on bags after a cabin change (L83-86), a gap.
+- At budget 200, BFS found more Class B chains than Muse (9 against 7). One run per mode, so this does not rank the two.
+- The bench Muse row shows 0 tokens because all 7 proposer replies came from the cache the airline audit wrote. That is not Muse's cost; the audit's 7 calls and 120,756 tokens are.
+- The amend run does not record its Muse tokens. The compiler target of 90% match is unmet.
 
 ## Built during the event
 
