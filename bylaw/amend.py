@@ -14,6 +14,10 @@ ANSWER_SCHEMA = {
                    "rationale": {"type": "string"}},
 }
 
+AIRLINE_NAMES = """- args: the call's arguments (dict); res: the reservation named by args['reservation_id'] (or None); \
+user: the user named by args['user_id'] or by res (or None); db: the whole database snapshot \
+({"users": {id: ...}, "reservations": {id: ...}, "flights": {number: {"dates": {date: ...}}}}); now: ISO time string."""
+
 SYSTEM = """You amend the RuleSet that guards an AI customer-service agent. A RuleSet holds tool_rules; a tool call is \
 allowed iff every rule for that tool evaluates truthy on the database as it is just before the call.
 
@@ -82,7 +86,9 @@ def _hole_text(domain, hole: dict) -> str:
 
 def draft(domain, ruleset: dict, hole: dict, model=None, llm=None) -> dict:
     ask = llm or llm_mod.structured  # module attribute, read at call time: tests replace it (C7 v1.1)
-    messages = [{"role": "system", "content": SYSTEM},
+    # a domain whose snapshot is not the tau2 airline DB describes its own rule names (csdemo)
+    system = SYSTEM.replace(AIRLINE_NAMES, domain.rule_names) if hasattr(domain, "rule_names") else SYSTEM
+    messages = [{"role": "system", "content": system},
                 {"role": "user", "content": f"POLICY:\n{domain.policy_text}\n\nCURRENT RULESET:\n"
                                             f"{json.dumps(ruleset, indent=1)}\n\nHOLE:\n{_hole_text(domain, hole)}"}]
     # high effort spends its reasoning inside max_tokens: the 4000 default came back empty (finish_reason=length)
