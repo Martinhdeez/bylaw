@@ -1,0 +1,683 @@
+{
+  "ambiguities": [
+    {
+      "chain": [
+        {
+          "args": {
+            "address1": "1 Elsewhere St",
+            "address2": "",
+            "city": "Springfield",
+            "country": "USA",
+            "order_id": "#W1068289",
+            "state": "IL",
+            "zip": "62701"
+          },
+          "ok": true,
+          "tool": "modify_pending_order_address",
+          "verdicts": [
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "An order can only be modified if its status is 'pending', and you should check its status before taking the action.",
+              "rule_id": "R-addr-1"
+            }
+          ]
+        },
+        {
+          "args": {
+            "order_id": "#W1068289",
+            "payment_method_id": "paypal_5398626"
+          },
+          "ok": true,
+          "tool": "modify_pending_order_payment",
+          "verdicts": [
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "An order can only be modified if its status is 'pending', and you should check its status before taking the action.",
+              "rule_id": "R-pay-1"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "The user can only choose a single payment method different from the original payment method.",
+              "rule_id": "R-pay-2"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "The user can only choose a single payment method different from the original payment method.",
+              "rule_id": "R-pay-3"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "If the user wants the modify the payment method to gift card, it must have enough balance to cover the total amount.",
+              "rule_id": "R-pay-4"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "Exchange or modify order tools can only be called once per order.",
+              "rule_id": "R-pay-5"
+            }
+          ]
+        }
+      ],
+      "class": "C",
+      "diff": {
+        "orders": {
+          "#W1068289": {
+            "after": {
+              "address": {
+                "address1": "1 Elsewhere St",
+                "address2": "",
+                "city": "Springfield",
+                "country": "USA",
+                "state": "IL",
+                "zip": "62701"
+              },
+              "cancel_reason": null,
+              "exchange_items": null,
+              "exchange_new_items": null,
+              "exchange_payment_method_id": null,
+              "exchange_price_difference": null,
+              "fulfillments": [],
+              "items": [
+                {
+                  "item_id": "3374679624",
+                  "name": "Headphones",
+                  "options": {
+                    "color": "black",
+                    "connectivity": "wired",
+                    "type": "over-ear"
+                  },
+                  "price": 370.53,
+                  "product_id": "6992792935"
+                },
+                {
+                  "item_id": "5946177616",
+                  "name": "Grill",
+                  "options": {
+                    "features": "none",
+                    "size": "portable",
+                    "type": "gas"
+                  },
+                  "price": 1057.24,
+                  "product_id": "6819683148"
+                },
+                {
+                  "item_id": "1994478369",
+                  "name": "Wristwatch",
+                  "options": {
+                    "dial color": "black",
+                    "strap material": "silicone"
+                  },
+                  "price": 2025.51,
+                  "product_id": "6066914160"
+                }
+              ],
+              "order_id": "#W1068289",
+              "payment_history": [
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "gift_card_9105630",
+                  "transaction_type": "payment"
+                },
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "paypal_5398626",
+                  "transaction_type": "payment"
+                },
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "gift_card_9105630",
+                  "transaction_type": "refund"
+                }
+              ],
+              "return_items": null,
+              "return_payment_method_id": null,
+              "status": "pending",
+              "user_id": "yara_patel_8545"
+            },
+            "before": {
+              "address": {
+                "address1": "736 Willow Lane",
+                "address2": "Suite 550",
+                "city": "Fort Worth",
+                "country": "USA",
+                "state": "TX",
+                "zip": "76130"
+              },
+              "cancel_reason": null,
+              "exchange_items": null,
+              "exchange_new_items": null,
+              "exchange_payment_method_id": null,
+              "exchange_price_difference": null,
+              "fulfillments": [],
+              "items": [
+                {
+                  "item_id": "3374679624",
+                  "name": "Headphones",
+                  "options": {
+                    "color": "black",
+                    "connectivity": "wired",
+                    "type": "over-ear"
+                  },
+                  "price": 370.53,
+                  "product_id": "6992792935"
+                },
+                {
+                  "item_id": "5946177616",
+                  "name": "Grill",
+                  "options": {
+                    "features": "none",
+                    "size": "portable",
+                    "type": "gas"
+                  },
+                  "price": 1057.24,
+                  "product_id": "6819683148"
+                },
+                {
+                  "item_id": "1994478369",
+                  "name": "Wristwatch",
+                  "options": {
+                    "dial color": "black",
+                    "strap material": "silicone"
+                  },
+                  "price": 2025.51,
+                  "product_id": "6066914160"
+                }
+              ],
+              "order_id": "#W1068289",
+              "payment_history": [
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "gift_card_9105630",
+                  "transaction_type": "payment"
+                }
+              ],
+              "return_items": null,
+              "return_payment_method_id": null,
+              "status": "pending",
+              "user_id": "yara_patel_8545"
+            }
+          }
+        },
+        "users": {
+          "yara_patel_8545": {
+            "after": {
+              "address": {
+                "address1": "736 Willow Lane",
+                "address2": "Suite 550",
+                "city": "Fort Worth",
+                "country": "USA",
+                "state": "TX",
+                "zip": "76130"
+              },
+              "email": "yara.patel5445@example.com",
+              "name": {
+                "first_name": "Yara",
+                "last_name": "Patel"
+              },
+              "orders": [
+                "#W1068289"
+              ],
+              "payment_methods": {
+                "gift_card_9105630": {
+                  "balance": 3544.28,
+                  "id": "gift_card_9105630",
+                  "source": "gift_card"
+                },
+                "paypal_5398626": {
+                  "id": "paypal_5398626",
+                  "source": "paypal"
+                }
+              },
+              "user_id": "yara_patel_8545"
+            },
+            "before": {
+              "address": {
+                "address1": "736 Willow Lane",
+                "address2": "Suite 550",
+                "city": "Fort Worth",
+                "country": "USA",
+                "state": "TX",
+                "zip": "76130"
+              },
+              "email": "yara.patel5445@example.com",
+              "name": {
+                "first_name": "Yara",
+                "last_name": "Patel"
+              },
+              "orders": [
+                "#W1068289"
+              ],
+              "payment_methods": {
+                "gift_card_9105630": {
+                  "balance": 91.0,
+                  "id": "gift_card_9105630",
+                  "source": "gift_card"
+                },
+                "paypal_5398626": {
+                  "id": "paypal_5398626",
+                  "source": "paypal"
+                }
+              },
+              "user_id": "yara_patel_8545"
+            }
+          }
+        }
+      },
+      "goal": "R5",
+      "goal_true": true,
+      "gold": {
+        "sanctioned": true,
+        "tasks": [
+          "41",
+          "42",
+          "71",
+          "72",
+          "78",
+          "96",
+          "97",
+          "101",
+          "102",
+          "103",
+          "104",
+          "109",
+          "111",
+          "112"
+        ]
+      },
+      "id": "C1",
+      "key": "R5:#W1068289",
+      "money_delta": 0.0,
+      "replays": "5/5",
+      "title": "order_modified_more_than_once on #W1068289"
+    }
+  ],
+  "contradictions": [],
+  "holes": [
+    {
+      "chain": [
+        {
+          "args": {
+            "order_id": "#W1068289",
+            "payment_method_id": "paypal_5398626"
+          },
+          "ok": true,
+          "tool": "modify_pending_order_payment",
+          "verdicts": [
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "An order can only be modified if its status is 'pending', and you should check its status before taking the action.",
+              "rule_id": "R-pay-1"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "The user can only choose a single payment method different from the original payment method.",
+              "rule_id": "R-pay-2"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "The user can only choose a single payment method different from the original payment method.",
+              "rule_id": "R-pay-3"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "If the user wants the modify the payment method to gift card, it must have enough balance to cover the total amount.",
+              "rule_id": "R-pay-4"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "Exchange or modify order tools can only be called once per order.",
+              "rule_id": "R-pay-5"
+            }
+          ]
+        },
+        {
+          "args": {
+            "order_id": "#W1068289",
+            "reason": "no longer needed"
+          },
+          "ok": true,
+          "tool": "cancel_pending_order",
+          "verdicts": [
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "An order can only be cancelled if its status is 'pending', and you should check its status before taking the action.",
+              "rule_id": "R-cancel-1"
+            },
+            {
+              "error": null,
+              "ok": true,
+              "policy_ref": "The user needs to confirm the order id and the reason (either 'no longer needed' or 'ordered by mistake') for cancellation. Other reasons are not acceptable.",
+              "rule_id": "R-cancel-2"
+            }
+          ]
+        }
+      ],
+      "class": "A",
+      "diff": {
+        "orders": {
+          "#W1068289": {
+            "after": {
+              "address": {
+                "address1": "736 Willow Lane",
+                "address2": "Suite 550",
+                "city": "Fort Worth",
+                "country": "USA",
+                "state": "TX",
+                "zip": "76130"
+              },
+              "cancel_reason": "no longer needed",
+              "exchange_items": null,
+              "exchange_new_items": null,
+              "exchange_payment_method_id": null,
+              "exchange_price_difference": null,
+              "fulfillments": [],
+              "items": [
+                {
+                  "item_id": "3374679624",
+                  "name": "Headphones",
+                  "options": {
+                    "color": "black",
+                    "connectivity": "wired",
+                    "type": "over-ear"
+                  },
+                  "price": 370.53,
+                  "product_id": "6992792935"
+                },
+                {
+                  "item_id": "5946177616",
+                  "name": "Grill",
+                  "options": {
+                    "features": "none",
+                    "size": "portable",
+                    "type": "gas"
+                  },
+                  "price": 1057.24,
+                  "product_id": "6819683148"
+                },
+                {
+                  "item_id": "1994478369",
+                  "name": "Wristwatch",
+                  "options": {
+                    "dial color": "black",
+                    "strap material": "silicone"
+                  },
+                  "price": 2025.51,
+                  "product_id": "6066914160"
+                }
+              ],
+              "order_id": "#W1068289",
+              "payment_history": [
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "gift_card_9105630",
+                  "transaction_type": "payment"
+                },
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "paypal_5398626",
+                  "transaction_type": "payment"
+                },
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "gift_card_9105630",
+                  "transaction_type": "refund"
+                },
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "gift_card_9105630",
+                  "transaction_type": "refund"
+                },
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "paypal_5398626",
+                  "transaction_type": "refund"
+                },
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "gift_card_9105630",
+                  "transaction_type": "refund"
+                }
+              ],
+              "return_items": null,
+              "return_payment_method_id": null,
+              "status": "cancelled",
+              "user_id": "yara_patel_8545"
+            },
+            "before": {
+              "address": {
+                "address1": "736 Willow Lane",
+                "address2": "Suite 550",
+                "city": "Fort Worth",
+                "country": "USA",
+                "state": "TX",
+                "zip": "76130"
+              },
+              "cancel_reason": null,
+              "exchange_items": null,
+              "exchange_new_items": null,
+              "exchange_payment_method_id": null,
+              "exchange_price_difference": null,
+              "fulfillments": [],
+              "items": [
+                {
+                  "item_id": "3374679624",
+                  "name": "Headphones",
+                  "options": {
+                    "color": "black",
+                    "connectivity": "wired",
+                    "type": "over-ear"
+                  },
+                  "price": 370.53,
+                  "product_id": "6992792935"
+                },
+                {
+                  "item_id": "5946177616",
+                  "name": "Grill",
+                  "options": {
+                    "features": "none",
+                    "size": "portable",
+                    "type": "gas"
+                  },
+                  "price": 1057.24,
+                  "product_id": "6819683148"
+                },
+                {
+                  "item_id": "1994478369",
+                  "name": "Wristwatch",
+                  "options": {
+                    "dial color": "black",
+                    "strap material": "silicone"
+                  },
+                  "price": 2025.51,
+                  "product_id": "6066914160"
+                }
+              ],
+              "order_id": "#W1068289",
+              "payment_history": [
+                {
+                  "amount": 3453.28,
+                  "payment_method_id": "gift_card_9105630",
+                  "transaction_type": "payment"
+                }
+              ],
+              "return_items": null,
+              "return_payment_method_id": null,
+              "status": "pending",
+              "user_id": "yara_patel_8545"
+            }
+          }
+        },
+        "users": {
+          "yara_patel_8545": {
+            "after": {
+              "address": {
+                "address1": "736 Willow Lane",
+                "address2": "Suite 550",
+                "city": "Fort Worth",
+                "country": "USA",
+                "state": "TX",
+                "zip": "76130"
+              },
+              "email": "yara.patel5445@example.com",
+              "name": {
+                "first_name": "Yara",
+                "last_name": "Patel"
+              },
+              "orders": [
+                "#W1068289"
+              ],
+              "payment_methods": {
+                "gift_card_9105630": {
+                  "balance": 10450.84,
+                  "id": "gift_card_9105630",
+                  "source": "gift_card"
+                },
+                "paypal_5398626": {
+                  "id": "paypal_5398626",
+                  "source": "paypal"
+                }
+              },
+              "user_id": "yara_patel_8545"
+            },
+            "before": {
+              "address": {
+                "address1": "736 Willow Lane",
+                "address2": "Suite 550",
+                "city": "Fort Worth",
+                "country": "USA",
+                "state": "TX",
+                "zip": "76130"
+              },
+              "email": "yara.patel5445@example.com",
+              "name": {
+                "first_name": "Yara",
+                "last_name": "Patel"
+              },
+              "orders": [
+                "#W1068289"
+              ],
+              "payment_methods": {
+                "gift_card_9105630": {
+                  "balance": 91.0,
+                  "id": "gift_card_9105630",
+                  "source": "gift_card"
+                },
+                "paypal_5398626": {
+                  "id": "paypal_5398626",
+                  "source": "paypal"
+                }
+              },
+              "user_id": "yara_patel_8545"
+            }
+          }
+        }
+      },
+      "goal": "R6",
+      "goal_true": true,
+      "gold": {
+        "sanctioned": false,
+        "tasks": []
+      },
+      "id": "H1",
+      "key": "R6:#W1068289",
+      "money_delta": 10359.84,
+      "replays": "5/5",
+      "title": "refunds_exceed_payments on #W1068289"
+    }
+  ],
+  "run": {
+    "budget": 2000,
+    "commit": "9f13ae2",
+    "context_tokens": 0,
+    "domain": "retail",
+    "goals_commit": "02889fd",
+    "mode": "bfs",
+    "model": null,
+    "started": "2026-10-28T05:59:04+00:00"
+  },
+  "stats": {
+    "chains_tried": 4509,
+    "found": [
+      {
+        "key": "R6:#W1068289",
+        "seconds": 19.68,
+        "tool_calls": 57
+      }
+    ],
+    "llm_calls": 0,
+    "llm_errors": 0,
+    "per_goal": {
+      "R1": {
+        "A": 0,
+        "B": 0,
+        "C": 0,
+        "chains": 1812,
+        "executed": 962
+      },
+      "R2": {
+        "A": 0,
+        "B": 0,
+        "C": 0,
+        "chains": 2693,
+        "executed": 1031
+      },
+      "R3": {
+        "A": 0,
+        "B": 0,
+        "C": 0,
+        "chains": 2112,
+        "executed": 300
+      },
+      "R4": {
+        "A": 0,
+        "B": 0,
+        "C": 0,
+        "chains": 581,
+        "executed": 731
+      },
+      "R5": {
+        "A": 0,
+        "B": 0,
+        "C": 1,
+        "chains": 581,
+        "executed": 731
+      },
+      "R6": {
+        "A": 1,
+        "B": 0,
+        "C": 0,
+        "chains": 581,
+        "executed": 731
+      },
+      "R7": {
+        "A": 0,
+        "B": 0,
+        "C": 0,
+        "chains": 1812,
+        "executed": 962
+      },
+      "R8": {
+        "A": 0,
+        "B": 0,
+        "C": 0,
+        "chains": 2393,
+        "executed": 1693
+      }
+    },
+    "seconds": 372.28,
+    "tokens": 0,
+    "tool_calls": 1997
+  }
+}
