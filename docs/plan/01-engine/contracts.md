@@ -157,3 +157,7 @@ def get_domain(name: str) -> Domain
 
 - C4 `stats.per_goal` (optional): `{goal_id: {"chains": int, "executed": int, "A": int, "B": int, "C": int}}`. A chain counts for every goal whose `domain.targets(goal)` include the chain's primary record `_target(chain)` (a reservation in airline, an order in retail), so goals the BFS move set cannot reach still show every chain on their targets. `executed` sums the executed write steps (C6 v1.8 cost). A/B/C count the final entries by class. Reports without `per_goal` stay valid.
 - C5 `coverage REPORT [--json OUT]`: one Markdown row per forbidden goal; `n/a` for chains and executed when the report has no `per_goal`. `--json` also writes the rows to OUT.
+
+## v1.14 (2026-10-28, from review of PR #26), corrects v1.12
+
+- v1.12's reason is wrong: a disk-cache hit is still a counted call. A `muse` run with zero counted calls is one whose search made no Muse request at all. The rule stands: such a run keeps mode `muse` and its model string; `run.model` is `null` only in modes `bfs` and `bfs-fallback`.
