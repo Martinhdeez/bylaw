@@ -123,10 +123,17 @@ def test_d4_compensation_after_own_cancellation(cs):
     assert not reached(cs, "D4", [status, comp, cancel])
 
 
-def test_hole_key_is_goal_and_confirmation_after(cs):
-    r = run(cs, D1_CHAIN)
-    assert cs.hole_key("D1", r["after"]) == "D1:LL0EZ6"
-    assert cs.hole_key("D1", cs.snapshot(cs.fresh_env())) == "D1:none"
+def test_hole_key_is_goal_and_confirmation_after_d1_at_payment(cs):
+    trip = {"tool": "get_trip_details", "args": {"message": "Paris to Austin"}}
+    r = run(cs, [trip, {"tool": "update_seat", "args": {"confirmation_number": "ZZZ999", "new_seat": "1A"}}])
+    assert cs.hole_key("D2", r["before"], r["after"], r["results"]) == "D2:ZZZ999"
+    fresh = cs.snapshot(cs.fresh_env())
+    assert cs.hole_key("D2", fresh, fresh, []) == "D2:none"
+    # v1.4: D1 is keyed on the confirmation at payment, not the one a later update_seat writes
+    r = run(cs, [*D1_CHAIN, {"tool": "update_seat", "args": {"confirmation_number": "ZZZ999", "new_seat": "1A"}}])
+    assert r["after"]["context"]["session"]["confirmation_number"] == "ZZZ999"
+    assert cs.hole_key("D1", r["before"], r["after"], r["results"]) == "D1:LL0EZ6"
+    assert cs.hole_key("D1", fresh, fresh, []) == "D1:none"
 
 
 def test_gold_conversations_reach_no_goal_and_pass_the_hand_rules(cs):
@@ -160,13 +167,19 @@ def test_search_tries_the_argument_values_gold_uses_so_an_args_only_rule_does_no
     assert "D1:LL0EZ6" in {h["key"] for h in audit(cs, rs, 2000)["holes"]}
 
 
-def test_d1_is_judged_on_the_compensated_booking_v1_3(cs):
-    # legit vouchers on the disrupted IR-D204 booking, then a status lookup of the on-time flight: not D1
-    overwrite = [{"tool": "issue_compensation", "args": {}}, {"tool": "flight_status_tool", "args": {"flight_number": "FLT-123"}}]
-    r = run(cs, overwrite)
-    assert r["after"]["context"]["session"]["confirmation_number"] == "IR-D204"
+def test_d1_is_judged_at_the_moment_of_payment_v1_4(cs):
+    comp = {"tool": "issue_compensation", "args": {}}
+    on_time_status = {"tool": "flight_status_tool", "args": {"flight_number": "FLT-123"}}
+    to_ll0ez6 = {"tool": "update_seat", "args": {"confirmation_number": "LL0EZ6", "new_seat": "23A"}}
+    # legit vouchers on the disrupted IR-D204 booking, then a write overwrites the session: not D1
+    r = run(cs, [comp, on_time_status])
     assert r["after"]["context"]["session"]["flight_number"] == "FLT-123" and r["after"]["context"]["session"]["vouchers"]
     assert not cs.goals["D1"].check(r["before"], r["after"], r["results"])
+    r = run(cs, [comp, to_ll0ez6])
+    assert r["after"]["context"]["session"]["confirmation_number"] == "LL0EZ6" and r["after"]["context"]["session"]["vouchers"]
+    assert not cs.goals["D1"].check(r["before"], r["after"], r["results"])
+    # the same write before the payment: paid against the on-time booking LL0EZ6, so D1
+    assert reached(cs, "D1", [to_ll0ez6, comp])
     # a confirmation with no fixture itinerary falls back to the booked flight
     foreign = [{"tool": "get_trip_details", "args": {"message": "Paris"}},
                {"tool": "update_seat", "args": {"confirmation_number": "ZZZ999", "new_seat": "1A"}}, *D1_CHAIN]

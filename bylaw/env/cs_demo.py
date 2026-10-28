@@ -18,6 +18,7 @@ from targets.cs_demo.airline import tools as demo_tools
 from targets.cs_demo.airline.context import AirlineAgentContext
 from targets.cs_demo.airline.demo_data import MOCK_ITINERARIES
 
+TOOLS = {t.name: t for a in vars(demo_agents).values() if isinstance(a, Agent) for t in a.tools}
 ROUTING = [demo_agents.triage_agent, demo_agents.flight_information_agent, demo_agents.booking_cancellation_agent,
            demo_agents.seat_special_services_agent, demo_agents.faq_agent, demo_agents.refunds_compensation_agent]
 WRITE_TOOLS = {"update_seat", "book_new_flight", "assign_special_service_seat", "issue_compensation", "cancel_flight",
@@ -95,6 +96,40 @@ class Env:
     rng: random.Random = field(default_factory=lambda: random.Random(0))
 
 
+def _call(env: Env, tool: str, args: dict) -> StepResult:
+    t = TOOLS.get(tool)
+    accepted = {k: v for k, v in args.items() if t and k in t.params_json_schema.get("properties", {})}
+    try:
+        if t is None:
+            raise KeyError(f"unknown tool {tool!r}")
+        with _RNG_LOCK:
+            saved, demo_tools.random = demo_tools.random, env.rng
+            try:
+                out = _invoke(t, env.state, accepted)
+            finally:
+                demo_tools.random = saved
+        res = StepResult(tool, args, True, out, None)
+    except Exception as e:  # tool rejections are data, not crashes
+        res = StepResult(tool, args, False, None, f"{type(e).__name__}: {e}")
+    env.trace.append({"tool": tool, "args": json.loads(json.dumps(args, default=str)), "ok": res.ok})
+    return res
+
+
+def payment_session(before: dict, chain: list[StepResult]) -> dict | None:
+    """v1.4: the session just before the `issue_compensation` step that set the vouchers, or None. Replays the chain
+    on a copy of `before` (the engine keeps no per-step snapshots); the last step that changed them to a non-empty
+    list is the payment."""
+    env = Env(state=AirlineAgentContext.model_validate(before["context"]["session"]),
+              trace=[dict(before["trace"][k]) for k in sorted(before["trace"], key=int)])
+    paid = None
+    for s in chain:
+        pre = env.state.model_dump(mode="json")
+        res = _call(env, s.tool, s.args)
+        if res.ok and s.tool == "issue_compensation" and env.state.vouchers and env.state.vouchers != pre["vouchers"]:
+            paid = pre
+    return paid
+
+
 @dataclass
 class CsDemoDomain:
     name: str = "csdemo"
@@ -104,11 +139,10 @@ class CsDemoDomain:
     rule_names: str = RULE_NAMES
 
     def __post_init__(self):
-        self._tools = {t.name: t for a in vars(demo_agents).values() if isinstance(a, Agent) for t in a.tools}
         self.tools = [{"type": "function", "function": {"name": t.name, "description": t.description,
                                                         "parameters": t.params_json_schema}}
-                      for t in sorted(self._tools.values(), key=lambda t: t.name)]
-        faq = self._tools["faq_lookup_tool"]
+                      for t in sorted(TOOLS.values(), key=lambda t: t.name)]
+        faq = TOOLS["faq_lookup_tool"]
         answers = "\n".join(_invoke(faq, AirlineAgentContext(), {"question": q}) for q in FAQ_QUESTIONS)
         self.policy_text = "\n\n".join(
             f"## {a.name}\n{_render(a.instructions)}" + (f"\n\nFAQ policy answers:\n{answers}" if a is demo_agents.faq_agent else "")
@@ -119,22 +153,7 @@ class CsDemoDomain:
         return Env()
 
     def call(self, env: Env, tool: str, **args) -> StepResult:
-        t = self._tools.get(tool)
-        accepted = {k: v for k, v in args.items() if t and k in t.params_json_schema.get("properties", {})}
-        try:
-            if t is None:
-                raise KeyError(f"unknown tool {tool!r}")
-            with _RNG_LOCK:
-                saved, demo_tools.random = demo_tools.random, env.rng
-                try:
-                    out = _invoke(t, env.state, accepted)
-                finally:
-                    demo_tools.random = saved
-            res = StepResult(tool, args, True, out, None)
-        except Exception as e:  # tool rejections are data, not crashes
-            res = StepResult(tool, args, False, None, f"{type(e).__name__}: {e}")
-        env.trace.append({"tool": tool, "args": json.loads(json.dumps(args, default=str)), "ok": res.ok})
-        return res
+        return _call(env, tool, args)
 
     def snapshot(self, env: Env) -> dict:
         return {"context": {"session": env.state.model_dump(mode="json")},
@@ -149,9 +168,11 @@ class CsDemoDomain:
                  "seats": sorted(o["seat"] for o in it["rebook_options"])}
                 for key, it in sorted(MOCK_ITINERARIES.items())]
 
-    def hole_key(self, goal_id: str, after: dict) -> str:
-        """v1.1: `Dn:<confirmation_number>` of the after state, `Dn:none` when absent."""
-        return f"{goal_id}:{after['context']['session'].get('confirmation_number') or 'none'}"
+    def hole_key(self, goal_id: str, before: dict, after: dict, chain: list[StepResult]) -> str:
+        """v1.1: `Dn:<confirmation_number>` of the after state, `Dn:none` when absent; v1.4: D1 is keyed on the
+        confirmation at the moment of payment."""
+        session = (payment_session(before, chain) or {}) if goal_id == "D1" else after["context"]["session"]
+        return f"{goal_id}:{session.get('confirmation_number') or 'none'}"
 
 
 def make_domain() -> CsDemoDomain:

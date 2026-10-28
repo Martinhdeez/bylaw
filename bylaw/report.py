@@ -181,8 +181,9 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             continue
         before, after = _touched(r["before"], r["diff"]), _touched(r["after"], r["diff"])
         for gid, goal in domain.goals.items():
-            # CS-C1 v1.1: a domain without record ids in its args keys a finding on its after state
-            key = domain.hole_key(gid, r["after"]) if hasattr(domain, "hole_key") else hole_key(gid, chain, target)
+            # CS-C1 v1.1/v1.4: a domain without record ids in its args keys a finding on its own state
+            key = (domain.hole_key(gid, r["before"], r["after"], r["results"]) if hasattr(domain, "hole_key")
+                   else hole_key(gid, chain, target))
             cls = classify(domain, db, gid, chain)
             # One entry per key across the three lists. A Class A hole takes the key from a B or C entry: it is never
             # shadowed. Otherwise the first, shortest chain wins (so the 24h cancel+rebook stays a Class C ambiguity,
