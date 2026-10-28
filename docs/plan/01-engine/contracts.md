@@ -143,3 +143,8 @@ def get_domain(name: str) -> Domain
 - C4 `stats.tokens` counts only the requests made by this audit's search (per audit, not per process), so concurrent audits in one API process report their own counts. C9 progress events may still report process-wide usage.
 - C5 `audit --domain D [--no-llm] [--long-context] [--budget N=2000] [-o report.json]`: `--long-context` adds every tool schema of the domain and the gold task list (`load_gold`) to each proposer request, as one extra user message before the goal message. It has no effect with `--no-llm`.
 - C9 `AuditRequest` does not expose `long_context` (REQ-LC1-1 names only the CLI and the report).
+
+## v1.11 (2026-10-28, from FX2), binding on FX2, DM1 and the views
+
+- C4 hole identity: a finding's key is `<goal>:<primary record>`. For G7 (compensation duplicated) the primary record is the user who receives the certificates, so the key is `G7:<user_id>`. Every other goal keeps the chain's target. Goals whose primary record is not the chain's target are listed in `bylaw/report.py` `KEY_ARG`.
+- Reports written before v1.11 may hold several G7 entries for one user; they are not re-keyed on load.
