@@ -26,9 +26,10 @@ def test_per_goal_counts_the_chains_aimed_at_each_goal_their_executed_steps_and_
     assert set(pg) == set(DOMAIN.goals)
     assert {k: pg["G1"][k] for k in ("chains", "executed")} == {"chains": 2, "executed": 2}
     assert pg["G2"] == {"chains": 1, "executed": 0, "A": 0, "B": 0, "C": 0}
-    assert pg["G1"]["A"] == 1
+    assert (pg["G1"]["A"], pg["G1"]["B"]) == (0, 1)  # G1 is gold-sanctioned (tau2 task 32, contracts v1.7): Class B
     for gid, counts in pg.items():
         assert counts["A"] == sum(h["goal"] == gid for h in r["holes"])
+        assert counts["B"] == sum(e["goal"] == gid for e in r["contradictions"])
         assert counts["C"] == sum(e["goal"] == gid for e in r["ambiguities"])
 
 
