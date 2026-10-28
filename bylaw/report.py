@@ -30,6 +30,10 @@ _ENTRY = _obj({"id": _S, "key": _S, "class": {"enum": ["A", "B", "C"]}, "goal": 
                "diff": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": _CHANGE}},
                "goal_true": _B, "replays": {"type": "string", "pattern": r"^\d+/\d+$"},
                "gold": _obj({"sanctioned": _B, "tasks": {"type": "array", "items": _S}})})
+_STATS = _obj({"chains_tried": _I, "tool_calls": _I, "llm_calls": _I, "tokens": _I, "seconds": {"type": "number", "minimum": 0}})
+# C5 addition (CV1), optional so older reports stay valid: {goal_id: counts} for `python -m bylaw coverage`
+_STATS["properties"]["per_goal"] = {"type": "object", "additionalProperties": _obj(
+    {k: _I for k in ("chains", "executed", "A", "B", "C")}, additionalProperties=False)}
 _RUN = _obj({"commit": _S, "domain": _S, "model": {"type": ["string", "null"]},
              "mode": {"enum": ["bfs", "muse", "bfs-fallback"]}, "started": _S, "budget": _I, "goals_commit": _S,
              "context_tokens": _I})
@@ -38,7 +42,7 @@ REPORT_SCHEMA = _obj({
     "run": _RUN,
     **{name: {"type": "array", "items": {**_ENTRY, "properties": {**_ENTRY["properties"], "class": {"const": cls}}}}
        for name, cls in (("holes", "A"), ("contradictions", "B"), ("ambiguities", "C"))},
-    "stats": _obj({"chains_tried": _I, "tool_calls": _I, "llm_calls": _I, "tokens": _I, "seconds": {"type": "number", "minimum": 0}}),
+    "stats": _STATS,
 })
 
 
@@ -139,6 +143,10 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
     extra = long_context and {"role": "user", "content": json.dumps(
         {"tools": domain.tools, "gold_tasks": load_gold(domain),
          "note": "every tool of the domain, and the benchmark's gold tasks: action sequences graded as correct"})}
+    # a chain counts for every goal whose targets include its primary record (_target, the C4 key target)
+    aimed = {gid: {t.get("reservation_id") or t.get("order_id") or t.get("user_id") for t in domain.targets(gid)}
+             for gid in domain.goals}
+    per_goal = {gid: {"chains": 0, "executed": 0, "A": 0, "B": 0, "C": 0} for gid in sorted(domain.goals)}
 
     def counted(messages, *a, **kw):
         # C4 v1.9 run.effort: what _call sends (the override applied, and only to a model that takes an effort)
@@ -161,10 +169,14 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
         r = run(domain, chain, ruleset)
         chains_tried += 1
         tool_calls += len(r["results"])
+        target = _target(chain)
+        for gid in per_goal:
+            if target in aimed[gid]:
+                per_goal[gid]["chains"] += 1
+                per_goal[gid]["executed"] += len(r["results"])
         if len(r["results"]) < len(chain) or not all(s["ok"] for s in r["steps"]) or not r["diff"]:
             continue
         before, after = _touched(r["before"], r["diff"]), _touched(r["after"], r["diff"])
-        target = _target(chain)
         for gid, goal in domain.goals.items():
             key, cls = hole_key(gid, chain, target), classify(domain, db, gid, chain)
             # One entry per key across the three lists. A Class A hole takes the key from a B or C entry: it is never
@@ -181,6 +193,8 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             entries[key] = {"key": key, "class": cls, "goal": gid, "gold": {"sanctioned": bool(tasks), "tasks": tasks},
                             "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
                             "chain": r["steps"], "diff": r["diff"], "goal_true": True, "replays": replays}
+    for e in entries.values():
+        per_goal[e["goal"]][e["class"]] += 1
     lists = {cls: [{"id": f"{prefix}{i}", **e} for i, e in enumerate((e for e in entries.values() if e["class"] == cls), 1)]
              for cls, prefix in (("A", "H"), ("B", "B"), ("C", "C"))}
     mode = "bfs" if not use_llm else "bfs-fallback" if asked and len(errors) == len(asked) else "muse"  # C4 v1.9
@@ -198,5 +212,6 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
                   "llm_errors": len(errors),
                   "tokens": sum(c["prompt_tokens"] + c["completion_tokens"] for c in billed),
                   "seconds": round(time.monotonic() - t0, 2),
-                  "found": [found[h["key"]] for h in lists["A"]]},  # C5 v1.6: when each hole was first proved
+                  "found": [found[h["key"]] for h in lists["A"]],  # C5 v1.6: when each hole was first proved
+                  "per_goal": per_goal},
     }
