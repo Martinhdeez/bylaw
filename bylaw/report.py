@@ -81,14 +81,17 @@ def _touched(snapshot: dict, diff: dict) -> dict:
     return out
 
 
-KEY_ARG = {"G7": "user_id"}  # goals whose primary record (C4) is not the chain's target
+KEY_ARG = {"G7": ("send_certificate", "user_id")}  # goals whose primary record (C4) is not the chain's target
 
 
 def hole_key(gid: str, chain: list[dict], target: str) -> str:
-    """C4 key `goal:primary record`: the chain's target, or the first value of the goal's KEY_ARG in the chain.
-    G7 is keyed on the user who receives the certificates: each repeat names its own reservation (FX2)."""
-    arg = KEY_ARG.get(gid)
-    return f"{gid}:{next((s['args'][arg] for s in chain if arg in s['args']), target) if arg else target}"
+    """C4 key `goal:primary record`: the chain's target, or the first value of the goal's KEY_ARG (tool, arg) in the chain.
+    G7 is keyed on the user who receives the certificates: each repeat names its own reservation (FX2),
+    and only `send_certificate` steps name that user (FX3)."""
+    if gid not in KEY_ARG:
+        return f"{gid}:{target}"
+    tool, arg = KEY_ARG[gid]
+    return f"{gid}:{next((s['args'][arg] for s in chain if s['tool'] == tool and arg in s['args']), target)}"
 
 
 def _target(chain: list[dict]) -> str:
