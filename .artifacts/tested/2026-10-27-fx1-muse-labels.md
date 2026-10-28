@@ -64,6 +64,6 @@ All evidence files are under `.scratch/after/fx1-muse-labels/`.
 
 ## Out of scope
 
-- Acceptance tests. The test author is updating `tests/acceptance/test_wave2_audit.py`, which still asserts `mode in ("bfs","muse")` and a string `model`, and is raising the 1800 s amend timeout in `test_iter02_amend.py` to 3600.
+- Writing acceptance tests. The v1.9 versions of `tests/acceptance/test_wave2_audit.py` and `test_wave2_proposer.py` were brought in unchanged from `test/03-product` 59ea0b9 (7f7cd9d), and the 3600 s amend timeout in `test_iter02_amend.py` came from `bylaw/build` (22731ff).
 - `web/`, which still branches on `run.mode === "muse"`. The designer has been told.
 - `uv run pytest -m live` was not run. It needs the key, and with `BYLAW_EFFORT` unset the `llm.py` change does nothing.
