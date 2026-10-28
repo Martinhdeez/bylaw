@@ -68,3 +68,12 @@ Retail:
 ## Previous report
 
 The untracked `reports/airline.json` (commit 2fa9fac, Muse, 18 B, 123 C) is kept for comparison in `.scratch/dm1wt/.scratch/old-reports/` and is not committed.
+
+## Review (PR #32, 2026-10-28)
+
+- The branch was merged with origin/bylaw/build. Gate GREEN at 85c1ba7 (439 passed, 1 skipped, 11 deselected; `npm run build` ok). Squash-merged as 5bad736.
+- `reports/airline.json` and `reports/retail.json` validate against `REPORT_SCHEMA`. The bench JSON has the C5 row fields plus top-level `model` and `commit`. Every figure in this note was recounted from the JSON and from `python -m bylaw coverage`; all match. The 117 airline keys are unchanged under the FX3 `hole_key`. No key or auth header in any report.
+- Served by `bylaw/api.py` (offline, port 8811): Report (airline, retail), Amendment (AB1) and Bench render with no console errors. Screenshots: `.artifacts/reports/dm1-*-{dark,light}.png`.
+- Ruling, retail amendments: REQ-DM1-1's "(audit with Muse + amendments + backtest)" cannot apply to retail as written, because the Muse search is airline-only (`bylaw/proposer.py:34`), and the DM1 brief asked for an offline retail audit. Not blocking. Retail `amend` with backtest of H1 (R6) is a follow-up item, and it needs one live Muse run. The addendum puts R6's root cause in a τ² tool bug, which the amendment's wording should reflect.
+- Ruling, task 18: consistent. Class B is assigned mechanically when a gold task reaches a frozen goal (C4 v1.7). The addendum changes the wording (task 18 is a policy gap), not the class. The web copy still says "the policy text forbids" the outcome for every Class B entry (`web/src/screens/Report.tsx:45`, `web/src/screens/Amendment.tsx:69`, `web/src/screens/Hole.tsx:98`). That is wrong for task 18 (the policy is silent) and too strong for tasks 7 and 32 (the policy is ambiguous). Follow-up for the designer.
+- Follow-up: at budget 200 the Bench screen shows 0 holes in both modes. The Class B counts (BFS 9, Muse 7) are only in the JSON, so the screen shows no difference between the modes.
