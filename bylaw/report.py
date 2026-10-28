@@ -140,7 +140,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             return (llm or muse.structured)(messages, *a, **kw)
         except Exception as e:
             errors.append(1)  # the search leaves that goal to the BFS (C6 v1.8)
-            print(f"muse call failed, goal falls back to BFS: {type(e).__name__}: {e}", file=sys.stderr)
+            sys.stderr.write(f"muse call failed, goal falls back to BFS: {type(e).__name__}: {e}\n")  # one write: no interleaving across threads
             raise
         finally:
             muse.TALLY.reset(token)

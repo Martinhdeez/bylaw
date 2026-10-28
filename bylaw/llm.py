@@ -70,7 +70,7 @@ def _call(messages, response_format=None, effort=None, read_cache=True, **opts):
     name = opts.pop("model", None) or model()
     cap = caps(name)
     effort = effective_effort(effort)  # part of the body, hence of the cache key
-    body ={"model": name, "messages": messages, **opts}
+    body = {"model": name, "messages": messages, **opts}
     body["max_tokens"] = max(opts.get("max_tokens", 4000), cap["min_max_tokens"])
     if effort and cap["reasoning_effort"]:
         body["reasoning_effort"] = effort
