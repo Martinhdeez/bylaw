@@ -24,13 +24,13 @@ for (const width of WIDTHS) {
   test(`smoke at ${width}: both runs and the result render from the event files`, async ({ page }) => {
     await mockApi(page);
     const errors = await open(page, AT.paid, width);
-    await expect(page.locator('[data-slot="headline"]')).toHaveText("Without Bylaw. The agents run every action they propose.");
+    await expect(page.locator('[data-slot="headline"]')).toHaveText("Without Bylaw. The agents pay $280 in vouchers.");
     await expect(page.getByTestId("paid")).toHaveText("$280");
     await expect(page.locator(".lv-row.free")).toContainText("Ran, not enforced");
     await shot(page, `before-${width}`);
 
     await page.getByRole("button", { name: "With Bylaw" }).click();
-    await expect(page.locator('[data-slot="headline"]')).toHaveText("With Bylaw. Every action is checked before it runs.");
+    await expect(page.locator('[data-slot="headline"]')).toHaveText("With Bylaw. The same action is stopped before it runs.");
     await expect(page.locator(".lv-row.blk")).toContainText("Blocked before it ran");
     await expect(page.locator(".lv-row.blk")).toContainText("R-comp-disrupted");
     await expect(page.getByTestId("paid")).toHaveText("$0");
@@ -112,4 +112,15 @@ test("one run only: the other side shows as not recorded, not as a number", asyn
   await page.getByRole("button", { name: "Result" }).click();
   await expect(page.locator('[data-slot="headline"]')).toHaveText("Without Bylaw and with it, side by side.");
   await expect(page.getByLabel("Without Bylaw", { exact: true })).toContainText("This run is not recorded.");
+});
+
+test("exactly one segment of the run switch is pressed", async ({ page }) => {
+  await mockApi(page);
+  await open(page, AT.blocked);
+  const pressed = () => page.locator('.lv-seg button[aria-pressed="true"]');
+  await expect(pressed()).toHaveText(["With Bylaw"]);
+  await page.getByRole("button", { name: "Result" }).click();
+  await expect(pressed()).toHaveText(["Result"]);
+  await page.getByRole("button", { name: "Without Bylaw" }).click();
+  await expect(pressed()).toHaveText(["Without Bylaw"]);
 });

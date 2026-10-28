@@ -17,11 +17,24 @@ Branch `view/vz2-live`. The reference is the approved prototype `docs/plan/06-sh
 - Fira Sans and Fira Code are loaded for this screen only.
 - On phones the nav items are tighter, so four items fit at 390 px.
 
+## Review round (2026-10-29)
+
+- The brand bar the user asked for now heads the Live view: the 72px mark with its crack, the wordmark and the tagline, next to the app rail. `Logo` takes a mask id, so the mark still renders when the rail is hidden in film mode.
+- Fixes from an independent screenshot critique (impeccable-finish-reviewer) against v4.3:
+  - The deciding row is the focal card: 22px title and a 16px verdict. A row that would be blocked but is not enforced gets a dashed outline.
+  - A denied row names the rule id and the flight fact from the run's state. The policy sentence moves under "Policy source".
+  - Counts use the rows' own words.
+  - The headline has two tones, stays on one line and carries the stake from the data. The metadata sits under the subtitle.
+  - Rows stack at 1240 px and below. Trail chips have no orphan connectors. The lists stay scrolled to the end after the fonts load.
+  - The ledger shows ruled voucher rows with right-aligned amounts, and the total sits directly under them.
+  - The result cards show Customer, Proposal, Flight data, Decision, then the figure with its explanation.
+  - On phones the chat comes first.
+- The Impeccable detector runs on the built page (Vite against a static copy of the fixtures) at 1440 for both runs and the result, and at 390. One finding remains: the app rail's 11 px data-source line, which was already there before this change. The glowing violet shadow on the active nav item was removed.
+
 ## Deviations from the reference
 
 - The reference's Audit and Fix chapters are not in this view. Event files carry no audit or amendment data, and their counts were placeholders. The view plays the two recorded runs and the result.
 - Transport and seg labels say "Without Bylaw / With Bylaw / Result" instead of "Before / After".
-- The brand bar stays the app's rail: the screen lives inside the app.
 
 ## How to test
 
