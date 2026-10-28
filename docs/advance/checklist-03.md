@@ -1,6 +1,6 @@
 # Checklist 03 — Product: API + web UI
 
-Plan: `docs/plan/03-product/00-plan.md`. Progress: 12 / 14.
+Plan: `docs/plan/03-product/00-plan.md`. Progress: 13 / 15.
 
 - [x] **AP1** FastAPI app + report and ratify stores — builder — PR #11
 - [x] **UI2** Prototype wired to API + Playwright smoke — designer — PR #15
@@ -16,3 +16,4 @@ Plan: `docs/plan/03-product/00-plan.md`. Progress: 12 / 14.
 - [x] **FX2** Finding keys for G7 (certificate sent twice): DM1 Muse audit gave 121 Class C entries, one per certificate; key them per user so the report is not flooded — builder — after GA1/SR1/FX1 merge — PR #28
 - [x] **FX1** Loud Muse fallback, bench model, BYLAW_EFFORT — builder — PR #26
 - [x] **FX3** G7 key from `send_certificate` steps only: a chain whose earlier step names another user took that user's key and could merge with their finding — builder — PR #31
+- [x] **UI5** View fixes inside UI4: bfs-fallback shown offline, Class C grouped by goal, bench copy follows `model`, peak context tokens — designer — PR #30
