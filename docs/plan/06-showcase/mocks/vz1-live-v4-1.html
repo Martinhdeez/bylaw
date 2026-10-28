@@ -29,7 +29,7 @@
   --ground: #f1efe9; --sunk: #f4f2ec; --surface: #fdfcf9; --rule: rgba(20, 18, 30, .12); --rule-2: rgba(20, 18, 30, .22);
   --ink: #15141b; --ink-2: #4b4959; --ink-3: #6a6878; --mute-head: #6a6878; --on-ink: #fdfcf9;
   --violet: #6a2ee0; --violet-soft: rgba(106, 46, 224, .1); --violet-line: rgba(91, 34, 207, .22);
-  --red: #c4300f; --red-soft: rgba(196, 48, 15, .09); --red-line: rgba(196, 48, 15, .45); --on-red: #ffffff;
+  --red: #c4300f; --red-soft: rgba(196, 48, 15, .05); --red-line: rgba(196, 48, 15, .45); --on-red: #ffffff;
   --green: #08774e; --bezel: #1c1b20;
   --lift: 0 1px 2px rgba(40,30,20,.08), 0 18px 40px -18px rgba(40,30,20,.28);
   color-scheme: light;
@@ -457,20 +457,28 @@ function handoff(a, b, t) {
 }
 const LEAD = ['#graph', '#lane', '#state', '#ledger'];
 function lead(id, t) { LEAD.forEach(s => tl.set(s, { className: 'pn' + (s === id ? ' lead' : '') }, t)); }
+/* Swap slots (headline, narration, lane status): exactly one element per slot is visible, derived from the playhead on
+   every render instead of from paired show/hide tweens, so no jump, scrub or toggle can leave two of them visible. */
+// Each slot is a time-ordered list of [element or null, start]. The latest entry at or before the playhead wins;
+// null means nothing in that slot is visible. An element may appear more than once (e.g. the claim, in both runs).
+const SLOTS = {};
+function slot(name, e, t) { (SLOTS[name] ||= []).push([e, t]); }
+function renderSlots(t) {
+  for (const list of Object.values(SLOTS)) {
+    let a = 0; list.forEach(([, at], i) => { if (at <= t) a = i; });
+    const [on, at] = list[a];
+    const k = !on ? 0 : RM || at === 0 ? 1 : Math.min(1, Math.max(0, (t - at) / .45));
+    for (const e of new Set(list.map(([e]) => e).filter(Boolean))) {
+      const me = e === on;
+      e.style.visibility = me ? 'visible' : 'hidden';
+      e.style.opacity = me ? Math.max(k, .001) : 0;
+      e.style.transform = `translateY(${(1 - (me ? k : 0)) * 8}px)`;
+    }
+  }
+}
 const heads = $$('#heads h1');
-let hi = -1;
-function head(i, t) {
-  if (hi >= 0) hide(heads[hi], t);
-  tl.fromTo(heads[i], { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: D(.5), immediateRender: hi < 0 }, t + (hi >= 0 ? .2 : 0));
-  hi = i;
-}
-let cp = null;
-function cap(text, t) {
-  const p = el('p', null, text, $('#cap'));
-  if (cp) hide(cp, t);
-  tl.fromTo(p, { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: D(.45), immediateRender: !cp }, t + (cp ? .15 : 0));
-  cp = p;
-}
+function head(i, t) { slot('head', heads[i], t); }
+function cap(text, t) { slot('cap', el('p', null, text, $('#cap')), t); }
 function verdict(r, t) { const v = r.querySelector('.vd'); if (v) tl.fromTo(v, { autoAlpha: 0, scale: .8 }, { autoAlpha: 1, scale: 1, duration: D(.3), ease: 'back.out(2)', ...fx }, t); }
 
 function run(events, off, chat, sec, enforced) {
@@ -479,7 +487,7 @@ function run(events, off, chat, sec, enforced) {
     if (k === 'u') show(el('div', 'bub cust', esc(a), chat), at);
     if (k === 'm') show(el('div', 'bub agent', esc(b) + (c === 'ph' ? '<span class="phd">Recorded reply, cut off in the log (placeholder)</span>' : ''), chat), at);
     if (k === 'h') { show(el('div', 'bub note', `${AG[b]} took over`, chat), at); handoff(a, b, at); }
-    if (k === 's') { hide('#vnone', at); vis($('#vlie'), at); }
+    if (k === 's') slot('claim', $('#vlie'), at);
     if (k === 'c') {
       const mode = !enforced ? 'free' : d === 'blk' ? 'blk' : 'ok';
       const r = callRow(sec, b, c, mode, a);
@@ -492,7 +500,9 @@ function run(events, off, chat, sec, enforced) {
 
 /* 1. without Bylaw */
 head(0, 0);
-vis($$('#mode span')[0], 0, {});
+slot('chat', $('#chat1'), 0);
+slot('claim', $('#vnone'), 0); slot('mis', null, 0);
+slot('mode', $$('#mode > span')[0], 0);
 tl.set(SEC.r1, { display: 'flex' }, 0);
 lead('#graph', 0);
 activate('FI', 0);
@@ -514,7 +524,7 @@ show($('#rc1 .rt'), O1 + 11.9, 'flex', {});
 const n1 = { v: 0 };
 tl.to(n1, { v: 280, duration: D(1.2), ease: 'power2.out', onUpdate: () => { $('#t1').firstChild.textContent = '$' + Math.round(n1.v); }, ...fx }, O1 + 11.9);
 lead('#state', 20.5);
-tl.set('#mis', { visibility: 'visible' }, 20.6); vis($('#mis'), 20.6, { x: -6 });
+slot('mis', $('#mis'), 20.6);
 cap('FLT-123 was on time all along. The agent paid anyway.', 20.6);
 
 /* 2. audit */
@@ -552,7 +562,7 @@ show(f3, F1 + 7.4, 'grid', {});
 cap('A person ratifies it. From now on Bylaw enforces it.', F1 + 7.4);
 tl.to('#rat', { scale: .95, duration: D(.12), yoyo: true, repeat: 1, ...fx }, F1 + 9.6);
 verdict(f3, F1 + 9.9);
-hide($$('#mode span')[0], F1 + 10); vis($$('#mode span')[1], F1 + 10.1, {});
+slot('mode', $$('#mode > span')[1], F1 + 10.1);
 tl.set([NODE.RF, NODE.TR], { attr: { class: 'node' } }, F1 + 11);
 tl.set(NODE.RF, { attr: { class: 'node on' } }, F1 + 11);
 tl.set(EDGE[edgeKey('TR', 'RF')], { attr: { class: 'edge' } }, F1 + 11);
@@ -560,10 +570,9 @@ tl.set(EDGE[edgeKey('TR', 'RF')], { attr: { class: 'edge' } }, F1 + 11);
 /* 4. with Bylaw */
 head(3, W1);
 tl.set(SEC.fix, { display: 'none' }, W1); tl.set(SEC.r2, { display: 'flex' }, W1);
-hide('#chat1', W1); tl.set('#chat2', { visibility: 'visible' }, W1 + .1);
+slot('chat', $('#chat2'), W1 + .1);
 tl.set('#rc', { className: 'rc two' }, W1); tl.set('#rc2', { display: 'flex' }, W1);
-tl.to('#vlie', { autoAlpha: 0, duration: D(.2) }, W1); tl.to('#vnone', { autoAlpha: 1, duration: D(.2) }, W1);
-hide('#mis', W1);
+slot('claim', $('#vnone'), W1); slot('mis', null, W1);
 lead('#graph', W1);
 active = 'RF'; activate('FI', W1);
 cap('Same customer, same words. Now Bylaw checks every action before it runs.', W1);
@@ -573,7 +582,7 @@ show(fs2, W1 + .3, 'grid', {}); verdict(fs2, W1 + .5);
 run(T2G, O4, $('#chat2'), 'r2', true);
 lead('#lane', O4 + 8.4);
 lead('#state', O4 + 9.4);
-tl.set('#mis', { visibility: 'visible' }, O4 + 9.4); vis($('#mis'), O4 + 9.4, { x: -6 });
+slot('mis', $('#mis'), O4 + 9.4);
 cap('Blocked: the flight data says on time. The tool never runs.', O4 + 9.1);
 lead('#ledger', O4 + 11);
 $$('#rc2 .rr').forEach((e, i) => show(e, O4 + 11 + i * .25, 'flex', { y: -6 }));
@@ -625,6 +634,7 @@ $('#bAfter').onclick = () => goRun('after');
 const _sync = sync;
 sync = function () {
   _sync();
+  renderSlots(tl.time());
   const t = tl.time();
   $('#bBefore').setAttribute('aria-pressed', t < A1);
   $('#bAfter').setAttribute('aria-pressed', t >= W1 && t < END);
