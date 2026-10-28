@@ -152,3 +152,8 @@ def get_domain(name: str) -> Domain
 ## v1.12 (2026-10-28, from review of PR #26), clarifies v1.9
 
 - C4 `run.model` is `null` only in modes `bfs` and `bfs-fallback`. A `muse` run whose search made zero counted calls (every goal answered from the disk cache) keeps mode `muse` and its model string.
+
+## v1.13 (2026-10-28, from CV1), binding on CV1, DM1 and the views; backward compatible
+
+- C4 `stats.per_goal` (optional): `{goal_id: {"chains": int, "executed": int, "A": int, "B": int, "C": int}}`. A chain counts for every goal whose `domain.targets(goal)` include the chain's primary record `_target(chain)` (a reservation in airline, an order in retail), so goals the BFS move set cannot reach still show every chain on their targets. `executed` sums the executed write steps (C6 v1.8 cost). A/B/C count the final entries by class. Reports without `per_goal` stay valid.
+- C5 `coverage REPORT [--json OUT]`: one Markdown row per forbidden goal; `n/a` for chains and executed when the report has no `per_goal`. `--json` also writes the rows to OUT.
