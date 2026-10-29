@@ -102,7 +102,7 @@ def _target(chain: list[dict]) -> str:
     return ""
 
 
-GOALS_FILES = {"airline": "bylaw/goals.py", "retail": "bylaw/goals_retail.py"}
+GOALS_FILES = {"airline": "bylaw/goals.py", "retail": "bylaw/goals_retail.py", "csdemo": "bylaw/goals_csdemo.py"}
 
 
 def _commit() -> str:
@@ -181,7 +181,10 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             continue
         before, after = _touched(r["before"], r["diff"]), _touched(r["after"], r["diff"])
         for gid, goal in domain.goals.items():
-            key, cls = hole_key(gid, chain, target), classify(domain, db, gid, chain)
+            # CS-C1 v1.1/v1.4: a domain without record ids in its args keys a finding on its own state
+            key = (domain.hole_key(gid, r["before"], r["after"], r["results"]) if hasattr(domain, "hole_key")
+                   else hole_key(gid, chain, target))
+            cls = classify(domain, db, gid, chain)
             # One entry per key across the three lists. A Class A hole takes the key from a B or C entry: it is never
             # shadowed. Otherwise the first, shortest chain wins (so the 24h cancel+rebook stays a Class C ambiguity,
             # REQ-EX1-3).
@@ -194,7 +197,7 @@ def audit(domain, ruleset: dict, budget: int = 2000, use_llm: bool = False, mode
             proven.append(key)
             found[key] = {"key": key, "tool_calls": tool_calls, "seconds": round(time.monotonic() - t0, 2)}
             entries[key] = {"key": key, "class": cls, "goal": gid, "gold": {"sanctioned": bool(tasks), "tasks": tasks},
-                            "title": f"{goal.name} on {target}", "money_delta": money_delta(r["diff"]),
+                            "title": f"{goal.name} on {target or key.split(':', 1)[1]}", "money_delta": money_delta(r["diff"]),
                             "chain": r["steps"], "diff": r["diff"], "goal_true": True, "replays": replays}
     for e in entries.values():
         per_goal[e["goal"]][e["class"]] += 1
