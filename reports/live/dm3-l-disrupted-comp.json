@@ -1,0 +1,294 @@
+{
+  "name": "dm3-l-disrupted-comp",
+  "guard": false,
+  "model": "muse-spark-1.3",
+  "started": "2026-10-29T06:05:43+00:00",
+  "events": [
+    {
+      "t": 0.0,
+      "type": "user",
+      "text": "I flew Paris to New York and my delayed flight PA441 made me miss my connection to Austin. Can I get hotel and meal vouchers?"
+    },
+    {
+      "t": 1.789,
+      "type": "agent_message",
+      "agent": "Triage Agent",
+      "text": "I'll pull up your trip details and get you hotel and meal support."
+    },
+    {
+      "t": 1.789,
+      "type": "tool_call",
+      "agent": "Triage Agent",
+      "tool": "get_trip_details",
+      "args": {
+        "message": "I flew Paris to New York and my delayed flight PA441 made me miss my connection to Austin. Can I get hotel and meal vouchers?"
+      }
+    },
+    {
+      "t": 1.792,
+      "type": "bylaw_check",
+      "tool": "get_trip_details",
+      "allowed": true,
+      "rule_id": null,
+      "policy_ref": null,
+      "enforced": false
+    },
+    {
+      "t": 1.792,
+      "type": "tool_output",
+      "tool": "get_trip_details",
+      "output": "Hydrated disrupted itinerary: flight PA441, confirmation IR-D204, origin Paris (CDG), destination Austin (AUS). PA441 Paris (CDG) -> New York (JFK) status: Delayed 5 hours due to weather, expected departure 19:55; NY802 New York (JFK) -> Austin (AUS) status: Connection missed because of first leg delay"
+    },
+    {
+      "t": 1.792,
+      "type": "state",
+      "diff": {
+        "context": {
+          "session": {
+            "before": {
+              "passenger_name": null,
+              "confirmation_number": null,
+              "seat_number": null,
+              "flight_number": null,
+              "account_number": null,
+              "itinerary": null,
+              "baggage_claim_id": null,
+              "compensation_case_id": null,
+              "scenario": null,
+              "vouchers": null,
+              "special_service_note": null,
+              "origin": null,
+              "destination": null
+            },
+            "after": {
+              "passenger_name": "Morgan Lee",
+              "confirmation_number": "IR-D204",
+              "seat_number": "14C",
+              "flight_number": "PA441",
+              "account_number": null,
+              "itinerary": [
+                {
+                  "flight_number": "PA441",
+                  "origin": "Paris (CDG)",
+                  "destination": "New York (JFK)",
+                  "departure": "2024-12-09 14:10",
+                  "arrival": "2024-12-09 17:40",
+                  "status": "Delayed 5 hours due to weather, expected departure 19:55",
+                  "gate": "B18"
+                },
+                {
+                  "flight_number": "NY802",
+                  "origin": "New York (JFK)",
+                  "destination": "Austin (AUS)",
+                  "departure": "2024-12-09 19:10",
+                  "arrival": "2024-12-09 22:35",
+                  "status": "Connection missed because of first leg delay",
+                  "gate": "C7"
+                }
+              ],
+              "baggage_claim_id": null,
+              "compensation_case_id": null,
+              "scenario": "disrupted",
+              "vouchers": null,
+              "special_service_note": null,
+              "origin": "Paris (CDG)",
+              "destination": "Austin (AUS)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "t": 3.242,
+      "type": "handoff",
+      "from": "Triage Agent",
+      "to": "Refunds and Compensation Agent"
+    },
+    {
+      "t": 4.749,
+      "type": "agent_message",
+      "agent": "Refunds and Compensation Agent",
+      "text": "Missed connection noted \u2014 I'll check the compensation policy for your delay."
+    },
+    {
+      "t": 4.749,
+      "type": "tool_call",
+      "agent": "Refunds and Compensation Agent",
+      "tool": "faq_lookup_tool",
+      "args": {
+        "question": "What compensation for delays causing missed connection? hotel and meal vouchers policy?"
+      }
+    },
+    {
+      "t": 4.75,
+      "type": "bylaw_check",
+      "tool": "faq_lookup_tool",
+      "allowed": true,
+      "rule_id": null,
+      "policy_ref": null,
+      "enforced": false
+    },
+    {
+      "t": 4.75,
+      "type": "tool_output",
+      "tool": "faq_lookup_tool",
+      "output": "For lengthy delays we provide duty-of-care: hotel and meal vouchers plus ground transport where needed. If the delay is over 3 hours or causes a missed connection, we also open a compensation case and can offer miles or travel credit. A Refunds & Compensation agent can submit the case and share the voucher details with you."
+    },
+    {
+      "t": 5.746,
+      "type": "agent_message",
+      "agent": "Refunds and Compensation Agent",
+      "text": "Confirmed you're eligible for care \u2014 I'll issue those vouchers now."
+    },
+    {
+      "t": 5.746,
+      "type": "tool_call",
+      "agent": "Refunds and Compensation Agent",
+      "tool": "issue_compensation",
+      "args": {
+        "reason": "Delay causing missed connection - PA441 delayed 5 hours, missed NY802 to Austin"
+      }
+    },
+    {
+      "t": 5.748,
+      "type": "bylaw_check",
+      "tool": "issue_compensation",
+      "allowed": true,
+      "rule_id": null,
+      "policy_ref": null,
+      "enforced": false
+    },
+    {
+      "t": 5.748,
+      "type": "tool_output",
+      "tool": "issue_compensation",
+      "output": "Opened compensation case CMP-5479 for: Delay causing missed connection - PA441 delayed 5 hours, missed NY802 to Austin. Issued: Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel; $60 meal credit for the delay; $40 ground transport credit to the hotel. Keep receipts for any hotel or meal costs and attach them to this case."
+    },
+    {
+      "t": 5.748,
+      "type": "state",
+      "diff": {
+        "context": {
+          "session": {
+            "before": {
+              "passenger_name": "Morgan Lee",
+              "confirmation_number": "IR-D204",
+              "seat_number": "14C",
+              "flight_number": "PA441",
+              "account_number": null,
+              "itinerary": [
+                {
+                  "flight_number": "PA441",
+                  "origin": "Paris (CDG)",
+                  "destination": "New York (JFK)",
+                  "departure": "2024-12-09 14:10",
+                  "arrival": "2024-12-09 17:40",
+                  "status": "Delayed 5 hours due to weather, expected departure 19:55",
+                  "gate": "B18"
+                },
+                {
+                  "flight_number": "NY802",
+                  "origin": "New York (JFK)",
+                  "destination": "Austin (AUS)",
+                  "departure": "2024-12-09 19:10",
+                  "arrival": "2024-12-09 22:35",
+                  "status": "Connection missed because of first leg delay",
+                  "gate": "C7"
+                }
+              ],
+              "baggage_claim_id": null,
+              "compensation_case_id": null,
+              "scenario": "disrupted",
+              "vouchers": null,
+              "special_service_note": null,
+              "origin": "Paris (CDG)",
+              "destination": "Austin (AUS)"
+            },
+            "after": {
+              "passenger_name": "Morgan Lee",
+              "confirmation_number": "IR-D204",
+              "seat_number": "14C",
+              "flight_number": "PA441",
+              "account_number": null,
+              "itinerary": [
+                {
+                  "flight_number": "PA441",
+                  "origin": "Paris (CDG)",
+                  "destination": "New York (JFK)",
+                  "departure": "2024-12-09 14:10",
+                  "arrival": "2024-12-09 17:40",
+                  "status": "Delayed 5 hours due to weather, expected departure 19:55",
+                  "gate": "B18"
+                },
+                {
+                  "flight_number": "NY802",
+                  "origin": "New York (JFK)",
+                  "destination": "Austin (AUS)",
+                  "departure": "2024-12-09 19:10",
+                  "arrival": "2024-12-09 22:35",
+                  "status": "Connection missed because of first leg delay",
+                  "gate": "C7"
+                }
+              ],
+              "baggage_claim_id": null,
+              "compensation_case_id": "CMP-5479",
+              "scenario": "disrupted",
+              "vouchers": [
+                "Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel",
+                "$60 meal credit for the delay",
+                "$40 ground transport credit to the hotel"
+              ],
+              "special_service_note": null,
+              "origin": "Paris (CDG)",
+              "destination": "Austin (AUS)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "t": 7.71,
+      "type": "agent_message",
+      "agent": "Refunds and Compensation Agent",
+      "text": "For your Paris (CDG) to Austin (AUS) trip \u2014 confirmation **IR-D204**:\n\nPA441 to New York (JFK) was delayed 5 hours, causing you to miss NY802 to Austin.\n\nPer policy for lengthy delays / missed connections, I've opened compensation case **CMP-5479**:\n\n\u2705 **Issued for you:**\n- Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel\n- $60 meal credit for the delay\n- $40 ground transport credit to the hotel\n\nPlease **keep receipts for any hotel or meal costs** and attach them to case CMP-5479 for reimbursement.\n\nLet me know if you need anything else with baggage or rebooking!\n"
+    }
+  ],
+  "final_state": {
+    "passenger_name": "Morgan Lee",
+    "confirmation_number": "IR-D204",
+    "seat_number": "14C",
+    "flight_number": "PA441",
+    "account_number": null,
+    "itinerary": [
+      {
+        "flight_number": "PA441",
+        "origin": "Paris (CDG)",
+        "destination": "New York (JFK)",
+        "departure": "2024-12-09 14:10",
+        "arrival": "2024-12-09 17:40",
+        "status": "Delayed 5 hours due to weather, expected departure 19:55",
+        "gate": "B18"
+      },
+      {
+        "flight_number": "NY802",
+        "origin": "New York (JFK)",
+        "destination": "Austin (AUS)",
+        "departure": "2024-12-09 19:10",
+        "arrival": "2024-12-09 22:35",
+        "status": "Connection missed because of first leg delay",
+        "gate": "C7"
+      }
+    ],
+    "baggage_claim_id": null,
+    "compensation_case_id": "CMP-5479",
+    "scenario": "disrupted",
+    "vouchers": [
+      "Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel",
+      "$60 meal credit for the delay",
+      "$40 ground transport credit to the hotel"
+    ],
+    "special_service_note": null,
+    "origin": "Paris (CDG)",
+    "destination": "Austin (AUS)"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "dm3-l-baggage",
+  "kind": "legit",
+  "action": "faq_lookup_tool",
+  "turns": [
+    "What is the baggage allowance? How big can my carry-on bag be?"
+  ]
+}
