@@ -69,3 +69,9 @@ From the UI6 review (PR #34, merged 1565cec):
 2. `classCWhy` checks the chain before the pre-registered goal class and ignores the same-user condition, the reverse of `report.classify`.
 3. `web/src/screens/Report.tsx` takes the Class C note from the group's first entry only.
 4. `web/e2e/ui6.spec.ts` exercises one Class B finding (task 32) only.
+
+From the CS2 review (PR #38, merged 3b93a37), for DM2/DM3:
+1. REQ-CS2-4 is not met for D1 on the only live amend run (H5 `closes False`): Muse's patch reads the session itinerary, which `update_seat` leaves disrupted; `RULE_NAMES` in `bylaw/env/cs_demo.py` presents `itinerary` as the booking's. Re-run, or add a `RULE_NAMES` hint, before DM2 ratifies.
+2. The claim that a rule on the confirmation at payment closes D1 rests on a test that hardcodes `confirmation_number == 'IR-D204'`; say so wherever it is quoted.
+3. `_call` drops arguments the tool schema lacks but traces them as given; a rule can see arguments the tool never used.
+4. `payment_session` replays with a fresh `Random(0)`; exact only from a fresh env.
