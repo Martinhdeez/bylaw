@@ -13,4 +13,4 @@ Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 11 / 12.
 - [x] **VZ2** Scan and Fix views on csdemo — designer — PR #40
 - [x] **DM3** Usefulness eval, unguarded vs guarded — builder (after DM2) — PR #44
 - [x] **RA1** Ratify API accepts csdemo — builder — PR #43
-- [ ] **UI7** Open findings and de-slop of the other screens — designer
+- [ ] **UI7** Open findings and de-slop of the other screens — designer — UI7 part 1 (findings) — PR #42; restyle pending user approval
