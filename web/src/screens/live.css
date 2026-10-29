@@ -11,11 +11,6 @@
 .lvp h1, .lvp h2, .lvp b { font-family: var(--sans); }
 .lvp code { font: 400 12.5px/1.5 var(--code); color: var(--muted); overflow-wrap: anywhere; }
 
-/* brand bar */
-.lv-brand { display: flex; align-items: center; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
-.lv-brand svg { width: 72px; height: 72px; flex: none; color: var(--ink); margin: -6px 0; }
-.lv-brand b { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; }
-.lv-brand span { margin-left: 8px; font-size: 19px; color: var(--ink-2); }
 
 /* header: the headline and one line of narration, each a single element */
 .lv-head { display: flex; flex-direction: column; }
@@ -162,10 +157,6 @@
   .lv-chat { max-height: 420px; }
 }
 @media (max-width: 760px) {
-  .lv-brand { flex-wrap: wrap; gap: 8px 12px; }
-  .lv-brand svg { width: 56px; height: 56px; }
-  .lv-brand b { font-size: 28px; }
-  .lv-brand span { flex-basis: 100%; margin-left: 0; font-size: 15px; }
   .lv-head { min-height: 0; }
   .lv-head h1 { font-size: 24px; white-space: normal; min-height: 2.4em; text-wrap: balance; }
   .lv-cap { font-size: 15px; }
@@ -199,3 +190,21 @@
 .lv-chat .ag small { color: #3d4a63; font-weight: 500; }
 .lv-chat .note { color: #5f6a80; }
 .lv-seg button[aria-pressed="true"], .lv-btn[aria-pressed="true"] { background: var(--blue-soft); border-color: var(--blue-edge); color: var(--ink); }
+
+/* UI7 colour pass 2: tagline in place of the brand bar; markdown in agent bubbles; the blocked stamp and the result glow. */
+.lv-tagline { font-size: 13px; font-weight: 500; color: var(--violet-hi); letter-spacing: 0.01em; }
+.lv-chat .ag p + p, .lv-chat .ag p + ul, .lv-chat .ag ul + p { margin-top: 6px; }
+.lv-chat .ag ul { margin: 4px 0 0 18px; }
+.lv-chat .ag li { max-width: none; }
+.lv-chat .ag b { font-weight: 600; color: #0b1020; }
+.lv-vd.blk { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--red-soft); border: 1px solid var(--red-edge); box-shadow: 0 0 22px -6px rgba(255, 107, 90, var(--glow)); }
+.lv-row.blk .lv-vd { animation: lv-stamp2 .24s var(--spring) both; }
+@keyframes lv-stamp2 { from { opacity: 0; transform: scale(.8); } }
+.lv-side.before .lv-big b { background: linear-gradient(135deg, var(--red), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lv-side.after .lv-big b { background: linear-gradient(135deg, var(--green), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lv-side.before { background: radial-gradient(120% 90% at 0% 100%, var(--red-soft), transparent 60%), var(--surface); }
+.lv-side.after { background: radial-gradient(120% 90% at 0% 100%, var(--green-soft), transparent 60%), var(--surface); border-color: var(--green-edge); box-shadow: 0 0 40px -14px rgba(52, 224, 161, var(--glow)); }
+.lv-result .lv-big b { display: inline-block; animation: lv-pop .28s var(--spring) both; }
+@keyframes lv-pop { from { opacity: 0; transform: scale(.85); } }
+.lv-scrub input { accent-color: var(--blue); }
+@media (prefers-reduced-motion: reduce) { .lv-row.blk .lv-vd, .lv-result .lv-big b { animation: none; } }
