@@ -16,13 +16,13 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from bylaw import llm, ratified
-from bylaw.domain import get_domain
+from bylaw.domain import MODULES, get_domain
 
 ROOT = ratified.ROOT
 WEB_DIST = ROOT / "web" / "dist"
 HAND_RULESETS = Path(__file__).parent / "rulesets"
-DOMAINS = ["airline", "retail"]
-Domain = Literal["airline", "retail"]
+DOMAINS = ["airline", "retail"]  # C9: the domains listed by /api/domains (tau2 audits)
+Domain = Literal[tuple(MODULES)]  # every registered domain plug-in, csdemo included (RA1)
 TICK_S = 0.5  # minimum seconds between two search progress events
 
 app = FastAPI(title="Bylaw")
