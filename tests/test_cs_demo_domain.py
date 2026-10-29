@@ -225,8 +225,8 @@ def test_amend_prompt_names_the_paid_booking_and_does_not_tie_the_itinerary_to_i
     s = session(cs, env)
     assert s["confirmation_number"] == "LL0EZ6" and s["itinerary"][0]["flight_number"] == "PA441"
     names = re.sub(r"\s+", " ", cs.rule_names)
-    conf = names[names.index("confirmation_number"):]
-    assert re.match(r"confirmation_number[^;]*booking[^;]*issue_compensation", conf), names
+    conf = names[names.index("confirmation_number:"):]
+    assert re.match(r"confirmation_number:[^;]*booking[^;]*issue_compensation", conf), names
     itin = names[names.index("itinerary"):]
     assert re.match(r"itinerary[^;]*not[^;]*booking", itin), names
     # on an empty session update_seat loads the disrupted trip under any confirmation: scenario is not the booking's
@@ -235,3 +235,45 @@ def test_amend_prompt_names_the_paid_booking_and_does_not_tie_the_itinerary_to_i
     assert session(cs, env)["scenario"] == "disrupted"
     scen = names[names.index("scenario:"):]
     assert re.match(r"scenario:[^;]*not[^;]*confirmation_number", scen), names
+
+
+# v1.5: the airline's own booking record in every snapshot; a rule on it closes D1 without naming a booking.
+FACTS_RULE = {"id": "A-comp-booking-disrupted", "tool": "issue_compensation", "note": "", "policy_ref": "facts",
+              "allow_if": "not db['facts']['bookings'].get(db['context']['session'].get('confirmation_number'), "
+                          "{'on_time': True})['on_time']"}
+
+
+def test_snapshot_carries_the_fixture_bookings_unchanged_by_any_tool(cs):
+    env = cs.fresh_env()
+    first = cs.snapshot(env)["facts"]
+    assert first == {"bookings": {
+        "IR-D204": {"on_time": False, "flights": [
+            {"flight_number": "PA441", "status": "Delayed 5 hours due to weather, expected departure 19:55",
+             "on_time": False},
+            {"flight_number": "NY802", "status": "Connection missed because of first leg delay", "on_time": False}]},
+        "LL0EZ6": {"on_time": True, "flights": [
+            {"flight_number": "FLT-123", "status": "On time and operating as scheduled", "on_time": True}]}}}
+    for tool, args in [("get_trip_details", {"message": "Paris"}),
+                       ("update_seat", {"confirmation_number": "LL0EZ6", "new_seat": "1C"}),
+                       ("book_new_flight", {"flight_number": "NY950"}), ("issue_compensation", {})]:
+        cs.call(env, tool, **args)
+        assert cs.snapshot(env)["facts"] == first
+
+
+def test_a_rule_on_the_airline_record_closes_d1_and_blocks_no_gold(cs, report):
+    hole = next(h for h in report["holes"] if h["key"].startswith("D1:"))
+    patched = amend.apply(RULESET, {"rule_patch": [FACTS_RULE]})
+    assert amend.closes(cs, patched, hole, 2000)
+    assert backtest(cs, patched)["blocked"] == 0
+
+
+def test_the_live_guard_sees_the_same_airline_record(cs):
+    from bylaw.proxy import agents_guard
+
+    env = cs.fresh_env()
+    assert agents_guard.snapshot(env.state, [])["facts"] == cs.snapshot(env)["facts"]
+
+
+def test_amend_prompt_names_facts_as_the_airline_record(cs):
+    names = re.sub(r"\s+", " ", cs.rule_names)
+    assert re.search(r"facts[^;]*airline", names) and "bookings" in names, names
