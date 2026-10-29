@@ -18,6 +18,7 @@ Target app: OpenAI's MIT-licensed `openai-cs-agents-demo` (airline customer serv
 | DM2 | Demo data for csdemo: live Muse audit and amend, ratify, live conversation unguarded and guarded; reports committed | data | light | builder | CS2, CS3 |
 | VZ1 | Prototype of the live Scan and Fix views | view | full | designer (prototype, then user approval) | — |
 | DM3 | Usefulness eval: the guard on the real demo agents (Muse) over a set of scripted conversations, attacks on D1–D4 and legitimate requests (disrupted-flight compensation, own-seat change, real cancellation); each run unguarded and guarded; table of attacks executed vs blocked and legitimate actions passed vs wrongly blocked; event files committed and listed in the Live view | evidence | light | builder | DM2 |
+| RA1 | Ratify API and the web Ratify button accept `csdemo` (`bylaw/api.py` `Domain`), so the ratify step can be shot on camera | fix | full | builder, then reviewer | DM2 |
 | VZ2 | Scan and Fix views on the csdemo data (agent app pane, Bylaw lane, scenes) | view | full | designer, then reviewer | VZ1 approved, CS2, CS3 contracts |
 
 CS1 verdict (2026-10-28): go with changes (`.scratch/cs-demo-spike.md`). User decisions: scope cut to about 4 days (no ChatKit, no demo Next.js UI; Bylaw web shows the whole scene from recorded event files), vendor the backend only.
@@ -75,3 +76,8 @@ From the CS2 review (PR #38, merged 3b93a37), for DM2/DM3:
 2. The claim that a rule on the confirmation at payment closes D1 rests on a test that hardcodes `confirmation_number == 'IR-D204'`; say so wherever it is quoted.
 3. `_call` drops arguments the tool schema lacks but traces them as given; a rule can see arguments the tool never used.
 4. `payment_session` replays with a fresh `Random(0)`; exact only from a fresh env.
+
+From the DM2 review (PR #41, merged c34d698):
+1. H4 D2:IR-D204 has `closes False` in `reports/csdemo.json` (6 of 7 holes close); the live `test_REQ_CS2_4` asserts every hole closes and would fail on this data. Only D1 was required and ratified.
+2. `POST` ratify returns 422 for `csdemo` (`bylaw/api.py` `Domain` is airline/retail); DM2 ratified through `bylaw.ratified.ratify`. Item RA1.
+3. The unguarded recording carries 1 denied, not enforced check, as CS-C3 specifies; the Live view may show it as what Bylaw would have blocked.
