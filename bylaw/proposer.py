@@ -31,8 +31,8 @@ def search(domain, ruleset: dict, budget: int, use_llm: bool, llm=None):
     """`llm`: a callable with the signature of bylaw.llm.structured (C3 v1.1 style injection); default the real client."""
     if domain.name not in DOMAINS:
         raise NotImplementedError(f"no BFS move set for domain {domain.name!r}")
-    if use_llm and domain.name != "airline":
-        raise NotImplementedError("Muse templates read reservations: airline only")
+    if use_llm and domain.name == "retail":
+        raise NotImplementedError("Muse templates read reservations: no retail samples")
     spent, seen = 0, set()
     if use_llm:
         templates = _muse_chains(domain, ruleset, llm or muse.structured)
@@ -242,7 +242,8 @@ def _ask(domain, ruleset, llm, db, goal) -> dict:
         "rules": ruleset["tool_rules"],
         "goal": {"id": goal.id, "name": goal.name, "policy_ref": goal.policy_ref, "predicate": _predicate_source(goal)},
         "write_tools": [t for t in domain.tools if t["function"]["name"] in domain.write_tools],
-        "targets": {"count": len(targets), "examples": _samples(db, targets),
+        # csdemo targets are fixture seeds, not record ids: they are their own examples
+        "targets": {"count": len(targets), "examples": _samples(db, targets) if domain.name == "airline" else targets[:SAMPLES],
                     "flight_statuses": ["available", "on time", "delayed", "cancelled", "flying", "landed"]},
     }
     return llm([{"role": "system", "content": _SYSTEM}, {"role": "user", "content": json.dumps(prompt, default=str)}],
@@ -366,6 +367,36 @@ def _retail_moves(db, oid, st):
         yield tool, tool, args, st
 
 
+# ---- csdemo: one session; every write with arguments seeded from the demo fixture (CS-C1 targets) ----
+
+
+def _csdemo_pool(domain, db) -> list[list]:
+    """One stratum, one "target": the fixture seeds plus the gold conversations' write calls (the session has no
+    record ids to stratify by)."""
+    gold = [(a["tool"], a["args"]) for t in domain.gold for a in t["actions"] if a["tool"] in domain.write_tools]
+    return [[{"targets": domain.targets(sorted(domain.goals)[0]), "gold": gold}]]
+
+
+def _csdemo_moves(db, seeds, st):
+    """Fixture-seeded calls, then every write the gold conversations make with their own argument values, so a
+    rule that only checks what honest callers pass is still probed. Grouped by tool, lookups first. Kind = tool."""
+    targets = seeds["targets"]
+    pick = lambda k: sorted({v for t in targets for v in t[k]})  # noqa: E731
+    moves = [("flight_status_tool", {"flight_number": f}) for f in pick("flight_numbers")]
+    moves += [("get_trip_details", {"message": t["message"]}) for t in targets]
+    moves += [("get_matching_flights", {})]
+    moves += [("book_new_flight", {"flight_number": f}) for f in pick("rebook_flights")]
+    moves += [("update_seat", {"confirmation_number": t["confirmation_number"], "new_seat": t["seat_number"]}) for t in targets]
+    moves += [("assign_special_service_seat", {"seat_request": s}) for s in pick("seats")]
+    moves += [("issue_compensation", {}), ("cancel_flight", {})]
+    order = list(dict.fromkeys(t for t, _ in moves))
+    for move in seeds["gold"]:
+        if move not in moves:
+            moves.append(move)
+    for tool, args in sorted(moves, key=lambda m: order.index(m[0])):  # stable: seeds before gold within a tool
+        yield tool, tool, args, st
+
+
 # Lambdas look the functions up at call time, so tests can patch them on the module.
 DOMAINS = {
     "airline": SimpleNamespace(pool=lambda d, db: _pool(d, db), state=lambda db, t: _state(db, t),
@@ -375,4 +406,8 @@ DOMAINS = {
                               no_repeat={"cancel_pending_order", "modify_pending_order_address", "modify_pending_order_payment",
                                          "modify_pending_order_items", "exchange_delivered_order_items",
                                          "return_delivered_order_items", "modify_user_address"}),
+    "csdemo": SimpleNamespace(pool=lambda d, db: _csdemo_pool(d, db), state=lambda db, t: {},
+                              moves=lambda db, t, st: _csdemo_moves(db, t, st),
+                              no_repeat={"flight_status_tool", "get_trip_details", "get_matching_flights", "book_new_flight",
+                                         "update_seat", "assign_special_service_seat", "issue_compensation", "cancel_flight"}),
 }

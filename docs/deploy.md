@@ -117,3 +117,29 @@ curl -s -u '<user>:<password>' "https://<domain>/api/ratified?domain=airline"   
 ```
 
 Caddy's certificates are in the `caddy_data` volume. They do not need a backup: Caddy gets new ones on start. `docker compose down -v` deletes that volume; repeated deletions can hit the Let's Encrypt rate limit.
+
+## 06 additions
+
+What iteration 06 changes for an installation:
+
+- **Image:** it now includes `targets/` (the vendored `openai-cs-agents-demo` backend, MIT) and the pinned `openai-agents==0.24.0` and `openai-chatkit==1.6.5` from `uv.lock`. No step changes: `docker compose up -d --build` picks them up.
+- **Live event files:** `GET /api/live` lists `reports/live/*.json` and `GET /api/live/{file}` returns one (CS3). They sit under `reports/`, which is already bind-mounted, so committed recordings arrive with `git pull`. Nothing to mount.
+- **No key needed to view.** The image holds no key and no env file (`.dockerignore` drops `**/.env*`). Without `MODEL_API_KEY` the container starts and is healthy, and every view reads the committed reports, bench and live recordings. Only Muse calls need the key: a Muse audit started from the UI fails with `MODEL_API_KEY is not set`, and the `live` runner is a CLI command that is not run on the server. To allow Muse runs on the server, set `MODEL_API_KEY` in `.env` and run `docker compose up -d bylaw`. Leave it empty on a public demo.
+- **Ratified amendments:** `ratified/` is still bind-mounted and not in git. Anyone who can reach the site can ratify into `ratified/`, so the backup section still applies.
+
+## Pre-flight checklist for the real deploy
+
+The user provides:
+
+- [ ] **Go-ahead** to deploy onto the VPS, naming the server (host and SSH user).
+- [ ] **Domain or IP.** With a domain, its `A` (and `AAAA`) record points at the server before the start, and port 80 is open for the certificate. With an IP only, leave `BYLAW_DOMAIN` empty: plain HTTP on :80.
+- [ ] **Public or basic auth.** The compose file always asks for basic auth: the user chooses a login and a password, and judges get both. A login-free public site needs a Caddyfile change and is not prepared. Without auth, anyone can start Muse audits if a key is set, and anyone can ratify amendments.
+- [ ] **Key or no key.** Default is no key: viewing only. A key on a public server spends the Meta budget for anyone who clicks "audit".
+
+Then, on the server:
+
+- [ ] Docker Compose 2.24 or later, about 2 GB of free disk.
+- [ ] The checkout is on the commit to deploy, and the reports for that demo (`reports/*.json`, `reports/live/*.json`) are committed there.
+- [ ] `.env` filled per First install, step 3, with `chmod 600`.
+- [ ] `docker compose up -d --build`, then `docker compose ps` shows `bylaw` healthy.
+- [ ] From another machine: `/` answers 401 without credentials, `/api/domains` answers with them, `/api/live` returns a JSON list, and port 8000 is closed.

@@ -36,7 +36,7 @@ class Domain(Protocol):
     def targets(self, goal_id: str) -> list[dict]: ...
 
 
-MODULES = {"airline": "bylaw.env.tau2_airline", "retail": "bylaw.env.tau2_retail"}
+MODULES = {"airline": "bylaw.env.tau2_airline", "retail": "bylaw.env.tau2_retail", "csdemo": "bylaw.env.cs_demo"}
 
 
 def get_domain(name: str) -> Domain:

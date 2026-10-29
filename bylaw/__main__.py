@@ -234,6 +234,17 @@ def cmd_coverage(a):
         Path(a.json).write_text(json.dumps({"run": report["run"], "goals": rows}, indent=2) + "\n")
 
 
+def cmd_live(a):
+    from bylaw import live
+
+    out = live.run(json.loads(Path(a.script).read_text()), guard=a.guard, model=live.muse_model(), domain_name=a.domain)
+    Path(a.output).parent.mkdir(parents=True, exist_ok=True)
+    Path(a.output).write_text(json.dumps(out, indent=2) + "\n")
+    checks = [e for e in out["events"] if e["type"] == "bylaw_check"]
+    print(f"wrote {a.output}: {len(out['events'])} events, {len(checks)} checks, "
+          f"{sum(not c['allowed'] for c in checks)} denied ({'enforced' if a.guard else 'not enforced'})")
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="bylaw")
     sub = p.add_subparsers(required=True)
@@ -283,6 +294,12 @@ def main(argv=None):
     cv.add_argument("report")
     cv.add_argument("--json", help="also write the table as JSON to this path")
     cv.set_defaults(fn=cmd_coverage)
+    lv = sub.add_parser("live", help="play a scripted conversation against the demo agents on Muse, write an event file")
+    lv.add_argument("--domain", required=True, choices=["csdemo"])
+    lv.add_argument("--script", required=True, help='JSON {"name": str, "turns": [str, ...]}')
+    lv.add_argument("--guard", action="store_true", help="enforce the effective RuleSet on every tool call")
+    lv.add_argument("-o", "--output", required=True)
+    lv.set_defaults(fn=cmd_live)
     a = p.parse_args(argv)
     return a.fn(a)
 

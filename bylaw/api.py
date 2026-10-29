@@ -247,6 +247,30 @@ def bench(domain: Domain):
     return data
 
 
+def _live_header(path: Path) -> dict | None:
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):  # not JSON: not listed
+        return None
+
+
+@app.get("/api/live")
+def live_list():
+    """CS-C3: the event files in <reports>/live/."""
+    return [{"name": d.get("name"), "guard": d.get("guard"), "file": p.name}
+            for p in sorted((reports_dir() / "live").glob("*.json")) if isinstance(d := _live_header(p), dict)]
+
+
+@app.get("/api/live/{file}")
+def live_file(file: str):
+    root = (reports_dir() / "live").resolve()
+    path = (root / file).resolve()
+    data = _live_header(path) if path.parent == root else None
+    if data is None:
+        raise HTTPException(404, f"no live file {file}")
+    return data
+
+
 @app.get("/{path:path}", include_in_schema=False)
 def web(path: str):
     """The built web app (web/dist): a file when it exists inside dist, else index.html."""
