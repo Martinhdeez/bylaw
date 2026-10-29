@@ -173,13 +173,29 @@ export function goldLine(tasks: string[], lead = "τ² grades this as correct in
   return `${lead} ${t}.`;
 }
 
-// Why a Class C entry is not counted, as report.classify decides it: a cancel then a rebook is the permitted method;
-// any other Class C goal was pre-registered as one the policy is silent on.
+// Goals pre-registered as Class C, with the ambiguity each one was registered for.
+// ponytail: copied from bylaw/env/tau2_airline.py CLASS_C_GOALS and the cls="C" goals of bylaw/goals_retail.py;
+// the report does not carry a goal's registered class, so a new Class C goal needs a line here.
+const PRE_C: Record<string, string> = {
+  G7: "the policy is silent on a second certificate for the same incident, so it was pre-registered as an ambiguity",
+  R5: "the once-only line may cover only item changes, not every modify or exchange, so it was pre-registered as an ambiguity",
+  R8: "the refund-target line sits under returns, while modify and exchange only ask for a payment method, so it was pre-registered as an ambiguity",
+};
+
+// Why a Class C entry is not counted, in the order report.classify decides it: a goal pre-registered as Class C first;
+// then a cancel followed by a rebook for the same user, the method the policy allows.
 export function classCWhy(h: Hole) {
-  const i = h.chain.findIndex((s) => s.tool === "cancel_reservation");
-  return i >= 0 && h.chain.slice(i + 1).some((s) => s.tool === "book_reservation")
-    ? "cancel and rebook inside a permitted cancel ground is the method the policy allows"
-    : "the policy is silent on this outcome, so it was pre-registered as an ambiguity";
+  if (PRE_C[h.goal]) return PRE_C[h.goal];
+  const owner = (rid: unknown) => {
+    const c = h.diff.reservations?.[String(rid)];
+    return (c?.before ?? c?.after)?.user_id;
+  };
+  const rebooked = h.chain.some((s, i) =>
+    s.tool === "cancel_reservation" && owner(s.args.reservation_id) !== undefined &&
+    h.chain.slice(i + 1).some((t) => t.tool === "book_reservation" && t.args.user_id === owner(s.args.reservation_id)));
+  return rebooked
+    ? "cancel and rebook for the same user inside a permitted cancel ground is the method the policy allows"
+    : "it was listed as an ambiguity for review";
 }
 
 // Class B: a gold task reaches the goal. Holds for a policy gap and for an ambiguity that practice resolves.

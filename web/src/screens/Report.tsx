@@ -118,7 +118,7 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
                 <span className="id">{gid}</span>
                 <span>
                   <span className="t">{humanize(goals.get(gid)?.name ?? list[0].title).name}</span>
-                  <span className="n" data-testid="amb-note">{capital(classCWhy(list[0]))}.</span>
+                  <span className="n" data-testid="amb-note">{new Set(list.map(classCWhy)).size === 1 ? `${capital(classCWhy(list[0]))}.` : "The reason differs by entry, see each one."}</span>
                 </span>
                 <span className="tag">{list.length} {list.length === 1 ? "entry" : "entries"}</span>
                 <ChevronRight aria-hidden="true" />
@@ -134,6 +134,8 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
                           <span className="t">{t.name} <span className="mono" style={{ color: "var(--muted)" }}>{t.target}</span></span>
                           <br />
                           <span className="c">{a.chain.map((s) => s.tool).join(" → ")}</span>
+                          <br />
+                          <span className="n" data-testid="amb-entry-note">{capital(classCWhy(a))}.</span>
                         </span>
                         <span className="tag">{a.replays}</span>
                       </a>
