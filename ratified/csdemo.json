@@ -1,0 +1,21 @@
+{
+  "domain": "csdemo",
+  "amendments": [
+    {
+      "id": "A6",
+      "hole_key": "D1:LL0EZ6",
+      "policy_text": "Compensation and disruption vouchers may only be issued on the booking on record when that booking itself is disrupted; a disrupted session itinerary or scenario alone does not qualify an on-time booking for compensation.",
+      "rule_patch": [
+        {
+          "allow_if": "db['context']['session'].get('confirmation_number') is None or db['facts']['bookings'].get(db['context']['session'].get('confirmation_number'), {}).get('on_time') == False",
+          "id": "D1:LL0EZ6/R-comp-booking-disrupted",
+          "note": "Compensation requires the session booking itself to be disrupted in airline facts, not just a disrupted session scenario.",
+          "policy_ref": "Compensation and disruption vouchers may only be issued on the booking on record when that booking itself is disrupted; a disrupted session itinerary or scenario alone does not qualify an on-time booking for compensation.",
+          "tool": "issue_compensation"
+        }
+      ],
+      "rationale": "The hole mixes records: update_seat on an empty session sets confirmation_number to LL0EZ6 (on-time in facts) while filling scenario/itinerary from the disrupted demo trip, so issue_compensation passes its reason check and pays disrupted vouchers to an on-time booking. Requiring the session confirmation's facts booking to have on_time == False blocks that second step. Honest disruption cases have a confirmation whose facts booking is disrupted, so they still pass; on-time bookings were never permitted compensation.",
+      "ratified_at": "2026-10-29T02:09:44+00:00"
+    }
+  ]
+}
