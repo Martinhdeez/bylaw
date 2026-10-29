@@ -173,7 +173,7 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
             })}
             <li className={`outcome ${h.class === "B" ? "b" : ""} ${at >= n ? "" : "pending"}`} data-testid="outcome">
               <span className="node" aria-hidden="true" />
-              <code translate="no">{h.goal} {goal?.name ?? name}</code>
+              <span>{h.goal} {humanize(goal?.name ?? name).name}</span>
               {at >= n && <span className="verdict"><X aria-hidden="true" />{h.class === "B" ? "forbidden goal, gold does it too" : "forbidden"}</span>}
             </li>
           </ol>
@@ -203,7 +203,7 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
                     <div className="src">policy.md{lineOf(lines, goal.policy_ref) > 0 && `:${lineOf(lines, goal.policy_ref)}`}</div>
                     <p className="quote">{quote(goal.policy_ref)}</p>
                   </div>
-                  <code className="pred" translate="no">{goal.name}</code>
+                  <p className="pred">{humanize(goal.name).name}</p>
                 </>
               ) : <p className="label">Loading goal…</p>}
             </div>

@@ -127,6 +127,10 @@ export function humanize(title: string, key = "") {
   return { name: name.charAt(0).toUpperCase() + name.slice(1), target };
 }
 
+// "update_reservation_flights" -> "Update reservation flights": tool names read as words outside the code view.
+export const toolName = (t: string) => { const s = t.replace(/_/g, " "); return s.charAt(0).toUpperCase() + s.slice(1); };
+export const chainText = (steps: { tool: string }[]) => steps.map((s, i) => (i ? toolName(s.tool).toLowerCase() : toolName(s.tool))).join(", then ");
+
 // Hole routes carry the domain and the C4 v1.2 key.
 export const holeHref = (domain: string, key: string, sub = "") => `#/${domain}/holes/${encodeURIComponent(key)}${sub}`;
 

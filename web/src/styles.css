@@ -51,10 +51,12 @@
   --paper-rule: rgba(11, 11, 18, 0.08);
   --shadow-1: 0 1px 0 rgba(255,255,255,.05) inset, 0 6px 18px -10px rgba(0,0,0,.7);
   --shadow-2: 0 1px 0 rgba(255,255,255,.07) inset, 0 18px 40px -18px rgba(0,0,0,.85);
-  --grain: .05;
-  --serif: "Source Serif 4", Georgia, serif;
-  --display: "Archivo", system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --grain: 0;
+  /* UI7: one family. Fira Sans for every word and number, Fira Code only for literal code. */
+  --serif: "Fira Sans", system-ui, sans-serif;
+  --display: "Fira Sans", system-ui, sans-serif;
+  --mono: "Fira Sans", system-ui, sans-serif;
+  --code: "Fira Code", ui-monospace, monospace;
   --tile-r: 12px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --spring: cubic-bezier(0.32, 0.72, 0, 1);
@@ -98,7 +100,7 @@
   --paper-rule: rgba(20, 18, 30, 0.07);
   --shadow-1: 0 1px 2px rgba(40,30,20,.06), 0 6px 18px -10px rgba(40,30,20,.18);
   --shadow-2: 0 1px 2px rgba(40,30,20,.08), 0 18px 40px -18px rgba(40,30,20,.28);
-  --grain: .025;
+  --grain: 0;
   color-scheme: light;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -113,7 +115,8 @@ button, input { font: inherit; color: inherit; }
 button { background: none; border: 0; cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 :focus-visible { outline: 2px solid var(--violet-hi); outline-offset: 2px; border-radius: 6px; }
-code, pre, .mono { font-family: var(--mono); }
+code, pre { font-family: var(--code); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 svg.lucide { stroke-width: 1.75; flex: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 50; background: var(--ink); color: var(--ground); padding: 8px 16px; border-radius: 999px; font-weight: 700; }
@@ -656,3 +659,77 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .diffdoc ins { text-decoration-color: var(--green-ink); }
 .notice.warn { border-color: var(--amber-edge); background: var(--amber-soft); }
 .notice.warn > svg { color: var(--amber); }
+
+/* ── UI7 restyle (prototype, view/ui7-restyle): the Live view's system on every screen ──
+   Neutral chrome, elevation by surface step (no shadows, no gradients, no grain), sentence case, weights 400-600.
+   Colour carries one meaning each: red = blocked or a hole, amber = policy vs practice, green = allowed or ratified,
+   violet = Muse (the model). Decorative clause marks, dockets and articles are gone. */
+.panel, .domain, .meter { box-shadow: none; }
+.panel-h { background: none; }
+.panel-h h2::before { content: none; }
+.panel-h h2, .h2 { font-size: 15px; font-weight: 600; letter-spacing: 0; }
+.title { font-size: 36px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
+.title.sm { font-size: 26px; }
+.title .v { font-style: normal; font-weight: 600; }
+.title .r, .title .b, .title .g { color: inherit; }
+.lede { font-size: 15px; }
+.crumbs { font-size: 13px; }
+.label, .stat .s, .meter .s, .runbar .opts, .verdict, .chips span, .instances .m, .instances .rep, .tag, .status, kbd { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.tag, .status { font-weight: 500; font-size: 12px; }
+.tag.stamped { border: 1px solid var(--green-edge); text-transform: none; letter-spacing: 0; font-size: 12px; background: var(--green-soft); }
+b, strong, h1, h2, h3 { font-weight: 600; }
+.btn { font-weight: 600; }
+
+/* primary action: ink, not violet (violet means the model) */
+.btn.primary { background: var(--ink); color: var(--ground); box-shadow: none; }
+.btn.primary:hover { background: var(--ink-2); }
+.btn.primary .ic { background: rgba(127,127,127,.18); }
+.opt input[type=checkbox]:checked { background: var(--ink); }
+.opt input[type=checkbox]:checked::after { background: var(--ground); }
+.runbar .tape { background: var(--ink-2); }
+.runbar:has(.tape:not(.done)) .opts b { color: var(--ink); }
+
+/* nav: the current page is a neutral raised tile */
+.nav a[aria-current="page"]::before { background: var(--raise); box-shadow: inset 0 0 0 1px var(--line-2); }
+.nav a[aria-current="page"] svg { color: var(--ink); }
+.meter .k::before { background: var(--violet); }
+
+/* Audit: plain domain choice, no docket labels, no article numerals */
+.domain .dk, .phase .st .art { display: none; }
+.domain .n { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+.domain[aria-checked="true"] { background: var(--step); border-color: var(--line-2); box-shadow: inset 0 0 0 1px var(--ink-2); }
+.domain .tools .chip { font-size: 12px; color: var(--muted); background: var(--step); border: 1px solid var(--line); padding: 2px 8px; border-radius: 6px; }
+.phase::before { background: var(--ink-2); }
+.phase .nm { font-size: 16px; font-weight: 600; letter-spacing: 0; }
+.phase.done { background: none; }
+
+/* Report: a dense list. The goal card is a quiet header; colour stays on the ids and verdicts. */
+.stat { min-height: 0; }
+.stat .v { font-size: 32px; letter-spacing: -0.02em; }
+.stat:has(.v.r), .stat:has(.v.b) { background: var(--surface); border-color: var(--line); }
+.goal-group .gcard, .goal-group.cls-b .gcard { background: var(--surface); border-top: 0; box-shadow: inset 2px 0 0 var(--red); }
+.goal-group.cls-b .gcard { box-shadow: inset 2px 0 0 var(--amber); }
+.gcard h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.quote, .rule q, .diffdoc p { font-family: var(--serif); font-size: 14px; font-weight: 400; }
+.instances a::before { background: var(--ink-2); }
+.instances .t { font-weight: 500; }
+.instances .k { font-weight: 600; }
+
+/* Hole: trace and verdicts; no exhibit stamp */
+.exhibit { background: none; color: var(--muted); box-shadow: none; text-transform: none; letter-spacing: 0; font: 500 12px var(--mono); padding: 0; }
+.outcome, .outcome.b { background: var(--surface); border-width: 1px; }
+.pred { font: 500 14px/1.5 var(--display); background: none; border: 0; padding: 0; color: var(--ink-2); }
+.enforced .t { font-size: 16px; }
+.stamp { border-width: 1px; border-style: solid; }
+.ratio .big { font-size: 64px; letter-spacing: -0.03em; }
+
+/* Policy text sits on the same surface step as the rest of the chrome, in both themes: no cream paper, no ruled lines. */
+.paper, .diffdoc { background: var(--step); color: var(--ink); border: 1px solid var(--line); box-shadow: none; }
+.diffdoc { background-image: none; }
+.diffdoc::before { background: var(--line-2); }
+.paper .src, .diffdoc .src, .diffdoc p .m, .diffdoc .ctx { color: var(--muted); }
+.diffdoc p { font-size: 16px; font-weight: 400; }
+.diffdoc .plus ins, .diffdoc .plus .m, .diffdoc .note { color: var(--green); }
+.diffdoc .note { border-color: var(--green-edge); }
+.code { font-family: var(--code); }
+.domain .n .ck { background: var(--ink); color: var(--ground); }

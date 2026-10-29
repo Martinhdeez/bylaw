@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { AlertTriangle, ArrowRight, ChevronRight, FileSearch, ShieldCheck } from "lucide-react";
 import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Load, type Ratified, type Report } from "../api";
-import { Crumbs, Failure, Loading, Muse, Ticker, classCWhy, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
+import { Crumbs, Failure, Loading, Muse, Ticker, chainText, classCWhy, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
 
 export function ReportView({ domain, report }: { domain: Domain; report: Load<Report> }) {
   const ratified = useGet<Ratified>(api.ratified(domain));
@@ -133,7 +133,7 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
                         <span>
                           <span className="t">{t.name} <span className="mono" style={{ color: "var(--muted)" }}>{t.target}</span></span>
                           <br />
-                          <span className="c">{a.chain.map((s) => s.tool).join(" → ")}</span>
+                          <span className="c">{chainText(a.chain)}</span>
                           <br />
                           <span className="n" data-testid="amb-entry-note">{capital(classCWhy(a))}.</span>
                         </span>
@@ -180,13 +180,13 @@ function Groups({ domain, entries, goals, fixed }: { domain: Domain; entries: Ho
             </div>
             <ul className="panel instances">
               {list.map((h, i) => {
-                const chain = h.chain.map((s) => s.tool).join(" → ");
+                const chain = chainText(h.chain);
                 return (
                   <li key={h.key} style={{ "--i": i } as CSSProperties}>
                     <a href={holeHref(domain, h.key)}>
                       <span className="mono k">{h.id}</span>
                       <span className="mono t" translate="no">{humanize(h.title, h.key).target}</span>
-                      <span className="mono c" title={chain}>{chain}</span>
+                      <span className="c" title={chain}>{chain}</span>
                       <span className={`m ${!b && h.money_delta > 0 ? "out" : ""}`}>{usd(h.money_delta)}</span>
                       <span className="rep">{h.replays}</span>
                       {fixed.has(h.key) ? <span className="tag stamped">{b ? "Ratified" : "Fixed"}</span> : h.amendment ? <span className="tag muse">Amendment ready</span> : <span />}
