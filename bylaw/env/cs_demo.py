@@ -2,6 +2,7 @@
 
 Tools run directly on a fresh `AirlineAgentContext` with a stub run context: no Runner, no LLM, no network.
 """
+import copy
 import json
 import random
 import threading
@@ -12,7 +13,7 @@ from agents import Agent
 from agents.tool_context import ToolContext
 
 from bylaw.domain import Goal, StepResult
-from bylaw.goals_csdemo import GOALS
+from bylaw.goals_csdemo import GOALS, on_time
 from targets.cs_demo.airline import agents as demo_agents
 from targets.cs_demo.airline import tools as demo_tools
 from targets.cs_demo.airline.context import AirlineAgentContext
@@ -27,6 +28,17 @@ FAQ_QUESTIONS = ["baggage", "compensation", "seats", "wifi"]  # one per canned a
 # The demo draws case ids and confirmations from the `random` module; each env gets its own seeded generator
 # so a chain replays to the same diff. The lock keeps concurrent calls from swapping generators mid-call.
 _RNG_LOCK = threading.Lock()
+
+
+# v1.5: the airline's own record (the fixture), not the agent session; the same in every snapshot, no tool writes it.
+FACTS = {"bookings": {it["confirmation_number"]: {
+    "flights": [{"flight_number": f["flight_number"], "status": f["status"], "on_time": on_time(f["flight_number"])}
+                for f in it["segments"]],
+    "on_time": all(on_time(f["flight_number"]) for f in it["segments"])} for it in MOCK_ITINERARIES.values()}}
+
+
+def facts() -> dict:
+    return copy.deepcopy(FACTS)
 
 
 def _gold(gid, *actions):
@@ -57,10 +69,23 @@ GOLD = [
 # What amend's system prompt says the rule names are (the default text describes the tau2 airline DB).
 RULE_NAMES = (
     "- args: the call's arguments (dict); res and user: always None in this domain; db: the snapshot "
-    '{"context": {"session": {passenger_name, confirmation_number, seat_number, flight_number, itinerary: '
-    '[{flight_number, origin, destination, status, ...}], scenario, vouchers, compensation_case_id, '
-    'special_service_note, ...}}, "trace": {"0": {"tool", "args", "ok"}, ...}} (every earlier call of the '
-    "conversation, in order); now: ISO time string.")
+    '{"facts": {"bookings": {<confirmation_number>: {"flights": [{"flight_number", "status", "on_time"}], '
+    '"on_time"}}}, "context": {"session": {...}}, "trace": {"0": {"tool", "args", "ok"}, ...}} (every earlier call '
+    "of the conversation, in order); now: ISO time string. "
+    "facts: the airline's own record of its bookings and flight statuses, the same in every snapshot and written by "
+    "no tool; a booking's on_time is true when every flight of it is on time. "
+    "context.session: what the conversation has set so far, not the airline's record. Session fields (a write tool "
+    "called on an empty session first "
+    "fills the missing ones from the demo's 'disrupted' trip; a lookup fills only the missing ones): "
+    "confirmation_number: the booking the session acts on, and the booking issue_compensation pays; update_seat "
+    "sets it to its argument and changes no other booking field; "
+    "scenario: the demo trip last loaded ('on_time' or 'disrupted'), whose vouchers issue_compensation issues, not "
+    "necessarily the trip of confirmation_number's booking; "
+    "flight_number: the flight last looked up or booked; "
+    "itinerary: [{flight_number, origin, destination, status, ...}], the segments filled by the first lookup of the "
+    "session and rewritten only by book_new_flight. update_seat and later lookups leave it as it was, so it is not "
+    "necessarily the booking of confirmation_number; "
+    "passenger_name, seat_number, vouchers, compensation_case_id, special_service_note, ...")
 
 
 async def _no_stream(event):
@@ -156,7 +181,7 @@ class CsDemoDomain:
         return _call(env, tool, args)
 
     def snapshot(self, env: Env) -> dict:
-        return {"context": {"session": env.state.model_dump(mode="json")},
+        return {"facts": facts(), "context": {"session": env.state.model_dump(mode="json")},
                 "trace": {str(i): dict(s) for i, s in enumerate(env.trace)}}
 
     def targets(self, goal_id: str) -> list[dict]:
