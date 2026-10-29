@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Pause, Play, ShieldCheck, X } from "lucide-react";
-import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Policy, type Ratified } from "../api";
+import { DOMAIN_NAME, api, useGet, type Domain, type ForbiddenGoal, type Hole, type Policy, type Ratified } from "../api";
 import { Call, Crumbs, Failure, Loading, Muse, PRACTICE, Ticker, changedFields, classCWhy, goldLine, holeHref, humanize, lineOf, quote, reduced, usd } from "../ui";
 
 export function HoleView({ domain, hkey, muse }: { domain: Domain; hkey: string; muse: boolean }) {
@@ -16,7 +16,7 @@ export function HoleView({ domain, hkey, muse }: { domain: Domain; hkey: string;
         {crumbs}
         {hole.error?.status === 404 ? (
           <section className="panel empty-state">
-            <h1 className="h2">Hole {hkey} is not in the latest {domain} report</h1>
+            <h1 className="h2">Hole {hkey} is not in the latest {DOMAIN_NAME[domain]} report</h1>
             <p>A newer audit may have replaced the report it came from.</p>
             <a className="btn" href={`#/${domain}/report`}>Open the latest report</a>
           </section>

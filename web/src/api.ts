@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 // csdemo: the airline agents of openai-cs-agents-demo (RA1); the API has no bench for it.
 export type Domain = "airline" | "retail" | "csdemo";
 export const DOMAINS: Domain[] = ["airline", "retail", "csdemo"];
+// The name a heading or a crumb uses: "the customer service policy", not the route id "csdemo".
+export const DOMAIN_NAME: Record<Domain, string> = { airline: "airline", retail: "retail", csdemo: "customer service" };
 
 // C4 v1.2 report (01 v1.7 classes), with the C7 amendment fields a hole may carry.
 export type Verdict = { rule_id: string; ok: boolean; policy_ref: string; error?: string | null };

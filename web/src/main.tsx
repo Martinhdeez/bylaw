@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useRef, useState, type KeyboardEvent as KeyEv } from "react";
 import { createRoot } from "react-dom/client";
 import { Database, FileWarning, Gauge, Moon, PanelLeftClose, PanelLeftOpen, PlayCircle, Radio, Search, Sun, type LucideIcon } from "lucide-react";
-import { DOMAINS, api, useGet, type Domain, type Report } from "./api";
+import { DOMAINS, DOMAIN_NAME, api, useGet, type Domain, type Report } from "./api";
 import { Logo, Ticker, when } from "./ui";
 import { Audit } from "./screens/Audit";
 import { ReportView } from "./screens/Report";
@@ -122,7 +122,7 @@ function App() {
         </nav>
         <div className="rail-foot">
           {r && (
-            <div className="meter" aria-label={`Muse Spark usage in the latest ${domain} report`}>
+            <div className="meter" aria-label={`Muse Spark usage in the latest ${DOMAIN_NAME[domain]} report`}>
               <span className="k">Muse Spark tokens</span>
               <Ticker className="v" value={r.stats.tokens} />
               <span className="s">
@@ -132,7 +132,7 @@ function App() {
           )}
           <span className="source" data-testid="data-source">
             <Database size={11} aria-hidden="true" />
-            <span>{report.loading ? "Loading latest report…" : r ? `${domain} report, ${when(r.run.started)}${r.run.commit ? `, ${r.run.commit.slice(0, 7)}` : ""}` : report.error?.status === 404 ? `No ${domain} report yet` : "API not reachable"}</span>
+            <span>{report.loading ? "Loading latest report…" : r ? `${DOMAIN_NAME[domain]} report, ${when(r.run.started)}${r.run.commit ? `, ${r.run.commit.slice(0, 7)}` : ""}` : report.error?.status === 404 ? `No ${DOMAIN_NAME[domain]} report yet` : "API not reachable"}</span>
           </span>
           <button className="theme-t" onClick={flip} aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"} data-tip={collapsed ? (theme === "light" ? "Dark theme" : "Light theme") : undefined}>
             {theme === "light" ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
@@ -156,13 +156,12 @@ function Palette({ domain, collapsed, theme, onToggle, onTheme, onClose }: {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
   const go = (h: string) => () => { location.hash = h; };
-  const other = DOMAINS.find((d) => d !== domain)!;
   const items = [
     { label: "Run an audit", icon: PlayCircle, hint: "Audit", run: go("#/") },
-    { label: `Open the ${domain} report`, icon: FileWarning, hint: "Report", run: go(`#/${domain}/report`) },
+    { label: `Open the ${DOMAIN_NAME[domain]} report`, icon: FileWarning, hint: "Report", run: go(`#/${domain}/report`) },
     { label: "Compare Muse with blind BFS", icon: Gauge, hint: "Bench", run: go(`#/${domain}/bench`) },
     { label: "Watch the live run", icon: Radio, hint: "Live", run: go("#/live") },
-    { label: `Switch to ${other}`, icon: Database, hint: "Domain", run: go(`#/${other}/report`) },
+    ...DOMAINS.filter((d) => d !== domain).map((d) => ({ label: `Switch to ${DOMAIN_NAME[d]}`, icon: Database, hint: "Domain", run: go(`#/${d}/report`) })),
     { label: collapsed ? "Expand the sidebar" : "Collapse the sidebar", icon: collapsed ? PanelLeftOpen : PanelLeftClose, hint: "View", run: onToggle },
     { label: theme === "light" ? "Use the dark theme" : "Use the light theme", icon: theme === "light" ? Moon : Sun, hint: "View", run: onTheme },
   ].filter((i) => (i.label + " " + i.hint).toLowerCase().includes(q.trim().toLowerCase()));

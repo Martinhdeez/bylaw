@@ -296,7 +296,7 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── audit ───────────────────────────────────────── */
-.domains { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.domains { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .domain { text-align: left; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; transition: border-color .25s, transform .3s var(--spring); }
 .domain:hover { border-color: var(--line-2); transform: translateY(-2px); }
 .domain:active { transform: translateY(0) scale(.99); }
