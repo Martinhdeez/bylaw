@@ -229,3 +229,9 @@ def test_amend_prompt_names_the_paid_booking_and_does_not_tie_the_itinerary_to_i
     assert re.match(r"confirmation_number[^;]*booking[^;]*issue_compensation", conf), names
     itin = names[names.index("itinerary"):]
     assert re.match(r"itinerary[^;]*not[^;]*booking", itin), names
+    # on an empty session update_seat loads the disrupted trip under any confirmation: scenario is not the booking's
+    env = cs.fresh_env()
+    cs.call(env, "update_seat", confirmation_number="LL0EZ6", new_seat="23A")
+    assert session(cs, env)["scenario"] == "disrupted"
+    scen = names[names.index("scenario:"):]
+    assert re.match(r"scenario:[^;]*not[^;]*confirmation_number", scen), names

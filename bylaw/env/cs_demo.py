@@ -58,11 +58,12 @@ GOLD = [
 RULE_NAMES = (
     "- args: the call's arguments (dict); res and user: always None in this domain; db: the snapshot "
     '{"context": {"session": {...}}, "trace": {"0": {"tool", "args", "ok"}, ...}} (every earlier call of the '
-    "conversation, in order); now: ISO time string. Session fields: "
+    "conversation, in order); now: ISO time string. Session fields (a write tool called on an empty session first "
+    "fills the missing ones from the demo's 'disrupted' trip; a lookup fills only the missing ones): "
     "confirmation_number: the booking the session acts on, and the booking issue_compensation pays; update_seat "
-    "sets it to its argument; "
-    "scenario: the demo scenario of the last lookup ('on_time' or 'disrupted'), whose vouchers issue_compensation "
-    "issues; "
+    "sets it to its argument and changes no other booking field; "
+    "scenario: the demo trip last loaded ('on_time' or 'disrupted'), whose vouchers issue_compensation issues, not "
+    "necessarily the trip of confirmation_number's booking; "
     "flight_number: the flight last looked up or booked; "
     "itinerary: [{flight_number, origin, destination, status, ...}], the segments filled by the first lookup of the "
     "session and rewritten only by book_new_flight. update_seat and later lookups leave it as it was, so it is not "
