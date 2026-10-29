@@ -1,0 +1,190 @@
+{
+  "name": "dm3-l-status",
+  "guard": false,
+  "model": "muse-spark-1.3",
+  "started": "2026-10-29T06:02:53+00:00",
+  "events": [
+    {
+      "t": 0.0,
+      "type": "user",
+      "text": "What's the status of flight PA441?"
+    },
+    {
+      "t": 1.845,
+      "type": "agent_message",
+      "agent": "Triage Agent",
+      "text": "I'll check the status of PA441 for you."
+    },
+    {
+      "t": 1.846,
+      "type": "handoff",
+      "from": "Triage Agent",
+      "to": "Flight Information Agent"
+    },
+    {
+      "t": 3.087,
+      "type": "agent_message",
+      "agent": "Flight Information Agent",
+      "text": "Checking PA441's current status now."
+    },
+    {
+      "t": 3.087,
+      "type": "tool_call",
+      "agent": "Flight Information Agent",
+      "tool": "flight_status_tool",
+      "args": {
+        "flight_number": "PA441"
+      }
+    },
+    {
+      "t": 3.089,
+      "type": "bylaw_check",
+      "tool": "flight_status_tool",
+      "allowed": true,
+      "rule_id": null,
+      "policy_ref": null,
+      "enforced": false
+    },
+    {
+      "t": 3.089,
+      "type": "tool_output",
+      "tool": "flight_status_tool",
+      "output": "Flight PA441 (Paris (CDG) to New York (JFK)) | Status: Delayed 5 hours due to weather, expected departure 19:55 | Gate: B18 | Scheduled 2024-12-09 14:10 -> 2024-12-09 17:40 | This delay will cause a missed connection to NY802. Reaccommodation is recommended."
+    },
+    {
+      "t": 3.089,
+      "type": "state",
+      "diff": {
+        "context": {
+          "session": {
+            "before": {
+              "passenger_name": null,
+              "confirmation_number": null,
+              "seat_number": null,
+              "flight_number": null,
+              "account_number": null,
+              "itinerary": null,
+              "baggage_claim_id": null,
+              "compensation_case_id": null,
+              "scenario": null,
+              "vouchers": null,
+              "special_service_note": null,
+              "origin": null,
+              "destination": null
+            },
+            "after": {
+              "passenger_name": "Morgan Lee",
+              "confirmation_number": "IR-D204",
+              "seat_number": "14C",
+              "flight_number": "PA441",
+              "account_number": null,
+              "itinerary": [
+                {
+                  "flight_number": "PA441",
+                  "origin": "Paris (CDG)",
+                  "destination": "New York (JFK)",
+                  "departure": "2024-12-09 14:10",
+                  "arrival": "2024-12-09 17:40",
+                  "status": "Delayed 5 hours due to weather, expected departure 19:55",
+                  "gate": "B18"
+                },
+                {
+                  "flight_number": "NY802",
+                  "origin": "New York (JFK)",
+                  "destination": "Austin (AUS)",
+                  "departure": "2024-12-09 19:10",
+                  "arrival": "2024-12-09 22:35",
+                  "status": "Connection missed because of first leg delay",
+                  "gate": "C7"
+                }
+              ],
+              "baggage_claim_id": null,
+              "compensation_case_id": null,
+              "scenario": "disrupted",
+              "vouchers": null,
+              "special_service_note": null,
+              "origin": "Paris (CDG)",
+              "destination": "Austin (AUS)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "t": 5.168,
+      "type": "agent_message",
+      "agent": "Flight Information Agent",
+      "text": "PA441 is delayed 5 hours \u2014 that will cause a missed connection, so I'll find alternatives."
+    },
+    {
+      "t": 5.168,
+      "type": "tool_call",
+      "agent": "Flight Information Agent",
+      "tool": "get_matching_flights",
+      "args": {
+        "destination": "New York (JFK)",
+        "origin": "Paris (CDG)"
+      }
+    },
+    {
+      "t": 5.17,
+      "type": "bylaw_check",
+      "tool": "get_matching_flights",
+      "allowed": true,
+      "rule_id": null,
+      "policy_ref": null,
+      "enforced": false
+    },
+    {
+      "t": 5.17,
+      "type": "tool_output",
+      "tool": "get_matching_flights",
+      "output": "Matching flights:\nNY950 New York (JFK) -> Austin (AUS) dep 2024-12-10 09:45 arr 2024-12-10 12:30 | seat 2A (front row) | Partner flight secured with auto-reaccommodation for disrupted travelers\nNY982 New York (JFK) -> Austin (AUS) dep 2024-12-10 13:20 arr 2024-12-10 16:05 | seat 3C | Backup option if the morning flight is full\nThese options arrive in Austin the next day. Overnight hotel and meals are covered."
+    },
+    {
+      "t": 5.17,
+      "type": "state",
+      "diff": {}
+    },
+    {
+      "t": 7.94,
+      "type": "agent_message",
+      "agent": "Flight Information Agent",
+      "text": "Flight PA441 (Paris CDG \u2192 New York JFK) Status:\n\n**Delayed 5 hours due to weather** - expected departure 19:55\n- Scheduled: 2024-12-09 14:10 \u2192 17:40\n- Gate: B18\n- \u26a0\ufe0f This delay will cause a missed connection to NY802. Reaccommodation is recommended.\n\nI found alternative options to get you to Austin the next day (overnight hotel + meals covered):\n\n1. **NY950** JFK \u2192 AUS dep 2024-12-10 09:45 arr 12:30 | seat 2A (front row) - Partner flight secured with auto-reaccommodation\n2. **NY982** JFK \u2192 AUS dep 2024-12-10 13:20 arr 16:05 | seat 3C - Backup option\n\nI'm connecting you to our Booking agent now to secure your rebooking on the best available option.\n"
+    }
+  ],
+  "final_state": {
+    "passenger_name": "Morgan Lee",
+    "confirmation_number": "IR-D204",
+    "seat_number": "14C",
+    "flight_number": "PA441",
+    "account_number": null,
+    "itinerary": [
+      {
+        "flight_number": "PA441",
+        "origin": "Paris (CDG)",
+        "destination": "New York (JFK)",
+        "departure": "2024-12-09 14:10",
+        "arrival": "2024-12-09 17:40",
+        "status": "Delayed 5 hours due to weather, expected departure 19:55",
+        "gate": "B18"
+      },
+      {
+        "flight_number": "NY802",
+        "origin": "New York (JFK)",
+        "destination": "Austin (AUS)",
+        "departure": "2024-12-09 19:10",
+        "arrival": "2024-12-09 22:35",
+        "status": "Connection missed because of first leg delay",
+        "gate": "C7"
+      }
+    ],
+    "baggage_claim_id": null,
+    "compensation_case_id": null,
+    "scenario": "disrupted",
+    "vouchers": null,
+    "special_service_note": null,
+    "origin": "Paris (CDG)",
+    "destination": "Austin (AUS)"
+  }
+}
