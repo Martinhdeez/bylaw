@@ -1,6 +1,6 @@
 # Checklist 06 — Showcase: scan and fix, visible
 
-Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 9 / 12.
+Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 10 / 12.
 
 - [x] **CS1** Spike on openai-cs-agents-demo — assistant — go with changes (`.scratch/cs-demo-spike.md`)
 - [x] **UI6** Copy and bench fixes — designer — PR #34
@@ -12,5 +12,5 @@ Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 9 / 12.
 - [x] **VZ1** Scan and Fix views prototype — designer — approved by the user (v4.3 mix, see plan decisions)
 - [x] **VZ2** Scan and Fix views on csdemo — designer — PR #40
 - [ ] **DM3** Usefulness eval, unguarded vs guarded — builder (after DM2)
-- [ ] **RA1** Ratify API accepts csdemo — builder
+- [x] **RA1** Ratify API accepts csdemo — builder — PR #43
 - [ ] **UI7** Open findings and de-slop of the other screens — designer
