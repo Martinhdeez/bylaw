@@ -8,7 +8,7 @@ Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 8 / 11.
 - [x] **VN1** Vendor demo backend — assistant — PR #37
 - [x] **CS2** `csdemo` domain — builder + test-author — PR #38
 - [x] **CS3** Agents guard + live runner — builder + test-author — PR #35
-- [ ] **DM2** csdemo demo data — builder (after CS2, CS3)
+- [x] **DM2** csdemo demo data — builder + test-author — PR #41
 - [x] **VZ1** Scan and Fix views prototype — designer — approved by the user (v4.3 mix, see plan decisions)
 - [x] **VZ2** Scan and Fix views on csdemo — designer — PR #40
 - [ ] **DM3** Usefulness eval, unguarded vs guarded — builder (after DM2)
