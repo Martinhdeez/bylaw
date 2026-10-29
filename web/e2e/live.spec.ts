@@ -124,3 +124,32 @@ test("exactly one segment of the run switch is pressed", async ({ page }) => {
   await page.getByRole("button", { name: "Without Bylaw" }).click();
   await expect(pressed()).toHaveText(["Without Bylaw"]);
 });
+
+// The unguarded run with one voucher that states no amount, in its state diffs and its final state.
+const unstated = (file: string, run: any) => {
+  if (file !== "csdemo-d1.json") return;
+  const strip = (v: string[]) => v.map((x, i) => (i === 0 ? "Overnight hotel near JFK Terminal 5 partner hotel" : x));
+  for (const e of run.events) if (e.type === "state" && e.diff.context?.session?.after?.vouchers) e.diff.context.session.after.vouchers = strip(e.diff.context.session.after.vouchers);
+  run.final_state.vouchers = strip(run.final_state.vouchers);
+};
+
+test("a voucher without an amount makes the face value not stated", async ({ page }) => {
+  await mockApi(page, { liveEdit: unstated });
+  await open(page, AT.paid);
+  await expect(page.getByTestId("paid")).toHaveText("not stated");
+  await expect(page.locator(".lv-ledger li").first()).toContainText("not stated");
+});
+
+test("both runs recorded, one amount not stated: the headline says so, not $0 or a missing run", async ({ page }) => {
+  await mockApi(page, { liveEdit: unstated });
+  await open(page, AT.result);
+  await expect(page.locator('[data-slot="headline"]')).toHaveText("Without Bylaw: not stated. With it: $0.");
+  await expect(page.getByTestId("result-before")).toHaveText("not stated");
+});
+
+test("guarded run only, no final state: the headline names the missing run, not side by side", async ({ page }) => {
+  await mockApi(page, { live: ["csdemo-d1-guard.json"], liveEdit: (_f, run) => void (run.final_state = null) });
+  await open(page, 30);
+  await expect(page.locator('[data-slot="headline"]')).toHaveText("With Bylaw: not stated. The run without it is not recorded.");
+  await expect(page.getByTestId("result-after")).toHaveText("not recorded");
+});

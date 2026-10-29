@@ -209,12 +209,13 @@ function Player({ before, after, film }: { before?: LiveRun; after?: LiveRun; fi
 function Headline({ part, at, inResult, before, after }: { part: { side: Side; run: LiveRun }; at: number; inResult: boolean; before?: LiveRun; after?: LiveRun }) {
   const b = paidOf(before), a = paidOf(after);
   let lead: string, claim: string, sub: string;
-  if (inResult && b !== null && a !== null) [lead, claim, sub] = [`${usd(b)} without Bylaw.`, `${usd(a)} with it.`, "The model proposes. The application decides."];
-  // One run recorded (e.g. only the guarded one): say what it paid and that the other side is missing.
-  else if (inResult && (a !== null || b !== null)) [lead, claim, sub] = a !== null
-    ? [`${usd(a)} with Bylaw.`, "The run without it is not recorded.", "The model proposes. The application decides."]
-    : [`${usd(b!)} without Bylaw.`, "The run with it is not recorded.", "The model proposes. The application decides."];
-  else if (inResult) [lead, claim, sub] = ["Without Bylaw and with it,", "side by side.", "The model proposes. The application decides."];
+  // Which runs exist decides the result headline; a run without a stated amount reads "not stated", never a number.
+  const tx = (v: number | null) => (v === null ? "not stated" : usd(v));
+  const thesis = "The model proposes. The application decides.";
+  if (inResult && before && after)
+    [lead, claim, sub] = b !== null && a !== null ? [`${usd(b)} without Bylaw.`, `${usd(a)} with it.`, thesis] : [`Without Bylaw: ${tx(b)}.`, `With it: ${tx(a)}.`, thesis];
+  else if (inResult && after) [lead, claim, sub] = [a !== null ? `${usd(a)} with Bylaw.` : "With Bylaw: not stated.", "The run without it is not recorded.", thesis];
+  else if (inResult) [lead, claim, sub] = [b !== null ? `${usd(b)} without Bylaw.` : "Without Bylaw: not stated.", "The run with it is not recorded.", thesis];
   else if (part.run.guard) [lead, claim, sub] = ["With Bylaw.", blockedIn(part.run) ? "The same action is stopped before it runs." : "Every action is checked before it runs.", narrate(part.run, at)];
   else [lead, claim, sub] = ["Without Bylaw.", b ? `The agents pay ${usd(b)} in vouchers.` : "The agents run every action they propose.", narrate(part.run, at)];
   const r = inResult ? after ?? before : part.run;

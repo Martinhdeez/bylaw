@@ -13,7 +13,7 @@ Branch `view/vz2-live`. The reference is the approved prototype `docs/plan/06-sh
   - Ledger. It is a neutral panel and turns paper (the receipt) once vouchers are issued.
 - Figures come only from the event files: voucher strings, case id and booking from the state diffs and `final_state`. The face value is summed from the voucher strings only when every voucher states an amount. Otherwise it reads "not stated".
 - `?film=1` hides the app rail and the player chrome, and autoplays. `?at=<seconds>` opens at a moment.
-- The Live view defaults to dark when no theme is stored. Other screens still follow the system. The theme toggle and tokens are unchanged.
+- Dark is the app's default when no theme is stored (review round 1). The theme toggle and tokens are unchanged.
 - Fira Sans and Fira Code are loaded for this screen only.
 - On phones the nav items are tighter, so four items fit at 390 px.
 
@@ -38,6 +38,14 @@ After CS3 merged, I checked the view against the real `uvicorn bylaw.api:app` wi
 - The list, the file and the playback all rendered from the real data, with no page errors and no horizontal scroll at 1440, 1240 and 390.
 - One fix: with a single run recorded, the result headline now states what that run paid and that the other run is missing ("$280 with Bylaw. The run without it is not recorded."). Before, it read as if both runs were compared.
 - No event file is committed.
+
+## Review round 1 (2026-10-29)
+
+- Which runs exist now decides the result headline. A run without a stated amount reads "not stated". Mock tests cover both cases the reviewer reproduced, plus a voucher with no amount.
+- The rule id is set in Fira Sans with tabular figures. Fira Code is reserved for the tool-call view.
+- Dark is now the default for the whole app. A theme stored with the toggle still wins. This was simpler than following hash changes into `#/live`.
+- The ledger fade is removed: the 200 ms blocked stamp is the only motion moment.
+- **Deliberate exception to the no-snake_case rule:** quoted agent and policy text is shown verbatim. This covers "What the agent was told" (the reject text names the tool, for example `issue_compensation`), "Policy source" and the chat. It is evidence and must not be paraphrased.
 
 ## Deviations from the reference
 

@@ -83,8 +83,8 @@ export const BFS_BENCH = { domain: "airline", budget: 2000, model: null, commit:
 export const LIVE = ["csdemo-d1.json", "csdemo-d1-guard.json"];
 const liveFx = (f: string) => fx(`live/${f}`);
 
-// `live` lists the event files /api/live serves (default both fixtures).
-export async function mockApi(page: Page, { partial = false, stored = true, fallback = false, fixture = "", edit = (_: any) => {}, bench = BENCH as object, live = LIVE } = {}) {
+// `live` lists the event files /api/live serves (default both fixtures); `liveEdit` changes one before it is served.
+export async function mockApi(page: Page, { partial = false, stored = true, fallback = false, fixture = "", edit = (_: any) => {}, bench = BENCH as object, live = LIVE, liveEdit = (_file: string, _run: any) => {} } = {}) {
   let report = fixture ? fx(fixture) : stored ? storedReport() : adjudicate(fx("airline.report.json"));
   if (fallback) {
     report.run = { ...report.run, mode: "bfs-fallback", model: null };
@@ -105,7 +105,10 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
     if (p === "/api/live") return route.fulfill(json(live.map((file) => ({ name: liveFx(file).name, guard: liveFx(file).guard, file }))));
     if (p.startsWith("/api/live/")) {
       const file = decodeURIComponent(p.slice("/api/live/".length));
-      return route.fulfill(live.includes(file) ? json(liveFx(file)) : json({ detail: `no live file ${file}` }, 404));
+      if (!live.includes(file)) return route.fulfill(json({ detail: `no live file ${file}` }, 404));
+      const run = liveFx(file);
+      liveEdit(file, run);
+      return route.fulfill(json(run));
     }
     if (p === "/api/domains") return route.fulfill(json(["airline", "retail"]));
     if (p === "/api/policy") return route.fulfill(json(policy));

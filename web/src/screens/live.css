@@ -78,7 +78,7 @@
 .lv-row.blk .lv-vd { animation: lv-stamp .2s var(--ease) both; }
 @keyframes lv-stamp { from { opacity: 0; transform: scale(.92); } }
 .lv-rule { margin-top: 6px; font-size: 13px; color: var(--muted); line-height: 1.45; }
-.lv-rule .id { font-family: var(--code); font-size: 12px; color: var(--ink-2); }
+.lv-rule .id { font-variant-numeric: tabular-nums; color: var(--ink-2); font-weight: 500; }
 .lv-rule .fact { display: block; margin-top: 2px; color: var(--ink-2); }
 .lv-out q { display: block; margin-top: 6px; color: var(--ink-2); }
 .lv-out { margin-top: 8px; font-size: 13px; }
@@ -91,7 +91,7 @@
 .lv-none { padding: 24px 16px; color: var(--faint); font-size: 14px; }
 
 /* the ledger: a neutral panel until something is paid out, then the one paper surface, the receipt */
-.lv-ledger { --l-ink: var(--ink); --l-muted: var(--faint); --l-rule: var(--line); background: var(--surface); border: 1px solid var(--line); color: var(--l-ink); border-radius: 12px; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; min-height: 0; transition: background .2s, color .2s; }
+.lv-ledger { --l-ink: var(--ink); --l-muted: var(--faint); --l-rule: var(--line); background: var(--surface); border: 1px solid var(--line); color: var(--l-ink); border-radius: 12px; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; min-height: 0; }
 .lv-ledger.issued { --l-ink: var(--paper-ink); --l-muted: var(--paper-muted); --l-rule: var(--paper-rule); background: var(--paper); border-color: transparent; }
 .lv-ledger h2 { font-size: 15px; font-weight: 600; }
 .lv-ledger dl { display: grid; gap: 0; font-size: 13px; }

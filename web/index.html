@@ -16,8 +16,8 @@
     <!-- Theme before the first paint: the stored choice, else the system preference. -->
     <script>
       try { var t = localStorage.getItem("bylaw.theme"); } catch (e) {}
-      // The Live view defaults to dark (VZ2), the other screens follow the system.
-      document.documentElement.dataset.theme = t === "light" || t === "dark" ? t : location.hash.startsWith("#/live") ? "dark" : matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      // Dark is the app's default (VZ2); a stored choice from the theme toggle wins.
+      document.documentElement.dataset.theme = t === "light" ? "light" : "dark";
     </script>
   </head>
   <body>
