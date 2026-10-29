@@ -208,3 +208,10 @@
 @keyframes lv-pop { from { opacity: 0; transform: scale(.85); } }
 .lv-scrub input { accent-color: var(--blue); }
 @media (prefers-reduced-motion: reduce) { .lv-row.blk .lv-vd, .lv-result .lv-big b { animation: none; } }
+
+/* Wider Live (user, 29 Oct): fill the main area up to 1640px with 32px side padding; the chat grows first, then the actions lane. */
+@media (min-width: 1241px) {
+  .main:has(.page.lvp) { padding-left: 32px; padding-right: 32px; }
+  .page.lvp { max-width: 1640px; }
+  .lv-grid { grid-template-columns: clamp(300px, 30%, 460px) minmax(0, 1fr) 300px; }
+}
