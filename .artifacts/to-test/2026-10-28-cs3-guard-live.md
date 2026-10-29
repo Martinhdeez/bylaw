@@ -12,8 +12,8 @@ Not a defect: nothing existed. The interception point is `FunctionTool.tool_inpu
 
 ## Change
 
-- `bylaw/proxy/agents_guard.py:56` `install(agents, domain_name="csdemo", ruleset=None, log=None)`: one `ToolInputGuardrail` named `bylaw` per FunctionTool; a second install replaces it (idempotent). The check (`:29`) reads `data.context.context.state`, builds the CS-C1 snapshot (`:18`) with the guard's own trace (allowed calls only, `ok: true`, keys from `"0"`), runs `rules.check` and names the first failing verdict in RuleSet order (`:37`). A private `_install(..., enforce=False)` records verdicts without blocking; the unguarded live run uses it.
-- `bylaw/live.py`: `run(script, guard, model, ruleset=None)` sets every demo agent, including the relevance and jailbreak guardrail agents, to `model` with reasoning effort low, disables tracing, and plays the turns with `Runner.run_streamed`. Stream events map to `user`, `agent_message`, `handoff`, `tool_call`, `bylaw_check` (from the guard log, `enforced` = `--guard`), `tool_output`, and `state` (C4 diff of the session after each write tool; `{}` for a blocked call). Header `model` is `MODEL` (default `muse-spark-1.3`); `final_state` is `state.model_dump(mode="json")`. `muse_model()` builds `OpenAIChatCompletionsModel` from the `bylaw.llm` client settings.
+- `bylaw/proxy/agents_guard.py:52` `install(agents, domain_name="csdemo", ruleset=None, log=None)`: one `ToolInputGuardrail` named `bylaw` per FunctionTool; a second install replaces it (idempotent). The check (`:25`) loads, on its first call, `ruleset or default_ruleset(domain_name)` (the C10 effective RuleSet) and `get_domain(domain_name).now`, reads `data.context.context.state`, builds the CS-C1 snapshot (`:14`) with the guard's own trace (allowed calls only, `ok: true`, keys from `"0"`), runs `rules.check` and names the first failing verdict in RuleSet order (`:33`). A private `_install(..., enforce=False)` records verdicts without blocking; the unguarded live run uses it.
+- `bylaw/live.py`: `run(script, guard, model, ruleset=None)` sets every demo agent, including the relevance and jailbreak guardrail agents, to `model` with reasoning effort low, disables tracing, and plays the turns with `Runner.run_streamed`. Stream events map to `user`, `agent_message`, `handoff`, `tool_call`, `bylaw_check` (from the guard log, `enforced` = `--guard`), `tool_output`, and `state` (C4 diff of the session after each of the domain's `write_tools`; `{}` for a blocked call). Header `model` is `MODEL` (default `muse-spark-1.3`); `final_state` is `state.model_dump(mode="json")`. `muse_model()` builds `OpenAIChatCompletionsModel` from the `bylaw.llm` client settings.
 - `bylaw/__main__.py`: `live --domain csdemo --script FILE [--guard] -o OUT`.
 - `bylaw/api.py`: `GET /api/live` (`name`, `guard` from the header, `file` with `.json`; non-JSON skipped) and `GET /api/live/{file}` (404 when absent or outside `<reports>/live/`).
 - `scripts/live/csdemo-d1.json`: the spike's two turns.
@@ -22,18 +22,19 @@ Not a defect: nothing existed. The interception point is `FunctionTool.tool_inpu
 
 | Behaviour | Before | After |
 |---|---|---|
-| Unit tests `tests/test_live.py` | collection error, no `bylaw.live` (`.scratch/after/cs3-guard-live/cs3-tests-first.txt`) | 10 passed (`.scratch/after/cs3-guard-live/cs3-tests-green.txt`) |
-| Live d1 on Muse, unguarded | no runner | 28 events, 4 checks, `issue_compensation` denied but not enforced, vouchers issued (`.scratch/after/cs3-guard-live/cs3-csdemo-d1.json`) |
-| Live d1 on Muse, `--guard` path | no runner | 27 events, `issue_compensation` blocked, agent got the Bylaw text, `vouchers` null (`.scratch/after/cs3-guard-live/cs3-csdemo-d1-guard.json`) |
+| Unit tests `tests/test_live.py` | collection error, no `bylaw.live` (`.scratch/after/cs3-guard-live/cs3-tests-first.txt`) | 11 passed (`.scratch/after/cs3-guard-live/cs3-tests-green.txt`) |
+| Acceptance `tests/acceptance/test_06_guard_live.py` (branch `test/06-guard-live`, run from a copy, offline) | not run | 12 passed, 1 deselected (the `live` one) (`.scratch/after/cs3-guard-live/cs3-tests-green.txt`) |
+| Unit tests with enforcement disabled (mutation) | — | 4 failed, 7 passed (`.scratch/after/cs3-guard-live/cs3-mutation-no-enforce.txt`) |
+| `python -m bylaw live --domain csdemo --script scripts/live/csdemo-d1.json --guard` on Muse, `BYLAW_EFFORT=low`, real hand RuleSet, empty ratified store | stand-in domain, no CLI run | 28 events, 4 checks, 0 denied; `issue_compensation` allowed by the hand RuleSet (reason names a missed connection, so `R-comp-delay` holds); vouchers issued on LL0EZ6 / FLT-123, an on-time booking: D1 reached through the guard (`.scratch/after/cs3-guard-live/cs3-csdemo-d1-guard.json`, `cs3-csdemo-d1-guard-summary.txt`) |
 
-The live runs used a stand-in RuleSet (`.scratch/cs3-live.py`): CS2's hand RuleSet `bylaw/rulesets/csdemo.json` and `bylaw.env.cs_demo` (for `now`) are not on `bylaw/build` yet, so `python -m bylaw live` itself cannot run yet. These files are therefore not committed to `reports/live/`.
+The guard did not block D1 because the hand RuleSet does not forbid it; that is the hole CS2's audit is meant to find and an amendment to close. The offline tests prove the block with a rule that denies it, ratified in a private store (`BYLAW_RATIFIED_DIR`), so the guard reads it through `default_ruleset` / `effective_ruleset`; one test also blocks with the hand RuleSet's own `R-comp-delay` (a reason with no delay). Evidence files under `.scratch/` are not committed (gitignored).
 
 ## Tests added
 
-`tests/test_live.py`, offline with a scripted fake model: blocked call not executed and state unchanged, allowed call runs, rules read the trace, install idempotent, event file per mode (check per tool call, order tool_call/bylaw_check/tool_output, handoffs never tool calls, enforced flag, state diffs), every demo agent on the given model with tracing off, the CLI, the d1 script, the API.
+`tests/test_live.py`, offline with a scripted fake model, on the real `csdemo` domain and its effective RuleSet: blocked call not executed and state unchanged (ratified test rule, and the hand RuleSet's own `R-comp-delay`), allowed call runs, rules read the trace, install idempotent, event file per mode (check per tool call, order tool_call/bylaw_check/tool_output, handoffs never tool calls, enforced flag, state diffs), every demo agent on the given model with tracing off, the CLI, the d1 script, the API.
 
 ## Out of scope / not done
 
-- Switch to `bylaw.env.cs_demo` for `now` and `write_tools` once CS2 merges (`agents_guard._now` already calls `get_domain(name).now`; `live.WRITE_TOOLS` is a copy of the CS-C1 list).
-- Committed event files in `reports/live/` (DM2, after CS2).
+- The unguarded live run was not repeated on the real domain (one live run, `--guard` only).
+- Committed event files in `reports/live/` (DM2).
 - The trace records `ok: true` at check time; a tool that then raises is not corrected.
