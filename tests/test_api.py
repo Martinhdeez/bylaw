@@ -114,6 +114,28 @@ def test_ratify_appends_once_and_the_ratified_view_shows_base_plus_patch(stores)
     assert json.loads((stores / "ratified" / "airline.json").read_text())["amendments"][0]["hole_key"] == "G1:T1QOBS"
 
 
+def test_csdemo_hole_from_the_committed_report_is_ratified_into_the_store(stores):
+    """RA1: the Ratify click works on csdemo. The committed ratified/csdemo.json is never touched."""
+    committed = api.ROOT / "ratified" / "csdemo.json"
+    before = committed.read_bytes()
+    report = json.loads((api.ROOT / "reports" / "csdemo.json").read_text())
+    (stores / "REPORTS" / "csdemo.json").write_text(json.dumps(report))
+    hole = next(h for h in report["holes"] if h["key"] == "D2:LL0EZ6")
+    assert client.get("/api/reports/latest", params={"domain": "csdemo"}).json() == report
+    assert client.get("/api/holes/D2:LL0EZ6", params={"domain": "csdemo"}).json() == hole
+    assert client.get("/api/policy", params={"domain": "csdemo"}).status_code == 200
+
+    r = client.post("/api/holes/D2:LL0EZ6/ratify", params={"domain": "csdemo"})
+    assert r.status_code == 200
+    assert r.json()["ratified"] is True and r.json()["amendment_id"] == hole["amendment"]["id"]
+    stored = json.loads((stores / "ratified" / "csdemo.json").read_text())
+    assert [a["hole_key"] for a in stored["amendments"]] == ["D2:LL0EZ6"]
+    view = client.get("/api/ratified", params={"domain": "csdemo"}).json()
+    assert view["domain"] == "csdemo" and view["ruleset"]["domain"] == "csdemo"
+    assert {f"D2:LL0EZ6/{p['id']}" for p in hole["amendment"]["rule_patch"]} <= {x["id"] for x in view["ruleset"]["tool_rules"]}
+    assert committed.read_bytes() == before
+
+
 def test_ratify_a_hole_without_amendment_is_409_and_unknown_hole_404(stores):
     (stores / "REPORTS" / "airline.json").write_text(json.dumps(REPORT))
     assert client.post("/api/holes/G2:XYZ/ratify", params={"domain": "airline"}).status_code == 409
@@ -234,6 +256,15 @@ def test_audit_becomes_latest_for_its_domain(stores):
     latest = client.get("/api/reports/latest", params={"domain": "airline"}).json()
     assert latest == client.get(f"/api/audits/{r.json()['id']}").json()["report"]
     assert list((stores / "CACHE").glob("airline-*.json"))
+
+
+def test_csdemo_audit_runs_and_becomes_latest_and_csdemo_bench_is_404(stores):
+    r = client.post("/api/audits", json={"domain": "csdemo", "use_llm": False, "budget": 5})
+    assert r.status_code == 202
+    assert events(r.json()["id"])[-1]["phase"] == "done"
+    report = client.get("/api/reports/latest", params={"domain": "csdemo"}).json()
+    assert report["run"]["domain"] == "csdemo"
+    assert client.get("/api/bench", params={"domain": "csdemo"}).status_code == 404
 
 
 def test_failing_audit_ends_in_error_event_and_error_status(monkeypatch):
