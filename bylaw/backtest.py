@@ -29,6 +29,8 @@ def _scenario_text(task) -> str:
 
 
 def load_gold(domain) -> list[dict]:
+    if hasattr(domain, "gold"):  # CS-C1: a domain with its own gold conversations (csdemo)
+        return domain.gold
     name = getattr(domain, "name", domain)
     tasks = json.loads((DATA_DIR / "tau2/domains" / name / "tasks.json").read_text())
     gold = []

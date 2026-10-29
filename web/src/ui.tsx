@@ -1,6 +1,6 @@
 import { AlertTriangle, ChevronRight, RotateCcw } from "lucide-react";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import type { ApiError, Change, Step } from "./api";
+import type { ApiError, Change, Hole, Step } from "./api";
 
 export const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -171,6 +171,18 @@ export function goldLine(tasks: string[], lead = "τ² grades this as correct in
   const t = tasks.length > 1 ? `tasks ${tasks.slice(0, -1).join(", ")} and ${tasks.at(-1)}` : `task ${tasks[0]}`;
   return `${lead} ${t}.`;
 }
+
+// Why a Class C entry is not counted, as report.classify decides it: a cancel then a rebook is the permitted method;
+// any other Class C goal was pre-registered as one the policy is silent on.
+export function classCWhy(h: Hole) {
+  const i = h.chain.findIndex((s) => s.tool === "cancel_reservation");
+  return i >= 0 && h.chain.slice(i + 1).some((s) => s.tool === "book_reservation")
+    ? "cancel and rebook inside a permitted cancel ground is the method the policy allows"
+    : "the policy is silent on this outcome, so it was pre-registered as an ambiguity";
+}
+
+// Class B: a gold task reaches the goal. Holds for a policy gap and for an ambiguity that practice resolves.
+export const PRACTICE = "A gold task reaches this outcome: the policy and the benchmark's practice disagree.";
 
 // Policy refs quote list items joined as " - "; show them one per line.
 export const quote = (ref: string) => ref.replace(/ - /g, "\n– ");

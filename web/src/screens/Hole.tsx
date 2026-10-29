@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Pause, Play, ShieldCheck, X } from "lucide-react";
 import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Policy, type Ratified } from "../api";
-import { Call, Crumbs, Failure, Loading, Muse, Ticker, changedFields, goldLine, holeHref, humanize, lineOf, quote, reduced, usd } from "../ui";
+import { Call, Crumbs, Failure, Loading, Muse, PRACTICE, Ticker, changedFields, classCWhy, goldLine, holeHref, humanize, lineOf, quote, reduced, usd } from "../ui";
 
 export function HoleView({ domain, hkey, muse }: { domain: Domain; hkey: string; muse: boolean }) {
   const hole = useGet<Hole>(`/api/holes/${encodeURIComponent(hkey)}?domain=${domain}`);
@@ -95,14 +95,14 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
           <h1 className="title">{name} <span className="mono-t">{target}</span></h1>
           <p className="lede">
             {h.class === "B"
-              ? `Policy vs practice, not counted as a hole: each step passes every rule and together they reach goal ${h.goal}, which the policy text forbids. ${goldLine(h.gold?.tasks ?? [])}`
+              ? `Policy vs practice, not counted as a hole: each step passes every rule and together they reach goal ${h.goal}. ${PRACTICE} ${goldLine(h.gold?.tasks ?? [])}`
               : h.class === "C"
-              ? `Class C ambiguity, not counted: each step passes every rule and together they reach goal ${h.goal}, but cancel and rebook inside a permitted cancel ground is the method the policy allows.`
+              ? `Class C ambiguity, not counted: each step passes every rule and together they reach goal ${h.goal}, but ${classCWhy(h)}.`
               : `Each step below passes every rule of the policy. Together they reach goal ${h.goal}, an outcome the policy forbids.`}
           </p>
         </div>
         <div className="ctl">
-          {h.class === "B" && <span className="tag amber">Class B, contradiction</span>}
+          {h.class === "B" && <span className="tag amber">Class B, policy vs practice</span>}
           {isFixed ? (
             <span className="tag green"><ShieldCheck aria-hidden="true" />Fixed and enforced</span>
           ) : h.amendment ? (
@@ -174,7 +174,7 @@ function Trace({ domain, h, goal, isFixed, lines, crumbs, muse }: {
             <li className={`outcome ${h.class === "B" ? "b" : ""} ${at >= n ? "" : "pending"}`} data-testid="outcome">
               <span className="node" aria-hidden="true" />
               <code translate="no">{h.goal} {goal?.name ?? name}</code>
-              {at >= n && <span className="verdict"><X aria-hidden="true" />{h.class === "B" ? "forbidden by the text, done by gold" : "forbidden"}</span>}
+              {at >= n && <span className="verdict"><X aria-hidden="true" />{h.class === "B" ? "forbidden goal, gold does it too" : "forbidden"}</span>}
             </li>
           </ol>
         </section>

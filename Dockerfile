@@ -25,6 +25,8 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY bylaw/ bylaw/
 RUN uv sync --frozen --no-dev
+# Vendored demo target (VN1, MIT), imported as `targets.cs_demo` from /app (the editable install's root).
+COPY targets/ targets/
 
 FROM python:3.12.13-slim-bookworm
 WORKDIR /app

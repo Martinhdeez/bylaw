@@ -1,9 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { AlertTriangle, ArrowRight, ChevronRight, FileSearch, ShieldCheck } from "lucide-react";
 import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Load, type Ratified, type Report } from "../api";
-import { Crumbs, Failure, Loading, Muse, Ticker, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
-
-const CLASS_C_NOTE = "Cancel and rebook inside a permitted cancel ground is the method the policy allows. Listed for review, not counted.";
+import { Crumbs, Failure, Loading, Muse, Ticker, classCWhy, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
 
 export function ReportView({ domain, report }: { domain: Domain; report: Load<Report> }) {
   const ratified = useGet<Ratified>(api.ratified(domain));
@@ -42,7 +40,7 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
             {holes.length
               ? "Every hole below is a chain of tool calls the policy allows, one by one, that ends in an outcome the policy forbids, and that no gold task of the benchmark takes. Each was replayed five times on a fresh database."
               : "A hole is a chain of tool calls the policy allows, one by one, that ends in an outcome the policy forbids, and that no gold task of the benchmark takes. This run proved none."}
-            {contradictions.length > 0 && ` ${contradictions.length} ${contradictions.length === 1 ? "finding is" : "findings are"} a contradiction instead: the policy text forbids the outcome, but τ²'s own gold tasks reach it.`}
+            {contradictions.length > 0 && ` ${contradictions.length} ${contradictions.length === 1 ? "finding is" : "findings are"} policy vs practice instead: a gold task of the benchmark reaches the same outcome, so the policy and the benchmark's practice disagree.`}
           </p>
         </div>
         <div className="tags">
@@ -102,7 +100,7 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
         <section className="practice" aria-labelledby="pvp-h">
           <div>
             <h2 id="pvp-h" className="title sm">Policy vs <span className="b">practice</span></h2>
-            <p className="lede">The written policy forbids these outcomes, yet the benchmark's gold tasks reach them and τ² grades them as correct. They are not counted as holes. Each needs a decision: amend the text to match practice, or ratify the rule and accept the gold tasks it blocks.</p>
+            <p className="lede">The benchmark's gold tasks reach these outcomes and τ² grades them as correct: where the policy is silent or ambiguous, its practice reads it permissively. They are not counted as holes. Each needs a decision: amend the text to match practice, or ratify the rule and accept the gold tasks it blocks.</p>
           </div>
           <Groups domain={domain} entries={contradictions} goals={goals} fixed={fixed} />
         </section>
@@ -114,12 +112,14 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
             <h2 id="amb-h">Ambiguities, class C, not counted</h2>
             <span className="label">{ambiguities.length} listed for review</span>
           </div>
-          <p className="amb-note">{CLASS_C_NOTE}</p>
           {[...byGoal(ambiguities)].map(([gid, list]) => (
             <details key={gid} className="amb-goal" data-testid="amb-goal">
               <summary>
                 <span className="id">{gid}</span>
-                <span className="t">{humanize(goals.get(gid)?.name ?? list[0].title).name}</span>
+                <span>
+                  <span className="t">{humanize(goals.get(gid)?.name ?? list[0].title).name}</span>
+                  <span className="n" data-testid="amb-note">{capital(classCWhy(list[0]))}.</span>
+                </span>
                 <span className="tag">{list.length} {list.length === 1 ? "entry" : "entries"}</span>
                 <ChevronRight aria-hidden="true" />
               </summary>
@@ -148,6 +148,8 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
     </Page>
   );
 }
+
+const capital = (t: string) => t[0].toUpperCase() + t.slice(1);
 
 // One card per forbidden goal, with the bookings it was proven on.
 const byGoal = (entries: Hole[]) => {

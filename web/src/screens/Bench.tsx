@@ -4,7 +4,7 @@ import { api, useGet, type Bench as BenchT, type Domain } from "../api";
 import { Crumbs, Failure, Loading, Muse, Ticker, int } from "../ui";
 
 const LABEL = { muse: "Muse-guided", bfs: "Blind BFS" } as const;
-const COLOR = { muse: "var(--violet-hi)", bfs: "var(--faint)" } as const;
+const COLOR = { muse: "var(--violet-hi)", bfs: "var(--faint)", off: "var(--muted)" } as const;
 const per1k = (holes: number, calls: number) => (calls ? (holes / calls) * 1000 : 0);
 
 export function Bench({ domain }: { domain: Domain }) {
@@ -30,6 +30,9 @@ export function Bench({ domain }: { domain: Domain }) {
   const asked = rows.some((r) => r.mode === "muse");
   const muse = model !== null ? rows.find((r) => r.mode === "muse") : undefined;
   const label = (m: Row["mode"]) => (m === "muse" && !muse ? "Muse unavailable" : LABEL[m]);
+  // A Muse row without a model searched as blind BFS: never in the Muse accent.
+  const color = (m: Row["mode"]) => (m === "muse" && !muse ? COLOR.off : COLOR[m]);
+  const cls = (k: "contradictions" | "ambiguities") => rows.map((r) => `${label(r.mode)} ${r[k] ?? "unknown"}`).join(", ");
   const bfs = rows.find((r) => r.mode === "bfs");
   const maxHoles = Math.max(1, ...rows.map((r) => r.holes));
   const ratio = muse && bfs && per1k(bfs.holes, bfs.tool_calls) > 0 ? per1k(muse.holes, muse.tool_calls) / per1k(bfs.holes, bfs.tool_calls) : null;
@@ -45,13 +48,13 @@ export function Bench({ domain }: { domain: Domain }) {
           {muse ? (
             <>
               <h1 className="title"><span className="v">Muse-guided</span> search against blind BFS</h1>
-              <p className="lede">Same {domain} policy, same budget of {int(budget)} tool calls, same depth limit. Muse Spark proposes chains per forbidden goal before BFS fills the rest of the budget.</p>
+              <p className="lede">Same {domain} policy, same budget of {int(budget)} tool calls, same depth limit, one run per mode. Muse Spark proposes chains per forbidden goal before BFS fills the rest of the budget.</p>
             </>
           ) : (
             <>
               <h1 className="title">Blind BFS search</h1>
               <p className="lede">
-                The {domain} policy searched by blind BFS on a budget of {int(budget)} tool calls. {asked ? "Muse unavailable: the Muse run got no answer from Muse Spark, so it searched as blind BFS too." : "No Muse Spark in this bench."}
+                The {domain} policy searched by blind BFS on a budget of {int(budget)} tool calls, one run per mode. {asked ? "Muse unavailable: the Muse run got no answer from Muse Spark, so it searched as blind BFS too." : "No Muse Spark in this bench."}
               </p>
             </>
           )}
@@ -63,10 +66,10 @@ export function Bench({ domain }: { domain: Domain }) {
         <section className="panel">
           <div className="panel-h">
             <h2>Holes proven by tool calls spent <span className="label">log scale</span></h2>
-            <div className="legend">{rows.map((r) => <span key={r.mode}><i style={{ background: COLOR[r.mode] }} />{label(r.mode)}</span>)}</div>
+            <div className="legend">{rows.map((r) => <span key={r.mode}><i style={{ background: color(r.mode) }} />{label(r.mode)}</span>)}</div>
           </div>
           <div className="chart">
-            <Curve rows={rows} budget={budget} max={maxHoles} label={label} />
+            <Curve rows={rows} budget={budget} max={maxHoles} label={label} color={color} />
           </div>
         </section>
 
@@ -83,7 +86,7 @@ export function Bench({ domain }: { domain: Domain }) {
                 </p>
               </>
             ) : (
-              <p>{muse && bfs ? "Blind BFS found no hole, so there is no ratio to show." : asked && !muse ? "Muse was unavailable, so there is nothing to compare. Check the Meta Model API and run the bench again." : <>This bench has one mode only. Run it with <code translate="no">--modes bfs,muse</code> to compare.</>}</p>
+              <p>{muse && bfs && !muse.holes ? `Neither mode proved a Class A hole, so there is no ratio to show. Policy vs practice, class B: ${cls("contradictions")}. Ambiguities, class C: ${cls("ambiguities")}.` : muse && bfs ? "Blind BFS found no hole, so there is no ratio to show." : asked && !muse ? "Muse was unavailable, so there is nothing to compare. Check the Meta Model API and run the bench again." : <>This bench has one mode only. Run it with <code translate="no">--modes bfs,muse</code> to compare.</>}</p>
             )}
           </section>
         </aside>
@@ -93,13 +96,15 @@ export function Bench({ domain }: { domain: Domain }) {
         <table className="btable">
           <caption className="sr-only">Bench results by mode</caption>
           <thead>
-            <tr><th>Mode</th><th>Holes found</th><th>Tool calls</th><th>Holes per 1,000 calls</th><th>LLM calls</th><th>Tokens</th><th>Wall time</th></tr>
+            <tr><th>Mode</th><th>Class A holes</th><th>Class B</th><th>Class C</th><th>Tool calls</th><th>Holes per 1,000 calls</th><th>LLM calls</th><th>Tokens</th><th>Wall time</th></tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.mode}>
-                <td><b style={{ color: COLOR[r.mode] }}>{label(r.mode)}</b></td>
+                <td><b style={{ color: color(r.mode) }}>{label(r.mode)}</b></td>
                 <td>{r.holes}</td>
+                <td>{r.contradictions ?? "–"}</td>
+                <td>{r.ambiguities ?? "–"}</td>
                 <td>{int(r.tool_calls)}</td>
                 <td>{per1k(r.holes, r.tool_calls).toFixed(2)}</td>
                 <td>{int(r.llm_calls)}</td>
@@ -119,7 +124,7 @@ const W = 720, H = 300, L = 40, B = 28, T = 16, R = 72;
 
 // Cumulative holes proven against tool calls spent, one step line per mode (C5 v1.6 `found`).
 // The lines draw in, the found points pop in along them, and a hover guide reads both counts at any budget.
-function Curve({ rows, budget, max, label }: { rows: Row[]; budget: number; max: number; label: (m: Row["mode"]) => string }) {
+function Curve({ rows, budget, max, label, color }: { rows: Row[]; budget: number; max: number; label: (m: Row["mode"]) => string; color: (m: Row["mode"]) => string }) {
   const svg = useRef<SVGSVGElement>(null), guide = useRef<SVGGElement>(null), tip = useRef<SVGTextElement>(null);
   const dots = useRef<Record<string, SVGCircleElement | null>>({});
   const span = Math.log10(Math.max(budget, 100)) - 1;
@@ -134,7 +139,7 @@ function Curve({ rows, budget, max, label }: { rows: Row[]; budget: number; max:
   };
   const first = (r: Row) => Math.min(...(r.found ?? []).map((f) => f.tool_calls));
   const summary = rows.map((r) => `${label(r.mode)} proves ${r.holes} holes${r.found?.length ? `, the first at call ${first(r)}` : ""}`).join("; ");
-  const muse = rows.find((r) => r.mode === "muse");
+  const muse = rows.find((r) => r.mode === "muse" && color(r.mode) === COLOR.muse);
 
   // Written straight to the SVG through refs: no React render per pointer move.
   const move = (e: PointerEvent<SVGSVGElement>) => {
@@ -169,19 +174,19 @@ function Curve({ rows, budget, max, label }: { rows: Row[]; budget: number; max:
       ))}
       {ticks.map((c) => <text key={c} x={x(c)} y={H - 6} textAnchor="middle">{int(c)}</text>)}
       {muse?.found?.length ? <path className="area" d={path(muse.found) + ` V${y(0)} Z`} fill="url(#area)" /> : null}
-      {rows.map((r) => (
+      {rows.map((r, i) => (
         <g key={r.mode}>
-          <path className="draw" pathLength={1} d={path(r.found ?? [])} fill="none" stroke={COLOR[r.mode]} strokeWidth={r.mode === "muse" ? 2.5 : 1.75} strokeLinejoin="round" />
+          <path className="draw" pathLength={1} d={path(r.found ?? [])} fill="none" stroke={color(r.mode)} strokeWidth={r.mode === "muse" ? 2.5 : 1.75} strokeLinejoin="round" />
           {sorted(r.found ?? []).map((p, i) => (
-            <circle key={i} className="dot" cx={x(p.tool_calls)} cy={y(i + 1)} r={r.mode === "muse" ? 3 : 2.5} fill={COLOR[r.mode]}
+            <circle key={i} className="dot" cx={x(p.tool_calls)} cy={y(i + 1)} r={r.mode === "muse" ? 3 : 2.5} fill={color(r.mode)}
               style={{ animationDelay: `${0.3 + ((x(p.tool_calls) - L) / (W - L - R)) * 1.6}s` }} />
           ))}
-          <text x={x(budget) + 12} y={y(r.found?.length ?? 0) + 4} style={{ fill: COLOR[r.mode], fontWeight: 700 }}>{r.found?.length ?? 0} {r.mode}</text>
+          <text x={x(budget) + 12} y={y(r.found?.length ?? 0) + (i && (rows[0].found?.length ?? 0) === (r.found?.length ?? 0) ? -10 : 4)} style={{ fill: color(r.mode), fontWeight: 700 }}>{r.found?.length ?? 0} {r.mode}</text>
         </g>
       ))}
       <g ref={guide} className="guide" aria-hidden="true">
         <line y1={T} y2={H - B} stroke="var(--muted)" strokeDasharray="2 3" />
-        {rows.map((r) => <circle key={r.mode} ref={(el) => void (dots.current[r.mode] = el)} r="5" fill="var(--surface)" stroke={COLOR[r.mode]} strokeWidth="2" />)}
+        {rows.map((r) => <circle key={r.mode} ref={(el) => void (dots.current[r.mode] = el)} r="5" fill="var(--surface)" stroke={color(r.mode)} strokeWidth="2" />)}
         <text ref={tip} y={T + 4} x="8" />
       </g>
     </svg>
