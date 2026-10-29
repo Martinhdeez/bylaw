@@ -210,6 +210,10 @@ function Headline({ part, at, inResult, before, after }: { part: { side: Side; r
   const b = paidOf(before), a = paidOf(after);
   let lead: string, claim: string, sub: string;
   if (inResult && b !== null && a !== null) [lead, claim, sub] = [`${usd(b)} without Bylaw.`, `${usd(a)} with it.`, "The model proposes. The application decides."];
+  // One run recorded (e.g. only the guarded one): say what it paid and that the other side is missing.
+  else if (inResult && (a !== null || b !== null)) [lead, claim, sub] = a !== null
+    ? [`${usd(a)} with Bylaw.`, "The run without it is not recorded.", "The model proposes. The application decides."]
+    : [`${usd(b!)} without Bylaw.`, "The run with it is not recorded.", "The model proposes. The application decides."];
   else if (inResult) [lead, claim, sub] = ["Without Bylaw and with it,", "side by side.", "The model proposes. The application decides."];
   else if (part.run.guard) [lead, claim, sub] = ["With Bylaw.", blockedIn(part.run) ? "The same action is stopped before it runs." : "Every action is checked before it runs.", narrate(part.run, at)];
   else [lead, claim, sub] = ["Without Bylaw.", b ? `The agents pay ${usd(b)} in vouchers.` : "The agents run every action they propose.", narrate(part.run, at)];

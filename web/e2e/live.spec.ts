@@ -110,7 +110,7 @@ test("one run only: the other side shows as not recorded, not as a number", asyn
   await open(page, 30);
   await expect(page.getByRole("button", { name: "Without Bylaw" })).toHaveCount(0);
   await page.getByRole("button", { name: "Result" }).click();
-  await expect(page.locator('[data-slot="headline"]')).toHaveText("Without Bylaw and with it, side by side.");
+  await expect(page.locator('[data-slot="headline"]')).toHaveText("$0 with Bylaw. The run without it is not recorded.");
   await expect(page.getByLabel("Without Bylaw", { exact: true })).toContainText("This run is not recorded.");
 });
 

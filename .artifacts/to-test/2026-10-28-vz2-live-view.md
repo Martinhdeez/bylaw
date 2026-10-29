@@ -31,6 +31,14 @@ Branch `view/vz2-live`. The reference is the approved prototype `docs/plan/06-sh
   - On phones the chat comes first.
 - The Impeccable detector runs on the built page (Vite against a static copy of the fixtures) at 1440 for both runs and the result, and at 390. One finding remains: the app rail's 11 px data-source line, which was already there before this change. The glowing violet shadow on the active nav item was removed.
 
+## Real API check (2026-10-29)
+
+After CS3 merged, I checked the view against the real `uvicorn bylaw.api:app` with `BYLAW_REPORTS_DIR` set to a scratch dir. Its `live/` folder held the CS3 recording `cs3-csdemo-d1-guard.json`: a guarded run in which nothing was blocked and $280 was paid out.
+
+- The list, the file and the playback all rendered from the real data, with no page errors and no horizontal scroll at 1440, 1240 and 390.
+- One fix: with a single run recorded, the result headline now states what that run paid and that the other run is missing ("$280 with Bylaw. The run without it is not recorded."). Before, it read as if both runs were compared.
+- No event file is committed.
+
 ## Deviations from the reference
 
 - The reference's Audit and Fix chapters are not in this view. Event files carry no audit or amendment data, and their counts were placeholders. The view plays the two recorded runs and the result.
