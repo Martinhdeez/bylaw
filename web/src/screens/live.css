@@ -189,3 +189,13 @@
 
 /* Live: the brand bar takes the top of the page */
 .main:has(.lvp) { padding-top: 32px; }
+
+/* UI7 colour pass: the chat is the airline's support widget, white in both themes, with blue bubbles. */
+.panel.lv-chat { background: #ffffff; border-color: rgba(20, 35, 70, 0.16); color: #121a2b; }
+.lv-chat .lv-ph { border-color: rgba(20, 35, 70, 0.1); }
+.lv-chat .lv-ph h2 { color: #121a2b; }
+.lv-chat .me { background: #1f5fd6; border-color: #1f5fd6; color: #ffffff; }
+.lv-chat .ag { align-self: flex-start; background: #e6efff; color: #121a2b; padding: 8px 12px; border-radius: 12px 12px 12px 4px; }
+.lv-chat .ag small { color: #3d4a63; font-weight: 500; }
+.lv-chat .note { color: #5f6a80; }
+.lv-seg button[aria-pressed="true"], .lv-btn[aria-pressed="true"] { background: var(--blue-soft); border-color: var(--blue-edge); color: var(--ink); }

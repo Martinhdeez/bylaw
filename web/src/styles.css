@@ -733,3 +733,68 @@ b, strong, h1, h2, h3 { font-weight: 600; }
 .diffdoc .note { border-color: var(--green-edge); }
 .code { font-family: var(--code); }
 .domain .n .ck { background: var(--ink); color: var(--ground); }
+
+/* ── UI7 colour pass (user, 29 Oct): a tinted navy dark theme, a cool tinted light theme, one blue for interaction ──
+   Blue = interactive (links, primary buttons, current page, focus, selection). Verdicts keep green, red and amber;
+   Muse keeps violet. Surfaces rise in visible steps; borders are visible. Contrast checked: body text >= 14:1,
+   secondary >= 5:1, blue text >= 4.8:1, white on blue buttons >= 5:1, in both themes. */
+:root {
+  --ground: #1b2233;
+  --surface: #232c40;
+  --step: #2b3550;
+  --raise: #34405e;
+  --line: rgba(170, 190, 230, 0.16);
+  --line-2: rgba(170, 190, 230, 0.3);
+  --hover: rgba(255, 255, 255, 0.05);
+  --track: rgba(170, 190, 230, 0.2);
+  --ink: #f4f7fc;
+  --ink-2: #dbe2ee;
+  --muted: #b4bfd2;
+  --faint: #9aa7bf;
+  --red: #ff6b4f;
+  --red-soft: rgba(255, 107, 79, 0.15);
+  --red-edge: rgba(255, 107, 79, 0.55);
+  --green: #34e0a1;
+  --amber: #ffb84d;
+  --amber-soft: rgba(255, 184, 77, 0.14);
+  --amber-edge: rgba(255, 184, 77, 0.5);
+  --blue: #8ab4ff;
+  --blue-btn: #2563eb;
+  --blue-btn-hi: #1d55d4;
+  --blue-soft: rgba(96, 150, 255, 0.18);
+  --blue-edge: rgba(138, 180, 255, 0.6);
+}
+:root[data-theme="light"] {
+  --ground: #eef1f6;
+  --surface: #f8fafd;
+  --step: #e9edf4;
+  --raise: #dde3ee;
+  --line: rgba(20, 35, 70, 0.13);
+  --line-2: rgba(20, 35, 70, 0.24);
+  --hover: rgba(20, 35, 70, 0.04);
+  --track: rgba(20, 35, 70, 0.14);
+  --ink: #121a2b;
+  --ink-2: #2a3448;
+  --muted: #4a556b;
+  --faint: #5a657b;
+  --blue: #1f5fd6;
+  --blue-btn: #1f5fd6;
+  --blue-btn-hi: #174bb0;
+  --blue-soft: rgba(31, 95, 214, 0.1);
+  --blue-edge: rgba(31, 95, 214, 0.45);
+}
+:focus-visible, .nav a:focus-visible, .opt input:focus-visible { outline-color: var(--blue); }
+.link, .page a.link { color: var(--blue); }
+.btn.primary { background: var(--blue-btn); color: #fff; }
+.btn.primary:hover { background: var(--blue-btn-hi); }
+.btn.primary .ic { background: rgba(255, 255, 255, 0.18); }
+.opt input[type=checkbox]:checked { background: var(--blue-btn); }
+.opt input[type=checkbox]:checked::after { background: #fff; }
+.runbar .tape { background: var(--blue); }
+.nav a[aria-current="page"]::before { background: var(--blue-soft); box-shadow: inset 0 0 0 1px var(--blue-edge); }
+.nav a[aria-current="page"], .nav a[aria-current="page"] svg { color: var(--ink); }
+.nav a[aria-current="page"] svg { color: var(--blue); }
+.domain[aria-checked="true"] { border-color: var(--blue-edge); box-shadow: inset 0 0 0 1px var(--blue-edge); background: var(--step); }
+.domain .n .ck { background: var(--blue-btn); color: #fff; }
+.rail { background: var(--surface); border-color: var(--line); }
+.hole-mark, .closing::before { background: var(--red-soft); }
