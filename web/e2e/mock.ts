@@ -79,7 +79,12 @@ export const BFS_BENCH = { domain: "airline", budget: 2000, model: null, commit:
 
 // `fallback` serves the report as 01 v1.9 `bfs-fallback`: Muse requested, all 3 calls failed, model null.
 // `fixture` serves that report file as it is, without adjudication; `edit` changes it; `bench` replaces the bench.
-export async function mockApi(page: Page, { partial = false, stored = true, fallback = false, fixture = "", edit = (_: any) => {}, bench = BENCH as object } = {}) {
+// CS-C3 v1.2 event files, built from the VZ1 spike transcripts until DM2 records real ones: fixtures/live/.
+export const LIVE = ["csdemo-d1.json", "csdemo-d1-guard.json"];
+const liveFx = (f: string) => fx(`live/${f}`);
+
+// `live` lists the event files /api/live serves (default both fixtures); `liveEdit` changes one before it is served.
+export async function mockApi(page: Page, { partial = false, stored = true, fallback = false, fixture = "", edit = (_: any) => {}, bench = BENCH as object, live = LIVE, liveEdit = (_file: string, _run: any) => {} } = {}) {
   let report = fixture ? fx(fixture) : stored ? storedReport() : adjudicate(fx("airline.report.json"));
   if (fallback) {
     report.run = { ...report.run, mode: "bfs-fallback", model: null };
@@ -97,6 +102,14 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
     const hole = p.startsWith("/api/holes/") ? decodeURIComponent(p.split("/")[3]) : "";
     if (domain === "retail" && p !== "/api/audits") return route.fulfill(json({ detail: "no report for retail" }, 404));
 
+    if (p === "/api/live") return route.fulfill(json(live.map((file) => ({ name: liveFx(file).name, guard: liveFx(file).guard, file }))));
+    if (p.startsWith("/api/live/")) {
+      const file = decodeURIComponent(p.slice("/api/live/".length));
+      if (!live.includes(file)) return route.fulfill(json({ detail: `no live file ${file}` }, 404));
+      const run = liveFx(file);
+      liveEdit(file, run);
+      return route.fulfill(json(run));
+    }
     if (p === "/api/domains") return route.fulfill(json(["airline", "retail"]));
     if (p === "/api/policy") return route.fulfill(json(policy));
     if (p === "/api/reports/latest") return route.fulfill(json(report));

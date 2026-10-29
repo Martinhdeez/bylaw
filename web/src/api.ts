@@ -64,13 +64,26 @@ export type Bench = {
   }[];
 };
 
+// CS-C3 v1.2 live run event file (docs/plan/06-showcase/contracts.md).
+export type LiveEntry = { name: string; guard: boolean; file: string };
+export type LiveEvent = { t: number } & (
+  | { type: "user"; text: string }
+  | { type: "agent_message"; agent: string; text: string }
+  | { type: "handoff"; from: string; to: string }
+  | { type: "tool_call"; agent: string; tool: string; args: Record<string, unknown> }
+  | { type: "bylaw_check"; tool: string; allowed: boolean; rule_id: string | null; policy_ref: string | null; enforced: boolean }
+  | { type: "tool_output"; tool: string; output: string }
+  | { type: "state"; diff: Record<string, Record<string, Change>> }
+);
+export type LiveRun = { name: string; guard: boolean; model: string | null; started: string; events: LiveEvent[]; final_state: Record<string, unknown> | null };
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
   }
 }
 
-async function call<T>(path: string, init?: RequestInit): Promise<T> {
+export async function call<T>(path: string, init?: RequestInit): Promise<T> {
   let r: Response;
   try {
     r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...init });
@@ -87,6 +100,8 @@ export const api = {
   policy: (d: Domain) => `/api/policy?${q(d)}`,
   ratified: (d: Domain) => `/api/ratified?${q(d)}`,
   bench: (d: Domain) => `/api/bench?${q(d)}`,
+  live: () => "/api/live",
+  liveFile: (file: string) => `/api/live/${encodeURIComponent(file)}`,
   startAudit: (body: { domain: Domain; use_llm: boolean; budget: number; amend: boolean }) =>
     call<{ id: string }>("/api/audits", { method: "POST", body: JSON.stringify(body) }),
   audit: (id: string) => call<Audit>(`/api/audits/${encodeURIComponent(id)}`),
