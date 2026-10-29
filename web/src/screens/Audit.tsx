@@ -16,6 +16,12 @@ const ABOUT: Record<Domain, { label: string; docket: string; desc: string; tools
     desc: "Orders, exchanges, returns and address changes for an online store.",
     tools: ["cancel_pending_order", "exchange_delivered_order_items", "return_delivered_order_items", "modify_pending_order_items"],
   },
+  csdemo: {
+    label: "Airline customer service (OpenAI demo)",
+    docket: "03",
+    desc: "The agents of OpenAI's customer service demo: seats, rebooking, cancellations and compensation.",
+    tools: ["update_seat", "book_new_flight", "cancel_flight", "issue_compensation", "assign_special_service_seat"],
+  },
 };
 
 // The phases are the articles of the run, Art. I to Art. V.

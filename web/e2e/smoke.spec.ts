@@ -17,7 +17,7 @@ test("offline audit to ratified amendment", async ({ page }) => {
   // 1. Offline audit.
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Audit a policy" })).toBeVisible();
-  await page.getByRole("radio", { name: /Airline/ }).click();
+  await page.getByRole("radio", { name: /τ² Airline/ }).click();
   await page.getByLabel("Use Muse Spark").uncheck();
   await page.getByRole("button", { name: "Run audit" }).click();
   await expect(page.getByRole("link", { name: "Open report" })).toBeVisible({ timeout: 540_000 });
