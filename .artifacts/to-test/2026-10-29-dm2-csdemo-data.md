@@ -91,7 +91,7 @@ In `tests/test_cs_demo_domain.py`:
 
 ## Known red / out of scope
 
-- `tests/acceptance/test_06_csdemo.py::test_REQ_CS2_1_fresh_env_snapshot_is_an_empty_session_and_trace` asserts `set(snap) == {"context", "trace"}` and fails on the v1.5 `facts` key (`acceptance-snapshot-shape.txt`). The test author is updating it on `test/06-csdemo-v15`. It is not edited here.
+- `tests/acceptance/test_06_csdemo.py::test_REQ_CS2_1_fresh_env_snapshot_is_an_empty_session_and_trace` failed on the v1.5 `facts` key before the test author's update (`acceptance-snapshot-shape.txt`). `origin/test/06-csdemo-v15` (7b9ba80) is merged here; with it the file passes: 48 passed, 1 deselected (the live test).
 - The API's ratify endpoint does not accept `csdemo` (`bylaw/api.py:25`, `Domain = Literal["airline", "retail"]`). VZ2's "click Ratify on camera" (P4) needs that widened.
 - `test_REQ_CS2_4` (live) was not re-run on v1.5; only the CLI amend take was.
 - I did not update the storyboard from these figures.
