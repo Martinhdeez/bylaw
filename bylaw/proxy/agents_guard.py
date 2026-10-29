@@ -11,10 +11,6 @@ from bylaw.proxy.core import default_ruleset
 NAME = "bylaw"
 
 
-def _now(domain_name: str) -> str:
-    return get_domain(domain_name).now
-
-
 def snapshot(state, trace: list[dict]) -> dict:
     """CS-C1 snapshot of a live AirlineAgentContext and the guard's trace."""
     return {"context": {"session": state.model_dump(mode="json")}, "trace": {str(n): s for n, s in enumerate(trace)}}
@@ -24,17 +20,17 @@ def _install(agents, domain_name, ruleset, log, enforce: bool) -> None:
     """install, with enforce=False for a run that records the verdicts without blocking (the unguarded live run)."""
     # ponytail: one trace per state object for the guard's lifetime; states stay referenced until the guard goes
     traces: dict[int, tuple[object, list[dict]]] = {}
-    effective = None
+    effective = now = None
 
     def check(data):
-        nonlocal effective
-        if effective is None:
-            effective = ruleset or default_ruleset(domain_name)
+        nonlocal effective, now
+        if effective is None:  # on the first call, so an install never reads the store or builds the domain
+            effective, now = ruleset or default_ruleset(domain_name), get_domain(domain_name).now
         ctx = data.context
         state = ctx.context.state
         trace = traces.setdefault(id(state), (state, []))[1]
         tool, args = ctx.tool_name, json.loads(ctx.tool_arguments or "{}")
-        denied = next((v for v in rules.check(effective, snapshot(state, trace), tool, args, _now(domain_name))
+        denied = next((v for v in rules.check(effective, snapshot(state, trace), tool, args, now)
                        if not v.ok), None)
         if log is not None:
             log.append({"tool": tool, "args": args, "allowed": denied is None,

@@ -11,23 +11,29 @@ from fastapi.testclient import TestClient
 from openai.types.responses import (Response, ResponseCompletedEvent, ResponseFunctionToolCall, ResponseOutputMessage,
                                     ResponseOutputText)
 
-from bylaw import api, live
+from bylaw import api, live, ratified
 from bylaw.proxy import agents_guard
 from targets.cs_demo.airline import tools as T
 from targets.cs_demo.airline.context import create_initial_context
 
-NOW = "2024-12-09T12:00:00"
-# Test RuleSet (CS2's hand RuleSet is not merged yet): FLT-123 is on time in the demo data, so no vouchers for it.
+# The hand RuleSet's R-comp-delay allows any voucher whose reason names a delay or missed connection, so it does not
+# block D1. The tests deny with one ratified-style rule on top: FLT-123 is on time in the demo data.
 NO_VOUCHERS = {"id": "T-comp-disrupted", "tool": "issue_compensation",
                "allow_if": "db['context']['session']['flight_number'] != 'FLT-123'",
                "policy_ref": "Vouchers only for a disrupted flight.", "note": ""}
-RULESET = {"domain": "csdemo", "tool_rules": [NO_VOUCHERS], "forbidden_goals": []}
+STORE = {"domain": "csdemo", "amendments": [{"hole_key": "D1:none", "rule_patch": [NO_VOUCHERS]}]}
 
 
 @pytest.fixture(autouse=True)
-def fixed_now(monkeypatch):
-    monkeypatch.setattr(agents_guard, "_now", lambda name: NOW)
+def ratified_store(tmp_path, monkeypatch):
+    """The effective csdemo RuleSet is the real hand RuleSet plus NO_VOUCHERS, ratified in a private store."""
+    monkeypatch.setenv("BYLAW_RATIFIED_DIR", str(tmp_path / "ratified"))
+    (tmp_path / "ratified").mkdir()
+    (tmp_path / "ratified" / "csdemo.json").write_text(json.dumps(STORE))
     monkeypatch.delenv("MODEL", raising=False)
+
+
+RULESET = ratified.effective_ruleset("csdemo", STORE)
 
 
 def call(name, args, n=[0]):
@@ -65,7 +71,7 @@ class FakeModel(Model):
         yield ResponseCompletedEvent(type="response.completed", response=resp, sequence_number=0)
 
 
-def run_agent(tool, args, log=None, ruleset=RULESET, state=None):
+def run_agent(tool, args, log=None, ruleset=None, state=None):
     """One agent with a private copy of `tool`, asked to call it once and then answer."""
     agent = Agent(name="A", tools=[dataclasses.replace(tool)], model=FakeModel([[call(tool.name, args)], [say("done")]]))
     agents_guard.install([agent], ruleset=ruleset, log=log)
@@ -90,6 +96,15 @@ def test_forbidden_call_is_not_executed_and_the_agent_reads_the_rejection():
     assert state.vouchers is None and state.compensation_case_id is None
     assert log == [{"tool": "issue_compensation", "args": {"reason": "missed connection"}, "allowed": False,
                     "rule_id": "T-comp-disrupted", "policy_ref": "Vouchers only for a disrupted flight."}]
+
+
+def test_the_hand_rulesets_own_rule_blocks_a_voucher_without_a_delay(monkeypatch, tmp_path):
+    monkeypatch.setenv("BYLAW_RATIFIED_DIR", str(tmp_path / "empty"))  # no ratified rules: the hand RuleSet alone
+    hand = json.loads((live.ROOT / "bylaw/rulesets/csdemo.json").read_text())
+    ref = next(r["policy_ref"] for r in hand["tool_rules"] if r["id"] == "R-comp-delay")
+    _, state, outputs = run_agent(T.issue_compensation, {"reason": "goodwill gesture"}, state=on_time_state())
+    assert outputs == [f"Bylaw: blocked issue_compensation: R-comp-delay {ref}"]
+    assert state.vouchers is None and state.compensation_case_id is None
 
 
 def test_allowed_call_runs_and_is_logged_allowed():
@@ -144,7 +159,7 @@ def flight_info_to_triage(turns):
 
 @pytest.mark.parametrize("guard", [False, True])
 def test_live_event_file_has_a_check_for_every_tool_call(guard):
-    out = live.run(SCRIPT, guard=guard, model=FakeModel(flight_info_to_triage(d1_turns())), ruleset=RULESET)
+    out = live.run(SCRIPT, guard=guard, model=FakeModel(flight_info_to_triage(d1_turns())))
     ev = out["events"]
     assert (out["name"], out["guard"], out["model"]) == ("d1", guard, "muse-spark-1.3")
     assert [e["t"] for e in ev] == sorted(e["t"] for e in ev)
@@ -180,7 +195,7 @@ def test_every_demo_agent_runs_on_the_given_model_with_tracing_off():
     from agents.tracing import get_trace_provider
     from targets.cs_demo.airline import agents as A, guardrails as G
     fake = FakeModel(flight_info_to_triage(d1_turns()))
-    live.run(SCRIPT, guard=True, model=fake, ruleset=RULESET)
+    live.run(SCRIPT, guard=True, model=fake)
     every = [a for a in vars(A).values() if isinstance(a, Agent)] + [G.guardrail_agent, G.jailbreak_guardrail_agent]
     assert all(a.model is fake for a in every)
     assert get_trace_provider()._disabled
@@ -191,7 +206,6 @@ def test_live_cli_writes_the_event_file(tmp_path, monkeypatch):
     script = tmp_path / "s.json"
     script.write_text(json.dumps(SCRIPT))
     monkeypatch.setattr(live, "muse_model", lambda: FakeModel(flight_info_to_triage(d1_turns())))
-    monkeypatch.setattr(agents_guard, "default_ruleset", lambda name: RULESET)
     main(["live", "--domain", "csdemo", "--script", str(script), "--guard", "-o", str(tmp_path / "o.json")])
     data = json.loads((tmp_path / "o.json").read_text())
     assert data["guard"] is True and data["final_state"]["vouchers"] is None

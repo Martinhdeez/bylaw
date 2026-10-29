@@ -10,14 +10,11 @@ from chatkit.types import ThreadMetadata
 from pydantic import Field
 
 from bylaw import llm
+from bylaw.domain import get_domain
 from bylaw.executor import diff
 from bylaw.proxy import agents_guard
 from bylaw.ratified import ROOT
 from targets.cs_demo.airline.context import AirlineAgentChatContext, create_initial_context
-
-# CS-C1 write_tools; ponytail: copied until CS2's bylaw.env.cs_demo merges, then read domain.write_tools
-WRITE_TOOLS = {"update_seat", "book_new_flight", "assign_special_service_seat", "issue_compensation", "cancel_flight",
-               "get_trip_details", "flight_status_tool", "get_matching_flights"}
 
 
 class Ctx(AirlineAgentChatContext):
@@ -54,7 +51,7 @@ async def _run(script: dict, guard: bool, model, ruleset, domain_name) -> dict:
             A.booking_cancellation_agent, A.refunds_compensation_agent]
     for ag in main + [G.guardrail_agent, G.jailbreak_guardrail_agent]:  # every model call goes to `model`
         ag.model, ag.model_settings = model, ModelSettings(reasoning=Reasoning(effort="low"))
-    log = []
+    write_tools, log = get_domain(domain_name).write_tools, []
     agents_guard._install(main, domain_name, ruleset, log, enforce=guard)
 
     t0, events = time.monotonic(), []
@@ -88,7 +85,7 @@ async def _run(script: dict, guard: bool, model, ruleset, domain_name) -> dict:
                          policy_ref=c["policy_ref"], enforced=guard)
                 tool = names[it.raw_item["call_id"]]
                 emit("tool_output", tool=tool, output=str(it.output))
-                if tool in WRITE_TOOLS:
+                if tool in write_tools:
                     now = _session(state)
                     emit("state", diff=diff(last, now))
                     last = now
