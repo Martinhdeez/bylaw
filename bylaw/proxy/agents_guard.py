@@ -13,7 +13,9 @@ NAME = "bylaw"
 
 def snapshot(state, trace: list[dict]) -> dict:
     """CS-C1 snapshot of a live AirlineAgentContext and the guard's trace."""
-    return {"context": {"session": state.model_dump(mode="json")}, "trace": {str(n): s for n, s in enumerate(trace)}}
+    from bylaw.env.cs_demo import facts  # v1.5: the airline's record, as in the domain snapshot
+
+    return {"facts": facts(), "context": {"session": state.model_dump(mode="json")}, "trace": {str(n): s for n, s in enumerate(trace)}}
 
 
 def _install(agents, domain_name, ruleset, log, enforce: bool) -> None:

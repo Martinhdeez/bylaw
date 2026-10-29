@@ -1,0 +1,9 @@
+{
+  "name": "dm3-l-cancel",
+  "kind": "legit",
+  "action": "cancel_flight",
+  "turns": [
+    "What's the status of flight FLT-123?",
+    "My plans changed. Please cancel my flight FLT-123, confirmation LL0EZ6."
+  ]
+}

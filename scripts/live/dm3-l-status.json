@@ -1,0 +1,8 @@
+{
+  "name": "dm3-l-status",
+  "kind": "legit",
+  "action": "flight_status_tool",
+  "turns": [
+    "What's the status of flight PA441?"
+  ]
+}

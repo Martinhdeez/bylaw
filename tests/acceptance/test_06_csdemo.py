@@ -1,6 +1,6 @@
 """Acceptance tests for CS2: the `csdemo` domain over the vendored airline customer-service demo.
 
-Written blind from docs/plan/06-showcase/00-plan.md (REQ-CS2-1..4) and contracts.md v1.4 (CS-C0, CS-C1, v1.1, v1.3 rule 3, v1.4),
+Written blind from docs/plan/06-showcase/00-plan.md (REQ-CS2-1..4) and contracts.md v1.5 (CS-C0, CS-C1, v1.1, v1.3 rule 3, v1.4, v1.5),
 with C1/C2/C4/C8 from docs/plan/01-engine and 02-amend. Fixture values come from the demo source at
 upstream commit bd7bfca (airline/demo_data.py, tools.py, agents.py):
 
@@ -61,6 +61,13 @@ DISRUPTED_SESSION = dict(FRESH_SESSION, passenger_name="Morgan Lee", confirmatio
                          scenario="disrupted", origin="Paris (CDG)", destination="Austin (AUS)")
 DISRUPTED_VOUCHERS = ["Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel",
                       "$60 meal credit for the delay", "$40 ground transport credit to the hotel"]
+# v1.5: the airline's record, one booking per fixture itinerary, flights from its segments.
+FACTS = {"bookings": {
+    "IR-D204": {"flights": [{"flight_number": seg["flight_number"], "status": seg["status"], "on_time": False}
+                            for seg in DISRUPTED_SEGMENTS], "on_time": False},
+    "LL0EZ6": {"flights": [{"flight_number": "FLT-123", "status": "On time and operating as scheduled",
+                            "on_time": True}], "on_time": True},
+}}
 
 
 @pytest.fixture(scope="module")
@@ -154,7 +161,7 @@ def test_REQ_CS2_1_policy_text_has_one_section_per_agent_with_its_instructions(d
 
 def test_REQ_CS2_1_fresh_env_snapshot_is_an_empty_session_and_trace(domain):
     snap = domain.snapshot(domain.fresh_env())
-    assert set(snap) == {"context", "trace"}
+    assert set(snap) == {"context", "trace", "facts"}
     assert set(snap["context"]) == {"session"}
     assert snap["context"]["session"] == FRESH_SESSION
     assert snap["trace"] == {}
@@ -174,6 +181,33 @@ def test_REQ_CS2_1_call_runs_the_tool_directly_on_the_env_state(domain, monkeypa
     r = domain.call(env, "update_seat", confirmation_number="IR-D204", new_seat="10B")
     assert r.ok is True
     assert session(domain, env) == dict(DISRUPTED_SESSION, seat_number="10B")
+
+
+def test_REQ_CS2_1_v1_5_facts_hold_one_booking_per_fixture_itinerary(domain):
+    assert domain.snapshot(domain.fresh_env())["facts"] == FACTS
+
+
+def test_REQ_CS2_1_v1_5_booking_on_time_is_every_flight_on_time(domain):
+    bookings = domain.snapshot(domain.fresh_env())["facts"]["bookings"]
+    for conf, booking in bookings.items():
+        assert booking["on_time"] is all(f["on_time"] for f in booking["flights"]), conf
+    assert (bookings["IR-D204"]["on_time"], bookings["LL0EZ6"]["on_time"]) == (False, True)
+
+
+def test_REQ_CS2_1_v1_5_facts_are_constant_across_tool_calls(domain):
+    env = domain.fresh_env()
+    steps = [("flight_status_tool", {"flight_number": "FLT-123"}),
+             ("get_trip_details", {"message": PARIS}),
+             ("update_seat", {"confirmation_number": "ZZ9Q7X", "new_seat": "10B"}),
+             ("issue_compensation", {"reason": "Delay causing missed connection"}),
+             ("book_new_flight", {"flight_number": "NY950"}),
+             ("assign_special_service_seat", {"seat_request": "front row for medical needs"}),
+             ("cancel_flight", {}),
+             ("update_seat", {})]  # a failing call must not touch facts either
+    for tool, args in steps:
+        domain.call(env, tool, **args)
+        assert domain.snapshot(env)["facts"] == FACTS, tool
+    assert domain.snapshot(domain.fresh_env())["facts"] == FACTS
 
 
 def test_REQ_CS2_1_each_fresh_env_has_its_own_state(domain):
