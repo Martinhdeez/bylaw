@@ -12,6 +12,17 @@ export function Bench({ domain }: { domain: Domain }) {
   const crumbs = <Crumbs items={[[`${domain} bench`]]} />;
 
   if (bench.loading) return <div className="page">{crumbs}<Loading what="the bench" shape="bench" /></div>;
+  if (domain === "csdemo")
+    return (
+      <div className="page">
+        {crumbs}
+        <h1 className="title">No bench for this domain</h1>
+        <section className="panel empty-state">
+          <span className="shield"><Gauge aria-hidden="true" /></span>
+          <p>The bench compares Muse-guided search with blind BFS on the τ² airline and retail policies. The customer service demo is audited and enforced, not benchmarked.</p>
+        </section>
+      </div>
+    );
   if (bench.error?.status === 404)
     return (
       <div className="page">

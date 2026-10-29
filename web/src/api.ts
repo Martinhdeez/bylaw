@@ -1,8 +1,9 @@
 // Client for the Bylaw HTTP API, contract C9 (docs/plan/03-product/contracts.md).
 import { useEffect, useState } from "react";
 
-export type Domain = "airline" | "retail";
-export const DOMAINS: Domain[] = ["airline", "retail"];
+// csdemo: the airline agents of openai-cs-agents-demo (RA1); the API has no bench for it.
+export type Domain = "airline" | "retail" | "csdemo";
+export const DOMAINS: Domain[] = ["airline", "retail", "csdemo"];
 
 // C4 v1.2 report (01 v1.7 classes), with the C7 amendment fields a hole may carry.
 export type Verdict = { rule_id: string; ok: boolean; policy_ref: string; error?: string | null };
