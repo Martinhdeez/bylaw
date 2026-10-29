@@ -186,6 +186,8 @@ const PRE_C: Record<string, string> = {
 // then a cancel followed by a rebook for the same user, the method the policy allows.
 export function classCWhy(h: Hole) {
   if (PRE_C[h.goal]) return PRE_C[h.goal];
+  // ponytail: owner comes from the diff (before ?? after) while report.classify reads the DB snapshot. They agree on
+  // every real chain, since a cancel always puts its reservation in the diff; if they ever diverge, have the report carry the owner.
   const owner = (rid: unknown) => {
     const c = h.diff.reservations?.[String(rid)];
     return (c?.before ?? c?.after)?.user_id;

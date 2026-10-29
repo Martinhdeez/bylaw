@@ -22,18 +22,17 @@ test("Class B copy never says the policy text forbids the outcome (REQ-UI6-1)", 
   await expect(lede).toContainText(PRACTICE);
   await expect(page.locator(".page")).not.toContainText(/policy text forbids|written policy forbids/);
 
-  // The first finding of every Class B group (gold tasks 32, 7, 25 and 18 in the mock), not task 32 alone.
+  // The first finding of every Class B group (gold tasks 32, 7 and 18 in the mock), not task 32 alone.
   const keys = await page.locator('[aria-labelledby$="-B"] .instances li:first-child a').evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
-  expect(keys.length).toBeGreaterThan(1);
+  expect(keys.length).toBe(await page.locator('[aria-labelledby$="-B"]').count());
+  expect(keys.length).toBe(3);
   for (const key of keys) {
     await page.goto("/" + key);
     await expect(lede).toContainText(PRACTICE);
     await expect(page.locator(".page")).not.toContainText(/policy text forbids|forbidden by the text/);
-    if (await page.getByRole("link", { name: /amendment/i }).count()) {
-      await page.goto("/" + key + "/amendment");
-      await expect(lede).toContainText(PRACTICE);
-      await expect(page.locator(".page")).not.toContainText("policy text forbids");
-    }
+    await page.goto("/" + key + "/amendment");
+    await expect(lede).toContainText(PRACTICE);
+    await expect(page.locator(".page")).not.toContainText("policy text forbids");
   }
 });
 

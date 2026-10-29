@@ -14,7 +14,7 @@ Branch `view/ui7`. This fixes the four UI6 findings listed under "Open findings 
    - Anything else reads "it was listed as an ambiguity for review".
    - The report does not carry a goal's registered class, so the list is copied from `CLASS_C_GOALS` and the `cls="C"` retail goals. A `ponytail:` comment marks the copy.
 3. `Report.tsx` gives the Class C reason on each entry. The group summary shows the shared reason, or "The reason differs by entry, see each one."
-4. `ui6.spec.ts` now checks the Class B copy on the first finding of every Class B group: tasks 32, 7, 25 and 18 in the mock, not task 32 alone.
+4. `ui6.spec.ts` now checks the Class B copy on the first finding of every Class B group: tasks 32, 7 and 18 in the mock, not task 32 alone.
 
 ## How to test
 
