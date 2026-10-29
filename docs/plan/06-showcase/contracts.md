@@ -1,4 +1,4 @@
-# 06 contracts (v1.4, frozen 2026-10-28)
+# 06 contracts (v1.5, frozen 2026-10-29)
 
 Shared by test authors and builders of CS2 and CS3. A change is a new version announced to both sides.
 
@@ -93,3 +93,10 @@ Gold conversations: at least 6, covering a real disruption compensation (Paris t
 2. Writes after the payment (a later `flight_status_tool` or `update_seat` that overwrites the session) do not change D1. Writes before the payment do: `update_seat(LL0EZ6, ...)` then `issue_compensation` is D1, because the payment was made against the on-time booking LL0EZ6.
 3. Hole key: `D1:<confirmation_number at the moment of payment>`.
 4. v1.3 rule 3 (`closes` meaning) stands.
+
+## v1.5 (2026-10-29) — the app's own facts in the snapshot, from DM2
+
+1. The CS-C1 snapshot gains a third top-level key, `facts`, read-only data from the demo's own fixture (the airline's systems), not from the agent session: `{"facts": {"bookings": {"<confirmation_number>": {"flights": [{"flight_number", "status", "on_time"}], "on_time": bool}}}}`, one entry per fixture itinerary. `on_time` per booking is true when every flight is on time (v1.1 rule 5 per flight).
+2. `facts` is the same in every snapshot of a run; no tool writes it. Rules may read it, for example `facts.bookings[context.session.confirmation_number].on_time`.
+3. The amend prompt describes `facts` as the airline's record, and the session fields as what the conversation has set.
+4. Goals D1–D4 are unchanged (v1.4).
