@@ -800,7 +800,7 @@ b, strong, h1, h2, h3 { font-weight: 600; }
 .hole-mark, .closing::before { background: var(--red-soft); }
 
 /* ── UI7 colour pass 2 (user, 29 Oct): darker indigo dark, violet back as the brand, blue second, colour with intent ──
-   Violet = brand and primary action (logo crack, primary buttons, current page, focus) and Muse (lighter tint).
+   Violet = brand and primary action (primary buttons, current page, focus) and Muse (lighter tint).
    Blue = links, selection, the Live transport, the customer's chat bubbles. Each stat and metric carries its own accent:
    violet run/Muse, red holes and money lost, amber policy vs practice, blue search and calls, green passes and closes.
    Verdicts stay green allowed, red blocked, amber warning. Text contrast checked by script: AA or better everywhere. */
@@ -866,8 +866,7 @@ b, strong, h1, h2, h3 { font-weight: 600; }
   --glow: 0.3;
 }
 
-/* brand: violet crack in the logo, a bigger sidebar lockup */
-.crack { stroke: var(--violet); }
+/* brand: a bigger sidebar lockup; the logo itself is unchanged */
 .lockup svg { width: 42px; height: 42px; }
 .lockup b { font-size: 26px; }
 .collapsed .lockup svg { width: 32px; height: 32px; }

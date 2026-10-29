@@ -20,7 +20,6 @@ export function Logo({ id = "mN3" }: { id?: string }) {
         </mask>
       </defs>
       <rect x="8" y="8" width="104" height="104" rx="28" fill="currentColor" mask={`url(#${id})`} />
-      <path className="crack" d="M122.0 6.0 L109.3 12.7 L107.5 25.3 L92.0 33.6 L90.0 47.9 L73.5 57.3 L66.2 73.0 L52.3 76.6 L45.5 94.7 L31.0 101.9 L22.0 118.0" fill="none" stroke="#9152ff" strokeWidth="3" strokeLinejoin="round" />
       <circle cx="65.0" cy="72.6" r="7.6" fill="#07090E" stroke="#9152ff" strokeWidth="5" />
     </svg>
   );
