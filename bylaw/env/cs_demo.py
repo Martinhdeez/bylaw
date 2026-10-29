@@ -57,10 +57,17 @@ GOLD = [
 # What amend's system prompt says the rule names are (the default text describes the tau2 airline DB).
 RULE_NAMES = (
     "- args: the call's arguments (dict); res and user: always None in this domain; db: the snapshot "
-    '{"context": {"session": {passenger_name, confirmation_number, seat_number, flight_number, itinerary: '
-    '[{flight_number, origin, destination, status, ...}], scenario, vouchers, compensation_case_id, '
-    'special_service_note, ...}}, "trace": {"0": {"tool", "args", "ok"}, ...}} (every earlier call of the '
-    "conversation, in order); now: ISO time string.")
+    '{"context": {"session": {...}}, "trace": {"0": {"tool", "args", "ok"}, ...}} (every earlier call of the '
+    "conversation, in order); now: ISO time string. Session fields: "
+    "confirmation_number: the booking the session acts on, and the booking issue_compensation pays; update_seat "
+    "sets it to its argument; "
+    "scenario: the demo scenario of the last lookup ('on_time' or 'disrupted'), whose vouchers issue_compensation "
+    "issues; "
+    "flight_number: the flight last looked up or booked; "
+    "itinerary: [{flight_number, origin, destination, status, ...}], the segments filled by the first lookup of the "
+    "session and rewritten only by book_new_flight. update_seat and later lookups leave it as it was, so it is not "
+    "necessarily the booking of confirmation_number; "
+    "passenger_name, seat_number, vouchers, compensation_case_id, special_service_note, ...")
 
 
 async def _no_stream(event):

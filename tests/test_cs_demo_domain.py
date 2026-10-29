@@ -214,3 +214,18 @@ def test_muse_templates_bind_to_csdemo_targets(cs):
     gen = search(cs, RULESET, 4, use_llm=True, llm=llm)
     first = next(gen)
     assert first[0][0] == "update_seat" and first[0][1]["confirmation_number"] in {"IR-D204", "LL0EZ6"}
+
+
+def test_amend_prompt_names_the_paid_booking_and_does_not_tie_the_itinerary_to_it(cs):
+    # CS2 review finding 1: update_seat moves confirmation_number to another booking and leaves the itinerary as it
+    # was, so the prompt must say which session field is the booking being paid and that itinerary may not be its.
+    env = cs.fresh_env()
+    cs.call(env, "get_trip_details", message="Paris to New York")
+    cs.call(env, "update_seat", confirmation_number="LL0EZ6", new_seat="21C")
+    s = session(cs, env)
+    assert s["confirmation_number"] == "LL0EZ6" and s["itinerary"][0]["flight_number"] == "PA441"
+    names = re.sub(r"\s+", " ", cs.rule_names)
+    conf = names[names.index("confirmation_number"):]
+    assert re.match(r"confirmation_number[^;]*booking[^;]*issue_compensation", conf), names
+    itin = names[names.index("itinerary"):]
+    assert re.match(r"itinerary[^;]*not[^;]*booking", itin), names
