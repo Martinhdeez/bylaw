@@ -101,6 +101,7 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
     const p = url.pathname;
     const hole = p.startsWith("/api/holes/") ? decodeURIComponent(p.split("/")[3]) : "";
     if (domain === "retail" && p !== "/api/audits") return route.fulfill(json({ detail: "no report for retail" }, 404));
+    if (domain === "csdemo" && p === "/api/bench") return route.fulfill(json({ detail: "no bench for csdemo" }, 404));
 
     if (p === "/api/live") return route.fulfill(json(live.map((file) => ({ name: liveFx(file).name, guard: liveFx(file).guard, file }))));
     if (p.startsWith("/api/live/")) {
