@@ -197,7 +197,8 @@
 .lv-chat .ag ul { margin: 4px 0 0 18px; }
 .lv-chat .ag li { max-width: none; }
 .lv-chat .ag b { font-weight: 600; color: #0b1020; }
-.lv-vd.blk { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--red-soft); border: 1px solid var(--red-edge); box-shadow: 0 0 22px -6px rgba(255, 107, 90, var(--glow)); }
+:root[data-theme="light"] .lv-vd.blk { color: #a3260b; }
+.lv-vd.blk { color: var(--coral); display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--red-soft); border: 1px solid var(--red-edge); box-shadow: 0 0 22px -6px rgba(255, 107, 90, var(--glow)); }
 .lv-row.blk .lv-vd { animation: lv-stamp2 .24s var(--spring) both; }
 @keyframes lv-stamp2 { from { opacity: 0; transform: scale(.8); } }
 .lv-side.before .lv-big b { background: linear-gradient(135deg, var(--red), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }

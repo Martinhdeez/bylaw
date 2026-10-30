@@ -910,7 +910,9 @@ b, strong, h1, h2, h3 { font-weight: 600; }
 .btn.ratify { background: linear-gradient(135deg, #34e0a1, #22c3e6); color: #062a1d; }
 :root[data-theme="light"] .btn.ratify { background: linear-gradient(135deg, #08774e, #0a6c8a); color: #fff; }
 .btn.ratify:hover { filter: none; box-shadow: 0 10px 28px -10px rgba(52, 224, 161, var(--glow)); }
-.stamp { background: linear-gradient(135deg, var(--green-soft), var(--blue-soft)); box-shadow: 0 0 36px -8px rgba(52, 224, 161, var(--glow)); }
+:root[data-theme="light"] .tradeoff b { color: #7a4400; }
+/* no wash of its own: the stamp's small date stays AA on the enforced panel's green wash */
+.stamp { background: none; box-shadow: 0 0 36px -8px rgba(52, 224, 161, var(--glow)); }
 .enforced.fresh .stamp { animation: ui7-stamp .28s var(--spring) both; }
 @keyframes ui7-stamp { from { opacity: 0; transform: rotate(-4deg) scale(.7); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
 .enforced { background: radial-gradient(120% 90% at 0% 0%, var(--green-soft), transparent 60%), var(--surface); }
