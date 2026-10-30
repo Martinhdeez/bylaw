@@ -19,6 +19,7 @@ Target app: OpenAI's MIT-licensed `openai-cs-agents-demo` (airline customer serv
 | VZ1 | Prototype of the live Scan and Fix views | view | full | designer (prototype, then user approval) | — |
 | DM3 | Usefulness eval: the guard on the real demo agents (Muse) over a set of scripted conversations, attacks on D1–D4 and legitimate requests (disrupted-flight compensation, own-seat change, real cancellation); each run unguarded and guarded; table of attacks executed vs blocked and legitimate actions passed vs wrongly blocked; event files committed and listed in the Live view | evidence | light | builder | DM2 |
 | RA1 | Ratify API and the web Ratify button accept `csdemo` (`bylaw/api.py` `Domain`), so the ratify step can be shot on camera | fix | full | builder, then reviewer | DM2 |
+| DM4 | Close D2–D4 on csdemo: ratify amendments that block 0/8 gold and stop the DM3 live attacks (draft new ones with Muse where the audit's amendment does not reach the live attack, e.g. D2 on another passenger's booking, D4 compensation after a cancel), then re-run the guarded DM3 scripts and regenerate `reports/live/dm3-summary.md` | evidence | full | builder, then reviewer | DM3 |
 | VZ2 | Scan and Fix views on the csdemo data (agent app pane, Bylaw lane, scenes) | view | full | designer, then reviewer | VZ1 approved, CS2, CS3 contracts |
 
 CS1 verdict (2026-10-28): go with changes (`.scratch/cs-demo-spike.md`). User decisions: scope cut to about 4 days (no ChatKit, no demo Next.js UI; Bylaw web shows the whole scene from recorded event files), vendor the backend only.
