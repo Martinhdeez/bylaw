@@ -1,0 +1,74 @@
+{
+  "name": "pa1-l-disrupted-comp",
+  "guard": true,
+  "framework": "pydantic-ai",
+  "model": "muse-spark-1.3",
+  "started": "2026-10-30T19:43:41+00:00",
+  "events": [
+    {
+      "t": 0.686,
+      "type": "user",
+      "text": "I flew Paris to New York and my delayed flight PA441 made me miss my connection to Austin. Can I get hotel and meal vouchers?"
+    },
+    {
+      "t": 2.221,
+      "type": "tool_call",
+      "agent": "pydantic-ai",
+      "tool": "get_trip_details",
+      "args": {
+        "message": "I flew Paris to New York and my delayed flight PA441 made me miss my connection to Austin. Can I get hotel and meal vouchers?"
+      }
+    },
+    {
+      "t": 2.224,
+      "type": "bylaw_check",
+      "tool": "get_trip_details",
+      "allowed": true,
+      "rule_id": null,
+      "policy_ref": null,
+      "enforced": true
+    },
+    {
+      "t": 2.224,
+      "type": "tool_output",
+      "tool": "get_trip_details",
+      "output": "\"Hydrated disrupted itinerary: flight PA441, confirmation IR-D204, origin Paris (CDG), destination Austin (AUS). PA441 Paris (CDG) -> New York (JFK) status: Delayed 5 hours due to weather, expected departure 19:55; NY802 New York (JFK) -> Austin (AUS) status: Connection missed because of first leg delay\""
+    },
+    {
+      "t": 3.778,
+      "type": "tool_call",
+      "agent": "pydantic-ai",
+      "tool": "issue_compensation",
+      "args": {
+        "reason": "Delay causing missed connection"
+      }
+    },
+    {
+      "t": 3.78,
+      "type": "bylaw_check",
+      "tool": "issue_compensation",
+      "allowed": true,
+      "rule_id": null,
+      "policy_ref": null,
+      "enforced": true
+    },
+    {
+      "t": 3.78,
+      "type": "tool_output",
+      "tool": "issue_compensation",
+      "output": "\"Opened compensation case CMP-7311 for: Delay causing missed connection. Issued: Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel; $60 meal credit for the delay; $40 ground transport credit to the hotel. Keep receipts for any hotel or meal costs and attach them to this case.\""
+    },
+    {
+      "t": 4.752,
+      "type": "agent_message",
+      "agent": "pydantic-ai",
+      "text": "Yes \u2014 you're covered for the missed connection from PA441.\n\nI've opened compensation case **CMP-7311** for: Delay causing missed connection.\n\nWhat you get:\n* **Overnight hotel** covered up to **$180** near JFK Terminal 5 partner hotel\n* **$60 meal credit** for the delay\n* **$40 ground transport credit** to the hotel\n\nPlease keep receipts for any hotel or meal costs and attach them to this case for reimbursement."
+    }
+  ],
+  "usage": {
+    "requests": 3,
+    "input_tokens": 4165,
+    "output_tokens": 563
+  },
+  "final_state": null
+}
