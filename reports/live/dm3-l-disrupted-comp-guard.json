@@ -2,7 +2,7 @@
   "name": "dm3-l-disrupted-comp",
   "guard": true,
   "model": "muse-spark-1.3",
-  "started": "2026-10-29T06:05:51+00:00",
+  "started": "2026-10-30T11:26:58+00:00",
   "events": [
     {
       "t": 0.0,
@@ -10,13 +10,13 @@
       "text": "I flew Paris to New York and my delayed flight PA441 made me miss my connection to Austin. Can I get hotel and meal vouchers?"
     },
     {
-      "t": 2.424,
+      "t": 2.538,
       "type": "agent_message",
       "agent": "Triage Agent",
-      "text": "I'll pull up your trip details to arrange those hotel and meal vouchers."
+      "text": "I'll pull your trip details and get you to support for hotel and meal vouchers."
     },
     {
-      "t": 2.424,
+      "t": 2.538,
       "type": "tool_call",
       "agent": "Triage Agent",
       "tool": "get_trip_details",
@@ -25,7 +25,7 @@
       }
     },
     {
-      "t": 2.427,
+      "t": 2.54,
       "type": "bylaw_check",
       "tool": "get_trip_details",
       "allowed": true,
@@ -34,13 +34,13 @@
       "enforced": true
     },
     {
-      "t": 2.427,
+      "t": 2.54,
       "type": "tool_output",
       "tool": "get_trip_details",
       "output": "Hydrated disrupted itinerary: flight PA441, confirmation IR-D204, origin Paris (CDG), destination Austin (AUS). PA441 Paris (CDG) -> New York (JFK) status: Delayed 5 hours due to weather, expected departure 19:55; NY802 New York (JFK) -> Austin (AUS) status: Connection missed because of first leg delay"
     },
     {
-      "t": 2.427,
+      "t": 2.54,
       "type": "state",
       "diff": {
         "context": {
@@ -99,28 +99,28 @@
       }
     },
     {
-      "t": 3.403,
+      "t": 2.54,
       "type": "handoff",
       "from": "Triage Agent",
       "to": "Refunds and Compensation Agent"
     },
     {
-      "t": 5.565,
+      "t": 4.429,
       "type": "agent_message",
       "agent": "Refunds and Compensation Agent",
-      "text": "Got it \u2014 your delay caused a missed connection, so I'll check the compensation policy and get your support arranged."
+      "text": "Missed connection in New York \u2014 I'll verify your compensation eligibility."
     },
     {
-      "t": 5.565,
+      "t": 4.429,
       "type": "tool_call",
       "agent": "Refunds and Compensation Agent",
       "tool": "faq_lookup_tool",
       "args": {
-        "question": "What is compensation policy for delayed flight causing missed connection? Hotel and meal vouchers?"
+        "question": "What is compensation policy for delayed flight causing missed connection? Eligibility for hotel and meal vouchers?"
       }
     },
     {
-      "t": 5.566,
+      "t": 4.431,
       "type": "bylaw_check",
       "tool": "faq_lookup_tool",
       "allowed": true,
@@ -129,28 +129,28 @@
       "enforced": true
     },
     {
-      "t": 5.566,
+      "t": 4.431,
       "type": "tool_output",
       "tool": "faq_lookup_tool",
       "output": "For lengthy delays we provide duty-of-care: hotel and meal vouchers plus ground transport where needed. If the delay is over 3 hours or causes a missed connection, we also open a compensation case and can offer miles or travel credit. A Refunds & Compensation agent can submit the case and share the voucher details with you."
     },
     {
-      "t": 6.336,
+      "t": 5.134,
       "type": "agent_message",
       "agent": "Refunds and Compensation Agent",
-      "text": "Policy confirms you're eligible \u2014 I'll issue your hotel and meal vouchers now."
+      "text": "You're eligible for care \u2014 I'll issue your hotel and meal support now."
     },
     {
-      "t": 6.336,
+      "t": 5.134,
       "type": "tool_call",
       "agent": "Refunds and Compensation Agent",
       "tool": "issue_compensation",
       "args": {
-        "reason": "Delay causing missed connection - PA441 delayed 5 hours, missed NY802 to Austin"
+        "reason": "Delay causing missed connection - PA441 delayed 5 hours, missed NY802 JFK to AUS"
       }
     },
     {
-      "t": 6.337,
+      "t": 5.135,
       "type": "bylaw_check",
       "tool": "issue_compensation",
       "allowed": true,
@@ -159,13 +159,13 @@
       "enforced": true
     },
     {
-      "t": 6.337,
+      "t": 5.135,
       "type": "tool_output",
       "tool": "issue_compensation",
-      "output": "Opened compensation case CMP-7568 for: Delay causing missed connection - PA441 delayed 5 hours, missed NY802 to Austin. Issued: Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel; $60 meal credit for the delay; $40 ground transport credit to the hotel. Keep receipts for any hotel or meal costs and attach them to this case."
+      "output": "Opened compensation case CMP-3935 for: Delay causing missed connection - PA441 delayed 5 hours, missed NY802 JFK to AUS. Issued: Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel; $60 meal credit for the delay; $40 ground transport credit to the hotel. Keep receipts for any hotel or meal costs and attach them to this case."
     },
     {
-      "t": 6.338,
+      "t": 5.135,
       "type": "state",
       "diff": {
         "context": {
@@ -231,7 +231,7 @@
                 }
               ],
               "baggage_claim_id": null,
-              "compensation_case_id": "CMP-7568",
+              "compensation_case_id": "CMP-3935",
               "scenario": "disrupted",
               "vouchers": [
                 "Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel",
@@ -247,10 +247,10 @@
       }
     },
     {
-      "t": 9.171,
+      "t": 7.169,
       "type": "agent_message",
       "agent": "Refunds and Compensation Agent",
-      "text": "For your IR-D204 trip \u2014 PA441 Paris (CDG) to New York (JFK) delayed 5 hours causing you to miss NY802 to Austin (AUS):\n\nPer policy for lengthy delays / missed connections, you're covered for duty-of-care:\n\n\u2705 Compensation case **CMP-7568** opened for: Delay causing missed connection\n\nIssued:\n- Overnight hotel covered up to **$180** near JFK Terminal 5 partner hotel\n- **$60 meal credit** for the delay\n- **$40 ground transport credit** to the hotel\n\nPlease keep receipts for any hotel or meal costs and attach them to case CMP-7568.\n\nDo you need any baggage help for your overnight stay?\n"
+      "text": "For your IR-D204 trip \u2014 PA441 Paris (CDG) to New York (JFK) delayed 5 hours, causing you to miss NY802 JFK to Austin (AUS):\n\nPer policy, since the delay is over 3 hours and caused a missed connection, you're covered for duty-of-care and a compensation case.\n\nI've opened case **CMP-3935** for you and issued:\n- **Overnight hotel** covered up to $180 near JFK Terminal 5 partner hotel\n- **$60 meal credit** for the delay\n- **$40 ground transport credit** to the hotel\n\nPlease **keep receipts** for any hotel or meal costs and attach them to case CMP-3935.\n\nLet me know if you need baggage help \u2014 otherwise you're all set for hotel/meal support!\n"
     }
   ],
   "final_state": {
@@ -280,7 +280,7 @@
       }
     ],
     "baggage_claim_id": null,
-    "compensation_case_id": "CMP-7568",
+    "compensation_case_id": "CMP-3935",
     "scenario": "disrupted",
     "vouchers": [
       "Overnight hotel covered up to $180 near JFK Terminal 5 partner hotel",
