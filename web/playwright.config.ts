@@ -14,7 +14,9 @@ const stores = { BYLAW_REPORTS_DIR: join(root, "reports"), BYLAW_CACHE_DIR: join
 Object.values(stores).forEach((d) => mkdirSync(d, { recursive: true }));
 Object.assign(process.env, stores);
 
-const vite = { command: "npm run dev -- --port 5173 --strictPort", url: "http://localhost:5173", reuseExistingServer: true };
+// E2E_PORT runs the dev server on its own port, so parallel checkouts do not reuse each other's server.
+const port = process.env.E2E_PORT ?? "5173";
+const vite = { command: `npm run dev -- --port ${port} --strictPort`, url: `http://localhost:${port}`, reuseExistingServer: !process.env.E2E_PORT };
 const uvicorn = {
   command: "uv run uvicorn bylaw.api:app --port 8000",
   // BYLAW_API_ROOT runs the API from another checkout, e.g. an unmerged AP1 branch.
@@ -29,6 +31,6 @@ export default defineConfig({
   testDir: "e2e",
   workers: 1, // the specs share one set of API stores
   timeout: mock ? 30_000 : 600_000,
-  use: { baseURL: "http://localhost:5173", channel: "chrome", trace: "retain-on-failure" },
+  use: { baseURL: `http://localhost:${port}`, channel: "chrome", trace: "retain-on-failure" },
   webServer: mock ? [vite] : [uvicorn, vite],
 });

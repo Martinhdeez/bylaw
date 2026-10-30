@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, CircleCheck, CircleDashed, OctagonX, Pause, Play, RotateCcw } from "lucide-react";
 import { ApiError, api, call, useGet, type LiveEntry, type LiveEvent, type LiveRun } from "../api";
-import { Failure, Logo, usd, when } from "../ui";
+import { Failure, usd, when } from "../ui";
 import "./live.css";
 
 type Check = Extract<LiveEvent, { type: "bylaw_check" }>;
@@ -59,7 +59,7 @@ function flightFact(s: Record<string, unknown> | null | undefined) {
   return f && seg?.status ? `${f}: ${seg.status}` : null;
 }
 const paidOf = (r?: LiveRun) => (r?.final_state ? faceValue(vouchersOf(r.final_state)) ?? (vouchersOf(r.final_state).length ? null : 0) : null);
-const blockedIn = (r?: LiveRun) => !!r && rowsOf(r.events).some((x) => x.check && !x.check.allowed && x.check.enforced);
+const blockedBy = (r: LiveRun, at: number) => rowsOf(r.events).some((x) => x.check && x.check.t <= at && !x.check.allowed && x.check.enforced);
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 const argText = (a: Record<string, unknown>) => Object.entries(a).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ");
 
@@ -120,14 +120,24 @@ export function Live({ film }: { film: boolean }) {
   return <Player before={runs.before} after={runs.after} film={film} />;
 }
 
-// The brand bar the user asked for: the 72px mark with its crack, the wordmark and the tagline.
-const LiveHead = () => (
-  <div className="lv-brand">
-    <Logo id="mLive" />
-    <b>Bylaw</b>
-    <span>The application decides what an AI agent may do</span>
-  </div>
-);
+// The sidebar carries the logo (user, 29 Oct); the page keeps the tagline as one small line above the headline.
+const LiveHead = () => <p className="lv-tagline">The application decides what an AI agent may do</p>;
+
+// Agent messages carry the demo's markdown: **bold**, "* " or "- " bullets and blank-line paragraphs.
+// Rendered as React elements from plain strings, never as HTML.
+const inline = (t: string) => t.split(/\*\*(.+?)\*\*/g).map((s, i) => (i % 2 ? <b key={i}>{s}</b> : s));
+function Md({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/\n{2,}/).map((block, i) => {
+        const lines = block.split("\n").filter((l) => l.trim());
+        const bullet = (l: string) => /^\s*[*-]\s+/.test(l);
+        if (lines.length && lines.every(bullet)) return <ul key={i}>{lines.map((l, j) => <li key={j}>{inline(l.replace(/^\s*[*-]\s+/, ""))}</li>)}</ul>;
+        return <p key={i}>{lines.map((l, j) => <span key={j}>{j > 0 && <br />}{inline(l)}</span>)}</p>;
+      })}
+    </>
+  );
+}
 
 function Player({ before, after, film }: { before?: LiveRun; after?: LiveRun; film: boolean }) {
   // One timeline: the run without Bylaw, then the run with it, then the result side by side.
@@ -216,7 +226,8 @@ function Headline({ part, at, inResult, before, after }: { part: { side: Side; r
     [lead, claim, sub] = b !== null && a !== null ? [`${usd(b)} without Bylaw.`, `${usd(a)} with it.`, thesis] : [`Without Bylaw: ${tx(b)}.`, `With it: ${tx(a)}.`, thesis];
   else if (inResult && after) [lead, claim, sub] = [a !== null ? `${usd(a)} with Bylaw.` : "With Bylaw: not stated.", "The run without it is not recorded.", thesis];
   else if (inResult) [lead, claim, sub] = [b !== null ? `${usd(b)} without Bylaw.` : "Without Bylaw: not stated.", "The run with it is not recorded.", thesis];
-  else if (part.run.guard) [lead, claim, sub] = ["With Bylaw.", blockedIn(part.run) ? "The same action is stopped before it runs." : "Every action is checked before it runs.", narrate(part.run, at)];
+  // The claim follows the playhead: "stopped" only once the block has happened, so it never sits over "allows it".
+  else if (part.run.guard) [lead, claim, sub] = ["With Bylaw.", blockedBy(part.run, at) ? "The same action is stopped before it runs." : "Every action is checked before it runs.", narrate(part.run, at)];
   else [lead, claim, sub] = ["Without Bylaw.", b ? `The agents pay ${usd(b)} in vouchers.` : "The agents run every action they propose.", narrate(part.run, at)];
   const r = inResult ? after ?? before : part.run;
   return (
@@ -297,7 +308,7 @@ function Chat({ events }: { events: LiveEvent[] }) {
       <ol ref={ref} data-slot="chat">
         {events.map((e, i) =>
           e.type === "user" ? <li key={i} className="me">{e.text}</li>
-          : e.type === "agent_message" ? <li key={i} className="ag"><small>{agentName(e.agent)}</small>{e.text}</li>
+          : e.type === "agent_message" ? <li key={i} className="ag"><small>{agentName(e.agent)}</small><Md text={e.text} /></li>
           : e.type === "handoff" ? <li key={i} className="note">{agentName(e.to)} took over</li>
           : null,
         )}

@@ -51,10 +51,12 @@
   --paper-rule: rgba(11, 11, 18, 0.08);
   --shadow-1: 0 1px 0 rgba(255,255,255,.05) inset, 0 6px 18px -10px rgba(0,0,0,.7);
   --shadow-2: 0 1px 0 rgba(255,255,255,.07) inset, 0 18px 40px -18px rgba(0,0,0,.85);
-  --grain: .05;
-  --serif: "Source Serif 4", Georgia, serif;
-  --display: "Archivo", system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --grain: 0;
+  /* UI7: one family. Fira Sans for every word and number, Fira Code only for literal code. */
+  --serif: "Fira Sans", system-ui, sans-serif;
+  --display: "Fira Sans", system-ui, sans-serif;
+  --mono: "Fira Sans", system-ui, sans-serif;
+  --code: "Fira Code", ui-monospace, monospace;
   --tile-r: 12px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --spring: cubic-bezier(0.32, 0.72, 0, 1);
@@ -98,7 +100,7 @@
   --paper-rule: rgba(20, 18, 30, 0.07);
   --shadow-1: 0 1px 2px rgba(40,30,20,.06), 0 6px 18px -10px rgba(40,30,20,.18);
   --shadow-2: 0 1px 2px rgba(40,30,20,.08), 0 18px 40px -18px rgba(40,30,20,.28);
-  --grain: .025;
+  --grain: 0;
   color-scheme: light;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -113,7 +115,8 @@ button, input { font: inherit; color: inherit; }
 button { background: none; border: 0; cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 :focus-visible { outline: 2px solid var(--violet-hi); outline-offset: 2px; border-radius: 6px; }
-code, pre, .mono { font-family: var(--mono); }
+code, pre { font-family: var(--code); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 svg.lucide { stroke-width: 1.75; flex: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 50; background: var(--ink); color: var(--ground); padding: 8px 16px; border-radius: 999px; font-weight: 700; }
@@ -293,7 +296,7 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── audit ───────────────────────────────────────── */
-.domains { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.domains { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .domain { text-align: left; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; transition: border-color .25s, transform .3s var(--spring); }
 .domain:hover { border-color: var(--line-2); transform: translateY(-2px); }
 .domain:active { transform: translateY(0) scale(.99); }
@@ -656,3 +659,261 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 .diffdoc ins { text-decoration-color: var(--green-ink); }
 .notice.warn { border-color: var(--amber-edge); background: var(--amber-soft); }
 .notice.warn > svg { color: var(--amber); }
+
+/* ── UI7 restyle (prototype, view/ui7-restyle): the Live view's system on every screen ──
+   Neutral chrome, elevation by surface step (no shadows, no gradients, no grain), sentence case, weights 400-600.
+   Colour carries one meaning each: red = blocked or a hole, amber = policy vs practice, green = allowed or ratified,
+   violet = Muse (the model). Decorative clause marks, dockets and articles are gone. */
+.panel, .domain, .meter { box-shadow: none; }
+.panel-h { background: none; }
+.panel-h h2::before { content: none; }
+.panel-h h2, .h2 { font-size: 15px; font-weight: 600; letter-spacing: 0; }
+.title { font-size: 36px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
+.title.sm { font-size: 26px; }
+.title .v { font-style: normal; font-weight: 600; }
+.title .r, .title .b, .title .g { color: inherit; }
+.lede { font-size: 15px; }
+.crumbs { font-size: 13px; }
+.label, .stat .s, .meter .s, .runbar .opts, .verdict, .chips span, .instances .m, .instances .rep, .tag, .status, kbd { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.tag, .status { font-weight: 500; font-size: 12px; }
+.tag.stamped { border: 1px solid var(--green-edge); text-transform: none; letter-spacing: 0; font-size: 12px; background: var(--green-soft); }
+b, strong, h1, h2, h3 { font-weight: 600; }
+.btn { font-weight: 600; }
+
+/* primary action: ink, not violet (violet means the model) */
+.btn.primary { background: var(--ink); color: var(--ground); box-shadow: none; }
+.btn.primary:hover { background: var(--ink-2); }
+.btn.primary .ic { background: rgba(127,127,127,.18); }
+.opt input[type=checkbox]:checked { background: var(--ink); }
+.opt input[type=checkbox]:checked::after { background: var(--ground); }
+.runbar .tape { background: var(--ink-2); }
+.runbar:has(.tape:not(.done)) .opts b { color: var(--ink); }
+
+/* nav: the current page is a neutral raised tile */
+.nav a[aria-current="page"]::before { background: var(--raise); box-shadow: inset 0 0 0 1px var(--line-2); }
+.nav a[aria-current="page"] svg { color: var(--ink); }
+.meter .k::before { background: var(--violet); }
+
+/* Audit: plain domain choice, no docket labels, no article numerals */
+.domain .dk, .phase .st .art { display: none; }
+.domain .n { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+.domain[aria-checked="true"] { background: var(--step); border-color: var(--line-2); box-shadow: inset 0 0 0 1px var(--ink-2); }
+.domain .tools .chip { font-size: 12px; color: var(--muted); background: var(--step); border: 1px solid var(--line); padding: 2px 8px; border-radius: 6px; }
+.phase::before { background: var(--ink-2); }
+.phase .nm { font-size: 16px; font-weight: 600; letter-spacing: 0; }
+.phase.done { background: none; }
+
+/* Report: a dense list. The goal card is a quiet header; colour stays on the ids and verdicts. */
+.stat { min-height: 0; }
+.stat .v { font-size: 32px; letter-spacing: -0.02em; }
+.stat:has(.v.r), .stat:has(.v.b) { background: var(--surface); border-color: var(--line); }
+.goal-group .gcard, .goal-group.cls-b .gcard { background: var(--surface); border-top: 0; box-shadow: inset 2px 0 0 var(--red); }
+.goal-group.cls-b .gcard { box-shadow: inset 2px 0 0 var(--amber); }
+.gcard h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.quote, .rule q, .diffdoc p { font-family: var(--serif); font-size: 14px; font-weight: 400; }
+.instances a::before { background: var(--ink-2); }
+.instances .t { font-weight: 500; }
+.instances .k { font-weight: 600; }
+
+/* Hole: trace and verdicts; no exhibit stamp */
+.exhibit { background: none; color: var(--muted); box-shadow: none; text-transform: none; letter-spacing: 0; font: 500 12px var(--mono); padding: 0; }
+.outcome, .outcome.b { background: var(--surface); border-width: 1px; }
+.pred { font: 500 14px/1.5 var(--display); background: none; border: 0; padding: 0; color: var(--ink-2); }
+.enforced .t { font-size: 16px; }
+.stamp { border-width: 1px; border-style: solid; }
+.ratio .big { font-size: 64px; letter-spacing: -0.03em; }
+
+/* Policy text sits on the same surface step as the rest of the chrome, in both themes: no cream paper, no ruled lines. */
+.paper, .diffdoc { background: var(--step); color: var(--ink); border: 1px solid var(--line); box-shadow: none; }
+.diffdoc { background-image: none; }
+.diffdoc::before { background: var(--line-2); }
+.paper .src, .diffdoc .src, .diffdoc p .m, .diffdoc .ctx { color: var(--muted); }
+.diffdoc p { font-size: 16px; font-weight: 400; }
+.diffdoc .plus ins, .diffdoc .plus .m, .diffdoc .note { color: var(--green); }
+.diffdoc .note { border-color: var(--green-edge); }
+.code { font-family: var(--code); }
+.domain .n .ck { background: var(--ink); color: var(--ground); }
+
+/* ── UI7 colour pass (user, 29 Oct): a tinted navy dark theme, a cool tinted light theme, one blue for interaction ──
+   Blue = interactive (links, primary buttons, current page, focus, selection). Verdicts keep green, red and amber;
+   Muse keeps violet. Surfaces rise in visible steps; borders are visible. Contrast checked: body text >= 14:1,
+   secondary >= 5:1, blue text >= 4.8:1, white on blue buttons >= 5:1, in both themes. */
+:root {
+  --ground: #1b2233;
+  --surface: #232c40;
+  --step: #2b3550;
+  --raise: #34405e;
+  --line: rgba(170, 190, 230, 0.16);
+  --line-2: rgba(170, 190, 230, 0.3);
+  --hover: rgba(255, 255, 255, 0.05);
+  --track: rgba(170, 190, 230, 0.2);
+  --ink: #f4f7fc;
+  --ink-2: #dbe2ee;
+  --muted: #b4bfd2;
+  --faint: #9aa7bf;
+  --red: #ff6b4f;
+  --red-soft: rgba(255, 107, 79, 0.15);
+  --red-edge: rgba(255, 107, 79, 0.55);
+  --green: #34e0a1;
+  --amber: #ffb84d;
+  --amber-soft: rgba(255, 184, 77, 0.14);
+  --amber-edge: rgba(255, 184, 77, 0.5);
+  --blue: #8ab4ff;
+  --blue-btn: #2563eb;
+  --blue-btn-hi: #1d55d4;
+  --blue-soft: rgba(96, 150, 255, 0.18);
+  --blue-edge: rgba(138, 180, 255, 0.6);
+}
+:root[data-theme="light"] {
+  --ground: #eef1f6;
+  --surface: #f8fafd;
+  --step: #e9edf4;
+  --raise: #dde3ee;
+  --line: rgba(20, 35, 70, 0.13);
+  --line-2: rgba(20, 35, 70, 0.24);
+  --hover: rgba(20, 35, 70, 0.04);
+  --track: rgba(20, 35, 70, 0.14);
+  --ink: #121a2b;
+  --ink-2: #2a3448;
+  --muted: #4a556b;
+  --faint: #5a657b;
+  --blue: #1f5fd6;
+  --blue-btn: #1f5fd6;
+  --blue-btn-hi: #174bb0;
+  --blue-soft: rgba(31, 95, 214, 0.1);
+  --blue-edge: rgba(31, 95, 214, 0.45);
+}
+:focus-visible, .nav a:focus-visible, .opt input:focus-visible { outline-color: var(--blue); }
+.link, .page a.link { color: var(--blue); }
+.btn.primary { background: var(--blue-btn); color: #fff; }
+.btn.primary:hover { background: var(--blue-btn-hi); }
+.btn.primary .ic { background: rgba(255, 255, 255, 0.18); }
+.opt input[type=checkbox]:checked { background: var(--blue-btn); }
+.opt input[type=checkbox]:checked::after { background: #fff; }
+.runbar .tape { background: var(--blue); }
+.nav a[aria-current="page"]::before { background: var(--blue-soft); box-shadow: inset 0 0 0 1px var(--blue-edge); }
+.nav a[aria-current="page"], .nav a[aria-current="page"] svg { color: var(--ink); }
+.nav a[aria-current="page"] svg { color: var(--blue); }
+.domain[aria-checked="true"] { border-color: var(--blue-edge); box-shadow: inset 0 0 0 1px var(--blue-edge); background: var(--step); }
+.domain .n .ck { background: var(--blue-btn); color: #fff; }
+.rail { background: var(--surface); border-color: var(--line); }
+.hole-mark, .closing::before { background: var(--red-soft); }
+
+/* ── UI7 colour pass 2 (user, 29 Oct): darker indigo dark, violet back as the brand, blue second, colour with intent ──
+   Violet = brand and primary action (primary buttons, current page, focus) and Muse (lighter tint).
+   Blue = links, selection, the Live transport, the customer's chat bubbles. Each stat and metric carries its own accent:
+   violet run/Muse, red holes and money lost, amber policy vs practice, blue search and calls, green passes and closes.
+   Verdicts stay green allowed, red blocked, amber warning. Text contrast checked by script: AA or better everywhere. */
+:root {
+  --ground: #0f1122;
+  --surface: #171a30;
+  --step: #1f2340;
+  --raise: #292e52;
+  --line: rgba(160, 150, 255, 0.14);
+  --line-2: rgba(160, 150, 255, 0.28);
+  --hover: rgba(160, 150, 255, 0.06);
+  --track: rgba(160, 150, 255, 0.2);
+  --ink: #f5f6ff;
+  --ink-2: #dcdff2;
+  --muted: #b3b8d6;
+  --faint: #959bc0;
+  --violet: #9d6bff;
+  --violet-hi: #c4a6ff;
+  --violet-btn: #7346f5;
+  --violet-btn-hi: #6236e8;
+  --violet-soft: rgba(157, 107, 255, 0.16);
+  --v-edge: rgba(196, 166, 255, 0.5);
+  --v-edge-2: rgba(196, 166, 255, 0.26);
+  --blue: #86b4ff;
+  --blue-btn: #3157e0;
+  --blue-soft: rgba(110, 160, 255, 0.16);
+  --blue-edge: rgba(134, 180, 255, 0.55);
+  --red: #ff6b5a;
+  --red-soft: rgba(255, 107, 90, 0.15);
+  --red-edge: rgba(255, 107, 90, 0.55);
+  --green: #34e0a1;
+  --green-soft: rgba(52, 224, 161, 0.14);
+  --green-edge: rgba(52, 224, 161, 0.5);
+  --amber: #ffb84d;
+  --coral: #ff8a7a;
+  --glow: 0.55;
+}
+:root[data-theme="light"] {
+  --ground: #eef0fa;
+  --surface: #fafbff;
+  --step: #e8eaf6;
+  --raise: #dcdff0;
+  --line: rgba(40, 30, 110, 0.12);
+  --line-2: rgba(40, 30, 110, 0.24);
+  --hover: rgba(40, 30, 110, 0.04);
+  --track: rgba(40, 30, 110, 0.14);
+  --ink: #14162b;
+  --ink-2: #2b2e48;
+  --muted: #4a4f6e;
+  --faint: #585d7c;
+  --violet: #6a2ee0;
+  --violet-hi: #5b22cf;
+  --violet-btn: #6a2ee0;
+  --violet-btn-hi: #5a20cc;
+  --violet-soft: rgba(106, 46, 224, 0.09);
+  --v-edge: rgba(91, 34, 207, 0.45);
+  --v-edge-2: rgba(91, 34, 207, 0.2);
+  --blue: #1f5fd6;
+  --blue-btn: #1f5fd6;
+  --blue-soft: rgba(31, 95, 214, 0.09);
+  --blue-edge: rgba(31, 95, 214, 0.42);
+  --coral: #c4300f;
+  --glow: 0.3;
+}
+
+/* brand: a bigger sidebar lockup; the logo itself is unchanged */
+.lockup svg { width: 42px; height: 42px; }
+.lockup b { font-size: 26px; }
+.collapsed .lockup svg { width: 32px; height: 32px; }
+
+/* interaction: violet primary, blue links and selection */
+:focus-visible, .nav a:focus-visible, .opt input:focus-visible { outline-color: var(--violet-hi); }
+.link, .page a.link { color: var(--blue); }
+.btn.primary { background: linear-gradient(135deg, var(--violet-btn), var(--blue-btn)); color: #fff; }
+.btn.primary:hover { background: linear-gradient(135deg, var(--violet-btn-hi), var(--blue-btn)); box-shadow: 0 8px 24px -10px rgba(115, 70, 245, var(--glow)); }
+.opt input[type=checkbox]:checked { background: var(--violet-btn); }
+.runbar .tape { background: linear-gradient(90deg, var(--violet), var(--blue)); }
+.nav a[aria-current="page"]::before { background: linear-gradient(90deg, var(--violet-soft), var(--blue-soft)); box-shadow: inset 0 0 0 1px var(--v-edge-2); }
+.domain[aria-checked="true"] { border-color: var(--v-edge); box-shadow: inset 0 0 0 1px var(--v-edge); background: linear-gradient(135deg, var(--violet-soft), transparent 70%), var(--step); }
+.domain .n .ck { background: var(--violet-btn); }
+.tag.muse { color: var(--violet-hi); background: rgba(196, 166, 255, 0.1); border-color: var(--v-edge-2); }
+
+/* nav icons: one accent each */
+.nav a:nth-of-type(1) svg { color: var(--violet-hi); }
+.nav a:nth-of-type(2) svg { color: var(--coral); }
+.nav a:nth-of-type(3) svg { color: var(--blue); }
+.nav a:nth-of-type(4) svg { color: var(--green); }
+
+/* hero washes behind the page title and headline */
+.head, .lv-head { position: relative; isolation: isolate; }
+/* closest-side: each wash fades out before the box edge, so no clipped band shows */
+.head::before, .lv-head::before { content: ""; position: absolute; z-index: -1; inset: -32px -16px -16px -32px; pointer-events: none;
+  background: radial-gradient(closest-side at 22% 50%, var(--violet-soft), transparent), radial-gradient(closest-side at 62% 45%, var(--blue-soft), transparent); }
+
+/* stat cards and metrics: an accent per meaning, a soft wash, the label in the accent */
+.summary .stat, .metrics .metric { --acc: var(--violet-hi); --acc-soft: var(--violet-soft);
+  background: radial-gradient(120% 120% at 0% 0%, var(--acc-soft), transparent 60%), var(--surface); border-top: 2px solid var(--acc); }
+.summary .stat .label, .metrics .metric .label, .metrics .metric > span:first-child { color: var(--acc); }
+.summary .stat:nth-child(2), .metrics .metric:nth-child(4) { --acc: var(--red); --acc-soft: var(--red-soft); }
+.summary .stat:nth-child(3) { --acc: var(--amber); --acc-soft: var(--amber-soft); }
+.summary .stat:nth-child(4), .metrics .metric:nth-child(1) { --acc: var(--blue); --acc-soft: var(--blue-soft); }
+.metrics .metric:nth-child(2), .metrics .metric:nth-child(3) { --acc: var(--green); --acc-soft: var(--green-soft); }
+.metrics .metric:nth-child(4) { --acc: var(--violet-hi); --acc-soft: var(--violet-soft); }
+.panel-h h2::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: linear-gradient(135deg, var(--violet), var(--blue)); }
+
+/* dopamine: ratify, the stamp. Short, on state change only. */
+.btn.ratify { background: linear-gradient(135deg, #34e0a1, #22c3e6); color: #062a1d; }
+:root[data-theme="light"] .btn.ratify { background: linear-gradient(135deg, #08774e, #0a6c8a); color: #fff; }
+.btn.ratify:hover { filter: none; box-shadow: 0 10px 28px -10px rgba(52, 224, 161, var(--glow)); }
+:root[data-theme="light"] .tradeoff b { color: #7a4400; }
+/* no wash of its own: the stamp's small date stays AA on the enforced panel's green wash */
+.stamp { background: none; box-shadow: 0 0 36px -8px rgba(52, 224, 161, var(--glow)); }
+.enforced.fresh .stamp { animation: ui7-stamp .28s var(--spring) both; }
+@keyframes ui7-stamp { from { opacity: 0; transform: rotate(-4deg) scale(.7); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
+.enforced { background: radial-gradient(120% 90% at 0% 0%, var(--green-soft), transparent 60%), var(--surface); }
+@media (prefers-reduced-motion: reduce) { .enforced.fresh .stamp { animation: none; } }

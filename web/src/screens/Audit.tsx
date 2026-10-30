@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { AlertTriangle, ArrowRight, Check, Loader2, Minus, Play, RotateCcw } from "lucide-react";
 import { DOMAINS, api, type ApiError, type Domain, type Phase, type ProgressEvent } from "../api";
-import { Muse, Ticker, int } from "../ui";
+import { Muse, Ticker, int, toolName } from "../ui";
 
 const ABOUT: Record<Domain, { label: string; docket: string; desc: string; tools: string[] }> = {
   airline: {
@@ -111,7 +111,7 @@ export function Audit({ domain, onDomain, onDone }: { domain: Domain; onDomain: 
               <span className="dk">Docket {ABOUT[k].docket}</span>
               <span className="n">{ABOUT[k].label}{domain === k && <span className="ck"><Check aria-hidden="true" /></span>}</span>
               <span className="d">{ABOUT[k].desc}</span>
-              <span className="tools">{ABOUT[k].tools.map((t) => <code key={t} translate="no">{t}</code>)}</span>
+              <span className="tools">{ABOUT[k].tools.map((t) => <span key={t} className="chip">{toolName(t)}</span>)}</span>
             </button>
           ))}
         </div>

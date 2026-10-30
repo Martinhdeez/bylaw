@@ -1,21 +1,21 @@
 import type { CSSProperties, ReactNode } from "react";
 import { AlertTriangle, ArrowRight, ChevronRight, FileSearch, ShieldCheck } from "lucide-react";
-import { api, useGet, type Domain, type ForbiddenGoal, type Hole, type Load, type Ratified, type Report } from "../api";
-import { Crumbs, Failure, Loading, Muse, Ticker, classCWhy, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
+import { DOMAIN_NAME, api, useGet, type Domain, type ForbiddenGoal, type Hole, type Load, type Ratified, type Report } from "../api";
+import { Crumbs, Failure, Loading, Muse, Ticker, chainText, classCWhy, goldLine, holeHref, humanize, int, quote, usd, when } from "../ui";
 
 export function ReportView({ domain, report }: { domain: Domain; report: Load<Report> }) {
   const ratified = useGet<Ratified>(api.ratified(domain));
   const fixed = new Set(ratified.data?.amendments.map((a) => a.hole_key));
   const goals = new Map(ratified.data?.ruleset.forbidden_goals.map((g) => [g.id, g]));
 
-  if (report.loading) return <Page domain={domain}><Loading what={`the latest ${domain} report`} /></Page>;
+  if (report.loading) return <Page domain={domain}><Loading what={`the latest ${DOMAIN_NAME[domain]} report`} /></Page>;
   if (report.error?.status === 404)
     return (
       <Page domain={domain}>
-        <h1 className="title">No {domain} report yet</h1>
+        <h1 className="title">No {DOMAIN_NAME[domain]} report yet</h1>
         <section className="panel empty-state">
           <span className="shield"><FileSearch aria-hidden="true" /></span>
-          <h2 className="h2">Run an audit to see which chains of allowed calls break the {domain} policy</h2>
+          <h2 className="h2">Run an audit to see which chains of allowed calls break the {DOMAIN_NAME[domain]} policy</h2>
           <p>An audit compiles the policy, searches up to the budget and proves every hit five times.</p>
           <a className="btn primary" href="#/">Run an audit<span className="ic"><ArrowRight aria-hidden="true" /></span></a>
         </section>
@@ -34,7 +34,7 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
       <div className="head">
         <div>
           <h1 className="title">
-            {holes.length ? <><span className="r">{holes.length} proven {holes.length === 1 ? "hole" : "holes"}</span> in the {domain} policy</> : <>No proven holes in the {domain} policy</>}
+            {holes.length ? <><span className="r">{holes.length} proven {holes.length === 1 ? "hole" : "holes"}</span> in the {DOMAIN_NAME[domain]} policy</> : <>No proven holes in the {DOMAIN_NAME[domain]} policy</>}
           </h1>
           <p className="lede">
             {holes.length
@@ -133,7 +133,7 @@ export function ReportView({ domain, report }: { domain: Domain; report: Load<Re
                         <span>
                           <span className="t">{t.name} <span className="mono" style={{ color: "var(--muted)" }}>{t.target}</span></span>
                           <br />
-                          <span className="c">{a.chain.map((s) => s.tool).join(" → ")}</span>
+                          <span className="c">{chainText(a.chain)}</span>
                           <br />
                           <span className="n" data-testid="amb-entry-note">{capital(classCWhy(a))}.</span>
                         </span>
@@ -180,13 +180,13 @@ function Groups({ domain, entries, goals, fixed }: { domain: Domain; entries: Ho
             </div>
             <ul className="panel instances">
               {list.map((h, i) => {
-                const chain = h.chain.map((s) => s.tool).join(" → ");
+                const chain = chainText(h.chain);
                 return (
                   <li key={h.key} style={{ "--i": i } as CSSProperties}>
                     <a href={holeHref(domain, h.key)}>
                       <span className="mono k">{h.id}</span>
                       <span className="mono t" translate="no">{humanize(h.title, h.key).target}</span>
-                      <span className="mono c" title={chain}>{chain}</span>
+                      <span className="c" title={chain}>{chain}</span>
                       <span className={`m ${!b && h.money_delta > 0 ? "out" : ""}`}>{usd(h.money_delta)}</span>
                       <span className="rep">{h.replays}</span>
                       {fixed.has(h.key) ? <span className="tag stamped">{b ? "Ratified" : "Fixed"}</span> : h.amendment ? <span className="tag muse">Amendment ready</span> : <span />}
@@ -206,7 +206,7 @@ function Groups({ domain, entries, goals, fixed }: { domain: Domain; entries: Ho
 function Page({ domain, children }: { domain: Domain; children: ReactNode }) {
   return (
     <div className="page">
-      <Crumbs items={[["Audit", "#/"], [`${domain} report`]]} />
+      <Crumbs items={[["Audit", "#/"], [`${DOMAIN_NAME[domain]} report`]]} />
       {children}
     </div>
   );

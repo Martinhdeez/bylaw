@@ -1,6 +1,6 @@
 import { useRef, type PointerEvent } from "react";
 import { Gauge } from "lucide-react";
-import { api, useGet, type Bench as BenchT, type Domain } from "../api";
+import { DOMAIN_NAME, api, useGet, type Bench as BenchT, type Domain } from "../api";
 import { Crumbs, Failure, Loading, Muse, Ticker, int } from "../ui";
 
 const LABEL = { muse: "Muse-guided", bfs: "Blind BFS" } as const;
@@ -9,7 +9,7 @@ const per1k = (holes: number, calls: number) => (calls ? (holes / calls) * 1000 
 
 export function Bench({ domain }: { domain: Domain }) {
   const bench = useGet<BenchT>(api.bench(domain));
-  const crumbs = <Crumbs items={[[`${domain} bench`]]} />;
+  const crumbs = <Crumbs items={[[`${DOMAIN_NAME[domain]} bench`]]} />;
 
   if (bench.loading) return <div className="page">{crumbs}<Loading what="the bench" shape="bench" /></div>;
   if (domain === "csdemo")
@@ -27,7 +27,7 @@ export function Bench({ domain }: { domain: Domain }) {
     return (
       <div className="page">
         {crumbs}
-        <h1 className="title">No {domain} bench yet</h1>
+        <h1 className="title">No {DOMAIN_NAME[domain]} bench yet</h1>
         <section className="panel empty-state">
           <span className="shield"><Gauge aria-hidden="true" /></span>
           <p>The bench compares Muse-guided search with blind BFS on the same budget. Produce it with <code translate="no">uv run python -m bylaw bench --domain {domain} --budget 2000</code>.</p>
@@ -59,13 +59,13 @@ export function Bench({ domain }: { domain: Domain }) {
           {muse ? (
             <>
               <h1 className="title"><span className="v">Muse-guided</span> search against blind BFS</h1>
-              <p className="lede">Same {domain} policy, same budget of {int(budget)} tool calls, same depth limit, one run per mode. Muse Spark proposes chains per forbidden goal before BFS fills the rest of the budget.</p>
+              <p className="lede">Same {DOMAIN_NAME[domain]} policy, same budget of {int(budget)} tool calls, same depth limit, one run per mode. Muse Spark proposes chains per forbidden goal before BFS fills the rest of the budget.</p>
             </>
           ) : (
             <>
               <h1 className="title">Blind BFS search</h1>
               <p className="lede">
-                The {domain} policy searched by blind BFS on a budget of {int(budget)} tool calls, one run per mode. {asked ? "Muse unavailable: the Muse run got no answer from Muse Spark, so it searched as blind BFS too." : "No Muse Spark in this bench."}
+                The {DOMAIN_NAME[domain]} policy searched by blind BFS on a budget of {int(budget)} tool calls, one run per mode. {asked ? "Muse unavailable: the Muse run got no answer from Muse Spark, so it searched as blind BFS too." : "No Muse Spark in this bench."}
               </p>
             </>
           )}

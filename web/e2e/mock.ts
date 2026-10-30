@@ -93,6 +93,8 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
   edit(report);
   const ratified = fx("airline.ratified.json");
   const policy = fx("airline.policy.json");
+  // csdemo policy and ratified store, from the API on bylaw/build (RA1, DM2), so its goals and lines resolve.
+  const cs = { ratified: fx("csdemo.ratified.json"), policy: fx("csdemo.policy.json") };
 
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
@@ -112,9 +114,9 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
       return route.fulfill(json(run));
     }
     if (p === "/api/domains") return route.fulfill(json(["airline", "retail"]));
-    if (p === "/api/policy") return route.fulfill(json(policy));
+    if (p === "/api/policy") return route.fulfill(json(domain === "csdemo" ? cs.policy : policy));
     if (p === "/api/reports/latest") return route.fulfill(json(report));
-    if (p === "/api/ratified") return route.fulfill(json(ratified));
+    if (p === "/api/ratified") return route.fulfill(json(domain === "csdemo" ? cs.ratified : ratified));
     if (p === "/api/bench") return route.fulfill(json(bench));
     if (p === "/api/audits" && method === "POST") return route.fulfill(json({ id: "a1" }, 202));
     if (p === "/api/audits/a1") return route.fulfill(json({ id: "a1", domain: "airline", status: "done", report, error: null }));

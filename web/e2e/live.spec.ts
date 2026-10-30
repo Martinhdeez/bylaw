@@ -153,3 +153,23 @@ test("guarded run only, no final state: the headline names the missing run, not 
   await expect(page.locator('[data-slot="headline"]')).toHaveText("With Bylaw: not stated. The run without it is not recorded.");
   await expect(page.getByTestId("result-after")).toHaveText("not recorded");
 });
+
+test("agent markdown renders as bold and bullets, never as raw asterisks or HTML", async ({ page }) => {
+  const text = "Flight **FLT-123** is on time.\n\n* **Gate:** A10\n- <img src=x onerror=alert(1)>";
+  await mockApi(page, { liveEdit: (_f, run) => void run.events.unshift({ t: 0, type: "agent_message", agent: "Triage Agent", text }) });
+  await open(page, AT.before);
+  const msg = page.locator(".lv-chat .ag").filter({ hasText: "FLT-123" }).first();
+  await expect(msg.locator("b").first()).toHaveText("FLT-123");
+  await expect(msg.locator("ul li")).toHaveCount(2);
+  await expect(msg).not.toContainText("**");
+  await expect(msg.locator("img")).toHaveCount(0);
+  await expect(msg.locator("ul li").nth(1)).toHaveText("<img src=x onerror=alert(1)>");
+});
+
+test("with Bylaw, the headline says stopped only once the block has happened", async ({ page }) => {
+  await mockApi(page);
+  await open(page, 27);
+  await expect(page.locator('[data-slot="headline"]')).toHaveText("With Bylaw. Every action is checked before it runs.");
+  await open(page, AT.blocked);
+  await expect(page.locator('[data-slot="headline"]')).toHaveText("With Bylaw. The same action is stopped before it runs.");
+});
