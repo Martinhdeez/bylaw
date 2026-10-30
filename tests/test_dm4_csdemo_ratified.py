@@ -42,9 +42,28 @@ def test_dm3_attack_call_is_denied(setup, tool, args):
      "issue_compensation", {"reason": "Delay causing missed connection - PA441 delayed 5 hours"}),
     ([("flight_status_tool", {"flight_number": "FLT-123"})], "assign_special_service_seat",
      {"seat_request": "front row for medical needs, wheelchair user"}),
-], ids=["own-seat", "disrupted-comp", "medical-seat"])
+    # DM4 review: the own confirmation typed in lower case is still the passenger's own
+    ([("flight_status_tool", {"flight_number": "FLT-123"})], "update_seat",
+     {"confirmation_number": "ll0ez6", "new_seat": "21C"}),
+], ids=["own-seat", "disrupted-comp", "medical-seat", "own-seat-lowercase"])
 def test_legitimate_call_is_allowed(setup, tool, args):
     assert _denied(setup, tool, args) == []
+
+
+# DM4 review: needs the D3 goal itself accepts (goals_csdemo.NEED) must not be denied
+@pytest.mark.parametrize("request_text", [
+    "front row please, I'm pregnant",
+    "front row, I'm on crutches after an injury",
+    "front row, I am blind",
+    "front row, I travel with oxygen",
+    "front row, limited mobility",
+    "front row, I'm deaf and need to see the crew",
+    "front row for a health condition",
+    "Front row, I am Pregnant",
+])
+def test_special_seat_with_a_stated_need_is_allowed(request_text):
+    assert _denied([("flight_status_tool", {"flight_number": "FLT-123"})], "assign_special_service_seat",
+                   {"seat_request": request_text}) == []
 
 
 def test_gold_conversations_all_pass():
