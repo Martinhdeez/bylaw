@@ -9,6 +9,7 @@ dependencies = [
     "openai>=1.50",
     "openai-agents==0.24.0",
     "openai-chatkit==1.6.5",
+    "pydantic-ai-slim[mcp,openai]==2.63.0",
     "python-dotenv>=1.0",
     "tau2",
     "uvicorn>=0.54.0",
