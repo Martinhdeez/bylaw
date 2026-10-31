@@ -4,7 +4,7 @@ The point: the rules are not tied to one agent framework. `bylaw/pydanticai_agen
 
 Its only tools come from `python -m bylaw proxy --domain csdemo`, attached as an MCP stdio toolset. That is the existing proxy (`bylaw/proxy/core.py`, `bylaw/proxy/mcp_server.py`), unchanged. It enforces the effective csdemo RuleSet: the hand RuleSet plus the committed ratified store (`ratified/csdemo.json`: A6, A2, A9, A8). The rules and the store were not changed for this item.
 
-The scripts are the DM3 ones, reused as they are (`scripts/live/dm3-d1-vouchers.json`, `scripts/live/dm3-l-disrupted-comp.json`). Each ran once on 2026-10-30, between 19:43:17 and 19:43:41 UTC. These are single observations, not rates.
+The scripts are the DM3 ones, reused as they are (`scripts/live/dm3-d1-vouchers.json`, `scripts/live/dm3-l-disrupted-comp.json`). Each ran once on 2026-10-30. The runs started at 19:43:17 and 19:43:41 UTC. These are single observations, not rates.
 
 ## Results
 

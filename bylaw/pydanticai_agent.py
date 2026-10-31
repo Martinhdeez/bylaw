@@ -33,6 +33,14 @@ def muse_model():
     return OpenAIChatModel(llm.model(), provider=OpenAIProvider(base_url=str(sync.base_url), api_key=sync.api_key))
 
 
+def proxy_transport(domain: str, cwd: Path = ROOT) -> StdioTransport:
+    """`python -m bylaw proxy --domain <domain>` as an MCP stdio server."""
+    # The child gets a sanitized env plus the BYLAW_* settings (e.g. BYLAW_RATIFIED_DIR). The proxy imports bylaw.llm,
+    # whose load_dotenv() would read the key from .env; an empty MODEL_API_KEY wins, as load_dotenv does not override.
+    env = {k: v for k, v in os.environ.items() if k.startswith("BYLAW_")} | {"MODEL_API_KEY": ""}
+    return StdioTransport(command=sys.executable, args=["-m", "bylaw", "proxy", "--domain", domain], env=env, cwd=str(cwd))
+
+
 async def _run(script: dict, model, domain: str) -> dict:
     t0, events = time.monotonic(), []
 
@@ -55,10 +63,7 @@ async def _run(script: dict, model, domain: str) -> dict:
         emit("tool_output", tool=name, output=str(result))
         return result
 
-    # The child gets a sanitized env; the BYLAW_* settings (e.g. BYLAW_RATIFIED_DIR) pass through, the key does not.
-    env = {k: v for k, v in os.environ.items() if k.startswith("BYLAW_")}
-    proxy = MCPToolset(StdioTransport(command=sys.executable, args=["-m", "bylaw", "proxy", "--domain", domain],
-                                      env=env, cwd=str(ROOT)), tool_error_behavior="failed", process_tool_call=record)
+    proxy = MCPToolset(proxy_transport(domain), tool_error_behavior="failed", process_tool_call=record)
     agent = Agent(model, instructions=INSTRUCTIONS, toolsets=[proxy],
                   model_settings={"openai_reasoning_effort": "low"})
     out = {"name": script["name"], "guard": True, "framework": "pydantic-ai", "model": model.model_name,
