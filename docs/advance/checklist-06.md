@@ -1,6 +1,6 @@
 # Checklist 06 — Showcase: scan and fix, visible
 
-Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 14 / 16.
+Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 15 / 16.
 
 - [x] **CS1** Spike on openai-cs-agents-demo — assistant — go with changes (`.scratch/cs-demo-spike.md`)
 - [x] **UI6** Copy and bench fixes — designer — PR #34
@@ -17,4 +17,4 @@ Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 14 / 16.
 - [x] **DM4** Close D2–D4: ratify amendments, re-run guarded DM3 — builder, then reviewer — PR #47
 - [x] **UI7** Open findings and de-slop of the other screens — designer — UI7 part 1 (findings) — PR #42; restyle approved by user 2026-10-30 — PR #46
 - [ ] **PA1** PydanticAI agent guarded by the MCP proxy — builder, then reviewer — PR #49
-- [ ] **RD1** README for submission and secret scan — assistant — PR #48
+- [x] **RD1** README for submission and secret scan — assistant — PR #48
