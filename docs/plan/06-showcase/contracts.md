@@ -1,4 +1,4 @@
-# 06 contracts (v1.5, frozen 2026-10-29)
+# 06 contracts (v1.6, 2026-11-01; v1.5 frozen 2026-10-29)
 
 Shared by test authors and builders of CS2 and CS3. A change is a new version announced to both sides.
 
@@ -37,7 +37,7 @@ Gold conversations: at least 6, covering a real disruption compensation (Paris t
 ## CS-C2 Agents guard (CS3)
 
 - `bylaw.proxy.agents_guard.install(agents, domain_name="csdemo", ruleset=None, log=None) -> None`: appends one `ToolInputGuardrail` to every `FunctionTool` of every agent in `agents`. Idempotent.
-- The guardrail runs `bylaw.rules.check(ruleset or default_ruleset(domain_name), snapshot, tool, args, domain.now)` on the live context (snapshot built as in CS-C1 from the run's state and the guard's own trace).
+- The guardrail runs `bylaw.rules.check(ruleset or default_ruleset(domain_name), snapshot, tool, args, domain.now)` on the live context (snapshot built as in CS-C1 from the run's state and the guard's own trace; v1.6 adds `context.customer_text`).
 - Denied: `reject_content("Bylaw: blocked <tool>: <rule_id> <policy_ref>")`; the tool does not run. Allowed: `allow()`.
 - When `log` is a list, every check appends `{"tool", "args", "allowed": bool, "rule_id": str|None, "policy_ref": str|None}`.
 
@@ -100,3 +100,13 @@ Gold conversations: at least 6, covering a real disruption compensation (Paris t
 2. `facts` is the same in every snapshot of a run; no tool writes it. Rules may read it, for example `facts.bookings[context.session.confirmation_number].on_time`.
 3. The amend prompt describes `facts` as the airline's record, and the session fields as what the conversation has set.
 4. Goals D1–D4 are unchanged (v1.4).
+
+## v1.6 (2026-11-01) — CS-C2: the customer's own words in the guard snapshot, from DM5
+
+Changelog: the CS-C2 guard snapshot gains `context.customer_text`, so a rule can read what the customer said instead of the arguments the agent wrote. CS-C1 (the domain snapshot) is unchanged.
+
+1. The CS-C2 guard snapshot is `{"facts", "context": {"session", "customer_text"}, "trace"}`. `customer_text` holds every `user` message of the run's input so far, in order, lowercased, joined with `\n`. The agent's own messages are not in it.
+2. The domain snapshot (`CsDemoDomain.snapshot`, used by audit chains, the executor and gold replays) is unchanged. It has no `customer_text` key, since those chains have no customer. Rules read the field as `db['context'].get('customer_text', '')`.
+3. The amend prompt describes `customer_text` as the only field that holds the customer's own words.
+4. A runner that guards a conversation must pass the earlier turns as the run input, as `bylaw.live` does with `to_input_list()`. Otherwise the earlier customer messages are missing from `customer_text`.
+5. Goals D1–D4 are unchanged.

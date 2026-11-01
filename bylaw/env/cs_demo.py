@@ -70,10 +70,14 @@ GOLD = [
 RULE_NAMES = (
     "- args: the call's arguments (dict); res and user: always None in this domain; db: the snapshot "
     '{"facts": {"bookings": {<confirmation_number>: {"flights": [{"flight_number", "status", "on_time"}], '
-    '"on_time"}}}, "context": {"session": {...}}, "trace": {"0": {"tool", "args", "ok"}, ...}} (every earlier call '
+    '"on_time"}}}, "context": {"session": {...}, "customer_text": str}, "trace": {"0": {"tool", "args", "ok"}, ...}} (every earlier call '
     "of the conversation, in order); now: ISO time string. "
     "facts: the airline's own record of its bookings and flight statuses, the same in every snapshot and written by "
     "no tool; a booking's on_time is true when every flight of it is on time. "
+    "context.customer_text (CS-C2 v1.6): what the customer has said in the conversation so far, every customer message "
+    "lowercased, one per line; the agent writes tool arguments itself, so only this field is the customer's own "
+    "words. It is present only when a live conversation is guarded; audit chains and gold replays have no customer "
+    "and no customer_text key, so read it as db['context'].get('customer_text', ''). "
     "context.session: what the conversation has set so far, not the airline's record. Session fields (a write tool "
     "called on an empty session first "
     "fills the missing ones from the demo's 'disrupted' trip; a lookup fills only the missing ones): "
