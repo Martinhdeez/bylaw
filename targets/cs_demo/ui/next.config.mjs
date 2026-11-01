@@ -1,20 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   devIndicators: false,
-  // Proxy /chat requests to the backend server
+  // Bylaw: replays (and, after VZ3 phase 2, the live chat) come from the Bylaw API, bylaw/api.py.
   async rewrites() {
     return [
       {
-        source: "/chat",
-        destination: "http://127.0.0.1:8000/chat",
-      },
-      {
-        source: "/chatkit",
-        destination: "http://127.0.0.1:8000/chatkit",
-      },
-      {
-        source: "/chatkit/:path*",
-        destination: "http://127.0.0.1:8000/chatkit/:path*",
+        source: "/api/:path*",
+        destination: (process.env.BYLAW_API_URL ?? "http://127.0.0.1:8000") + "/api/:path*",
       },
     ];
   },

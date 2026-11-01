@@ -27,3 +27,7 @@ dist/
 # heavy media (videos + audio stay local)
 .artifacts/code/*/assets/
 .artifacts/pages/*.mp4
+
+# next
+.next/
+tsconfig.tsbuildinfo

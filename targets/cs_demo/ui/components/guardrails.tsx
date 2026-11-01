@@ -4,14 +4,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, CheckCircle, XCircle } from "lucide-react";
 import { PanelSection } from "./panel-section";
-import type { GuardrailCheck } from "@/lib/types";
+import type { BylawCheck, GuardrailCheck } from "@/lib/types";
+import { BylawCard } from "./bylaw-card";
 
 interface GuardrailsProps {
   guardrails: GuardrailCheck[];
   inputGuardrails: string[];
+  /** Bylaw: the latest tool-call check and whether the guard enforces */
+  bylaw?: { check: BylawCheck | null; guard: boolean; count: number };
 }
 
-export function Guardrails({ guardrails, inputGuardrails }: GuardrailsProps) {
+export function Guardrails({ guardrails, inputGuardrails, bylaw }: GuardrailsProps) {
   const guardrailNameMap: Record<string, string> = {
     relevance_guardrail: "Relevance Guardrail",
     jailbreak_guardrail: "Jailbreak Guardrail",
@@ -46,7 +49,7 @@ export function Guardrails({ guardrails, inputGuardrails }: GuardrailsProps) {
       title="Guardrails"
       icon={<Shield className="h-4 w-4 text-blue-600" />}
     >
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 max-md:grid-cols-2 gap-3">
         {guardrailsToShow.map((gr) => (
           <Card
             key={gr.id}
@@ -82,6 +85,7 @@ export function Guardrails({ guardrails, inputGuardrails }: GuardrailsProps) {
             </CardContent>
           </Card>
         ))}
+        {bylaw && <BylawCard {...bylaw} />}
       </div>
     </PanelSection>
   );

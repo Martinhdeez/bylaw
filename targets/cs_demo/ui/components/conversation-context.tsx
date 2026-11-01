@@ -6,9 +6,11 @@ import { BookText } from "lucide-react";
 
 interface ConversationContextProps {
   context: Record<string, any>;
+  /** Bylaw replay: keys the last tool call changed, flashed once */
+  changedKeys?: string[];
 }
 
-export function ConversationContext({ context }: ConversationContextProps) {
+export function ConversationContext({ context, changedKeys = [] }: ConversationContextProps) {
   const formatValue = (value: any) => {
     if (value === null || value === undefined || value === "") return "null";
     if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
@@ -42,8 +44,10 @@ export function ConversationContext({ context }: ConversationContextProps) {
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(context).map(([key, value]) => (
               <div
-                key={key}
-                className="flex items-center gap-2 bg-white p-2 rounded-md border border-gray-200 shadow-sm transition-all"
+                key={changedKeys.includes(key) ? `${key}-${JSON.stringify(value)}` : key}
+                className={`flex items-center gap-2 bg-white p-2 rounded-md border border-gray-200 shadow-sm transition-all ${
+                  changedKeys.includes(key) ? "ctx-changed" : ""
+                }`}
               >
                 {(() => {
                   const rendered = formatValue(value);

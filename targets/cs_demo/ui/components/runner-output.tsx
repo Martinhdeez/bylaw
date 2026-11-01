@@ -71,7 +71,7 @@ function groupRunnerEvents(events: AgentEvent[]) {
       let j = i + 1;
       while (
         j < events.length &&
-        events[j].type === "tool_output" &&
+        (events[j].type === "tool_output" || events[j].type === "bylaw_check") &&
         events[j].agent === current.agent
       ) {
         group.push(events[j]);
@@ -112,7 +112,28 @@ function buildEventText(event: AgentEvent) {
   }
 }
 
+// Bylaw: the check between a tool call and its output, in Bylaw's colours.
+function BylawRow({ event }: { event: AgentEvent }) {
+  const c = event.metadata?.check;
+  if (!c) return null;
+  const state = c.allowed ? "allowed" : c.enforced ? "blocked" : "would-block";
+  return (
+    <div className="flex items-start gap-2 bylaw-runner" data-state={state}>
+      <div className="bylaw-runner-chip">Bylaw check</div>
+      <div className="flex-1 min-w-0 text-sm leading-relaxed">
+        {c.allowed ? "Allowed" : c.enforced ? "Blocked before it ran" : "Would block (guard off), ran anyway"}
+        {c.rule_id && <span className="bylaw-runner-rule"> {c.rule_id}</span>}
+      </div>
+    </div>
+  );
+}
+
 function EventDetails({ event }: { event: AgentEvent }) {
+  if (event.type === "bylaw_check") return <BylawRow event={event} />;
+  return <EventDetailsBody event={event} />;
+}
+
+function EventDetailsBody({ event }: { event: AgentEvent }) {
   const [expanded, setExpanded] = useState(false);
   const toolArgs = event.metadata?.tool_args;
   const toolResult = event.metadata?.tool_result;
