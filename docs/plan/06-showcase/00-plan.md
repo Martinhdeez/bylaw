@@ -22,6 +22,7 @@ Target app: OpenAI's MIT-licensed `openai-cs-agents-demo` (airline customer serv
 | DM4 | Close D2–D4 on csdemo: ratify amendments that block 0/8 gold and stop the DM3 live attacks (draft new ones with Muse where the audit's amendment does not reach the live attack, e.g. D2 on another passenger's booking, D4 compensation after a cancel), then re-run the guarded DM3 scripts and regenerate `reports/live/dm3-summary.md` | evidence | full | builder, then reviewer | DM3 |
 | PA1 | A PydanticAI agent (Muse as model) whose only tools come through the Bylaw MCP proxy; the same ratified RuleSet denies the D1 attack and lets a legitimate request through; offline test with a stub model that fails if the proxy is bypassed | feature | full | builder, then reviewer | DM4 |
 | RD1 | README for submission: csdemo showcase, quickstart, figures traced to committed files, limits; secret scan of the whole history | docs | light | assistant | DM4 |
+| VZ3 | The real OpenAI demo UI running with Bylaw inside it: vendor OpenAI's `ui/` (MIT, upstream bd7bfca), replace only ChatKit with a plain chat box, add a Bylaw guardrail card in their Agent View and a slim Bylaw rail that narrates each check in plain words; guard on/off toggle; live typing on Muse plus one-click replays of the recorded attacks | view | full | designer (prototype, then user approval), builder for the backend contract, then reviewer | DM4, PA1 |
 | VZ2 | Scan and Fix views on the csdemo data (agent app pane, Bylaw lane, scenes) | view | full | designer, then reviewer | VZ1 approved, CS2, CS3 contracts |
 
 CS1 verdict (2026-10-28): go with changes (`.scratch/cs-demo-spike.md`). User decisions: scope cut to about 4 days (no ChatKit, no demo Next.js UI; Bylaw web shows the whole scene from recorded event files), vendor the backend only.
@@ -84,3 +85,9 @@ From the DM2 review (PR #41, merged c34d698):
 1. H4 D2:IR-D204 has `closes False` in `reports/csdemo.json` (6 of 7 holes close); the live `test_REQ_CS2_4` asserts every hole closes and would fail on this data. Only D1 was required and ratified.
 2. `POST` ratify returns 422 for `csdemo` (`bylaw/api.py` `Domain` is airline/retail); DM2 ratified through `bylaw.ratified.ratify`. Item RA1.
 3. The unguarded recording carries 1 denied, not enforced check, as CS-C3 specifies; the Live view may show it as what Bylaw would have blocked.
+
+## VZ3 decisions (user, 2026-11-01)
+
+- Show the real OpenAI customer-service demo UI, not a replica; Bylaw appears inside it as a guardrail card plus a narration rail.
+- Live typing on Muse and one-click replays of the recorded runs.
+- Goal: a viewer understands Bylaw just by watching the app run.
