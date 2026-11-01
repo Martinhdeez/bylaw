@@ -34,3 +34,4 @@ dist/
 targets/cs_demo/ui/test-results/
 targets/cs_demo/ui/playwright-report/
 tsconfig.tsbuildinfo
+targets/cs_demo/ui/next-env.d.ts
