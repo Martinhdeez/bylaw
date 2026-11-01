@@ -11,11 +11,18 @@ from bylaw.proxy.core import default_ruleset
 NAME = "bylaw"
 
 
-def snapshot(state, trace: list[dict]) -> dict:
-    """CS-C1 snapshot of a live AirlineAgentContext and the guard's trace."""
+def customer_text(items) -> str:
+    """CS-C1 v1.6: every customer (`user`) message of the run's input, in order, lowercased, one per line."""
+    said = [i.get("content") for i in items if isinstance(i, dict) and i.get("role") == "user"]
+    return "\n".join(c if isinstance(c, str) else " ".join(p.get("text", "") for p in c or []) for c in said).lower()
+
+
+def snapshot(state, trace: list[dict], said: str = "") -> dict:
+    """CS-C1 snapshot of a live AirlineAgentContext and the guard's trace, plus what the customer said (v1.6)."""
     from bylaw.env.cs_demo import facts  # v1.5: the airline's record, as in the domain snapshot
 
-    return {"facts": facts(), "context": {"session": state.model_dump(mode="json")}, "trace": {str(n): s for n, s in enumerate(trace)}}
+    return {"facts": facts(), "context": {"session": state.model_dump(mode="json"), "customer_text": said},
+            "trace": {str(n): s for n, s in enumerate(trace)}}
 
 
 def _install(agents, domain_name, ruleset, log, enforce: bool) -> None:
@@ -32,8 +39,8 @@ def _install(agents, domain_name, ruleset, log, enforce: bool) -> None:
         state = ctx.context.state
         trace = traces.setdefault(id(state), (state, []))[1]
         tool, args = ctx.tool_name, json.loads(ctx.tool_arguments or "{}")
-        denied = next((v for v in rules.check(effective, snapshot(state, trace), tool, args, now)
-                       if not v.ok), None)
+        snap = snapshot(state, trace, customer_text(ctx.turn_input))  # turn_input: the run's input, earlier turns too
+        denied = next((v for v in rules.check(effective, snap, tool, args, now) if not v.ok), None)
         if log is not None:
             log.append({"tool": tool, "args": args, "allowed": denied is None,
                         "rule_id": denied and denied.rule_id, "policy_ref": denied and denied.policy_ref})
