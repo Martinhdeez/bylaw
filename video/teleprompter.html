@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bylaw VD4 teleprompter</title>
+<!-- Offline: no external files. Text copied from video/script.md; keep them in sync. -->
+<style>
+  :root { --bg: #0f1122; --ink: #f5f6ff; --muted: #959bc0; --violet: #c4a6ff; --amber: #ffb84d; --red: #ff6b5a; --green: #34e0a1; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; align-items: baseline; gap: 24px; padding: 20px 4vw 0; font-size: 22px; color: var(--muted); }
+  header b { color: var(--violet); font-size: 28px; }
+  #timer { margin-left: auto; font: 600 44px/1 ui-monospace, Menlo, monospace; color: var(--green); font-variant-numeric: tabular-nums; }
+  #timer.near { color: var(--amber); } #timer.over { color: var(--red); }
+  #bar { height: 6px; margin: 14px 4vw 0; background: rgba(160,150,255,.18); border-radius: 3px; overflow: hidden; }
+  #fill { height: 100%; width: 0; background: var(--violet); }
+  main { flex: 1; display: flex; align-items: center; padding: 2vh 6vw; }
+  #text { font-size: clamp(34px, 5.2vw, 76px); line-height: 1.38; font-weight: 500; }
+  #text span { display: block; }
+  footer { padding: 0 4vw 18px; font-size: 18px; color: var(--muted); display: flex; gap: 28px; }
+</style>
+</head>
+<body>
+<header><b id="beat"></b><span id="title"></span><span id="meta"></span><span id="timer">0.0</span></header>
+<div id="bar"><div id="fill"></div></div>
+<main><div id="text"></div></main>
+<footer><span>Space / → next · ← back · R restart timer · V switch B8 version</span><span id="ver"></span><span id="total"></span></footer>
+<script>
+const BEATS = [
+  ["B1", "Hook", 12, "An AI agent just gave away two hundred and eighty dollars in travel vouchers. / The flight was on time. / Nobody hacked the agent. / Every single step was allowed."],
+  ["B2", "Thesis", 10, "Models are powerful, / but they guess. / So Bylaw gives the last word to the application, not to the model. / The model proposes. / The application decides."],
+  ["B3", "Guard off", 30, "This is OpenAI's open-source customer service demo. / Six agents, all running on Meta's Muse Spark. / Bylaw is the dark panel on the right. / First, the guard is off. / The customer checks flight one two three. / It is on time. / Then they say they missed a connection in New York, / and they ask for vouchers. / The agent pays for a hotel, a meal and transport. / Two hundred and eighty dollars, / for a flight that was on time."],
+  ["B4", "How it works", 30, "How did Bylaw know? / It audited the app first. / Muse Spark read the agents' instructions / and proposed chains of tool calls that end in a forbidden result. / Code ran every chain on a fresh copy of the app. / Seven chains reached a forbidden result, / five times out of five, / in fourteen seconds. / Then Muse drafted a fix: one rule. / Bylaw replayed eight honest conversations. / The rule blocked none. / A person ratified it, / and the guard enforces it."],
+  ["B5", "Guard on", 28, "Now the guard is on. / Same customer, same words, same agents. / The refunds agent asks to pay the vouchers. / Bylaw reads the airline's record: / this booking is on time. / The call is blocked before it runs, / and nothing is paid. / The agent gets the reason, / and it tells the customer, politely. / Two hundred and eighty dollars stay with the airline. / Same model. / The application decided."],
+  ["B6", "Other attacks", 20, "We tried four attacks and five honest requests. / The guard stopped three attacks: / vouchers on an on-time flight, / a seat on someone else's booking, / and compensation after a cancel. / None of the five honest requests was blocked. / A real missed connection still gets its vouchers."],
+  ["B7", "Second framework", 18, "The rules are not tied to one framework. / This is a different agent, built with PydanticAI. / It has no tools of its own. / Every tool goes through the Bylaw M-C-P proxy. / Same rule, / same attack: / denied. / An honest request: / allowed."],
+  ["B8", "What we measured", 20, {
+    open: "Every number in this video comes from a file in the repo. / Each one is a single run, / not a rate. / One attack is still open. / The agent wrote a medical reason the customer never gave, / and the rule can only read what the agent writes.",
+    closed: "Every number in this video comes from a file in the repo. / Each one is a single run, / not a rate. / The fourth attack was harder. / The agent wrote a medical reason the customer never gave. / Now Bylaw also reads the customer's own words, / and that attack is blocked too."
+  }],
+  ["B9", "Close", 12, "Bylaw is open source, / and built on Muse Spark. / Find the hole, / prove it, / fix it, / let a person ratify it, / and enforce it. / The model proposes. / The application decides."],
+];
+let i = 0, t0 = performance.now(), b8 = "open";
+const $ = (id) => document.getElementById(id);
+const textOf = (b) => typeof b[3] === "string" ? b[3] : b[3][b8];
+const words = (s) => s.replace(/\//g, " ").split(/\s+/).filter(Boolean).length;
+function show() {
+  const b = BEATS[i], s = textOf(b);
+  let start = 0; for (let k = 0; k < i; k++) start += BEATS[k][2];
+  const mmss = (x) => Math.floor(x / 60) + ":" + String(x % 60).padStart(2, "0");
+  $("beat").textContent = b[0];
+  $("title").textContent = b[1];
+  $("meta").textContent = `${mmss(start)}–${mmss(start + b[2])} · ${b[2]} s · ${words(s)} words`;
+  $("text").innerHTML = s.split("/").map((p) => `<span>${p.trim()}</span>`).join("");
+  $("ver").textContent = "B8 version: " + b8 + (b8 === "closed" ? " (PENDING-DM5)" : "");
+  $("total").textContent = `beat ${i + 1} of ${BEATS.length}`;
+  t0 = performance.now();
+}
+function tick() {
+  const dur = BEATS[i][2], el = (performance.now() - t0) / 1000;
+  $("timer").textContent = el.toFixed(1) + " / " + dur;
+  $("timer").className = el > dur ? "over" : el > dur - 3 ? "near" : "";
+  $("fill").style.width = Math.min(100, (el / dur) * 100) + "%";
+  requestAnimationFrame(tick);
+}
+addEventListener("keydown", (e) => {
+  if (e.key === " " || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); if (i < BEATS.length - 1) { i++; show(); } }
+  else if (e.key === "ArrowLeft" || e.key === "PageUp") { if (i > 0) { i--; show(); } }
+  else if (e.key === "r" || e.key === "R") t0 = performance.now();
+  else if (e.key === "v" || e.key === "V") { b8 = b8 === "open" ? "closed" : "open"; show(); }
+});
+show(); tick();
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<template>
+  <style>
+    @font-face { font-family: "Fira Sans"; font-weight: 400; src: url("assets/fonts/fira-sans-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Sans"; font-weight: 500; src: url("assets/fonts/fira-sans-latin-500-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Sans"; font-weight: 600; src: url("assets/fonts/fira-sans-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Code"; font-weight: 500; src: url("assets/fonts/fira-code-latin-500-normal.woff2") format("woff2"); }
+    #root {
+      position: absolute; inset: 0; overflow: hidden; color: #f5f6ff; font-family: "Fira Sans";
+      background: radial-gradient(120% 90% at 50% 40%, #171a30 0%, #0f1122 60%, #0b0d1b 100%);
+    }
+    .t-rules { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, transparent 0 47px, rgba(160,150,255,.045) 47px 48px); }
+    #t-l1 { position: absolute; left: 0; right: 0; top: 400px; text-align: center; font: 600 96px/1.1 "Fira Sans"; letter-spacing: -0.02em; }
+    #t-l1 .w { display: inline-block; }
+    #t-l1 .v { color: #c4a6ff; }
+
+    .t-col { position: absolute; top: 230px; width: 700px; height: 470px; border-radius: 16px; padding: 44px 48px; }
+    #t-model { left: 200px; background: rgba(157,107,255,.10); border: 1px solid rgba(196,166,255,.35); }
+    #t-app { right: 200px; background: #171a30; border: 2px solid #dcdff2; border-radius: 4px; }
+    .t-kicker { font: 500 28px/1 "Fira Code"; letter-spacing: .1em; text-transform: uppercase; }
+    #t-model .t-kicker { color: #c4a6ff; }
+    #t-app .t-kicker { color: #b3b8d6; }
+    .t-big { font: 600 80px/1 "Fira Sans"; letter-spacing: -0.02em; margin-top: 26px; }
+    #t-model .t-big { color: #c4a6ff; }
+    .t-props { margin-top: 44px; }
+    .t-prop { font: 500 28px/1 "Fira Code"; color: #c4a6ff; padding: 14px 20px; border-radius: 30px; border: 1px dashed rgba(196,166,255,.55);
+      display: inline-block; margin: 0 10px 14px 0; }
+    .t-rule { font: 500 26px/1.4 "Fira Code"; color: #dcdff2; border-left: 4px solid #dcdff2; padding: 8px 0 8px 18px; margin-top: 44px; }
+    #t-stamp { position: absolute; right: 48px; bottom: 44px; font: 600 40px/1 "Fira Code"; letter-spacing: .08em; color: #34e0a1;
+      border: 4px solid #34e0a1; padding: 14px 22px; border-radius: 4px; transform: rotate(-4deg); }
+
+    #t-out { position: absolute; left: 0; right: 0; top: 790px; text-align: center; font: 600 64px/1.15 "Fira Sans"; letter-spacing: -0.015em; }
+    #t-out .v { color: #c4a6ff; }
+  </style>
+  <div id="root" data-composition-id="thesis" data-width="1920" data-height="1080">
+    <div class="t-rules"></div>
+    <div id="t-l1" class="clip" data-start="0" data-duration="2.7" data-track-index="1">
+      <span class="w">Models</span> <span class="w">are</span> <span class="w">powerful,</span> <span class="w v">but</span> <span class="w v">they</span> <span class="w v">guess.</span>
+    </div>
+
+    <div id="t-model" class="t-col clip" data-start="2.6" data-duration="7.4" data-track-index="2">
+      <div class="t-kicker">Model · Muse Spark</div>
+      <div class="t-big">proposes</div>
+      <div class="t-props">
+        <span class="t-prop" id="t-p1">issue_compensation?</span>
+        <span class="t-prop" id="t-p2">update_seat?</span>
+        <span class="t-prop" id="t-p3">cancel_flight?</span>
+      </div>
+    </div>
+    <div id="t-app" class="t-col clip" data-start="2.9" data-duration="7.1" data-track-index="3">
+      <div class="t-kicker">Application · Bylaw</div>
+      <div class="t-big">decides</div>
+      <div class="t-rule" id="t-rule">checks each call against<br />the ratified rules</div>
+      <div id="t-stamp">ALLOWED / BLOCKED</div>
+    </div>
+
+    <div id="t-out" class="clip" data-hold data-start="7.2" data-duration="2.8" data-track-index="4">
+      The model <span class="v">proposes</span>. The application decides.
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#t-l1 .w", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.14, stagger: 0.12, ease: "power2.out" }, 0.15);
+    tl.to("#t-l1", { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power2.in" }, 2.45);
+    tl.fromTo("#t-model", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.8, ease: "expo.out" }, 2.6);
+    tl.fromTo(["#t-p1", "#t-p2", "#t-p3"], { opacity: 0, y: 16, filter: "blur(6px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6, ease: "sine.out", stagger: 0.3 }, 3.3);
+    tl.fromTo("#t-app", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 2.9);
+    tl.fromTo("#t-rule", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 4.3);
+    tl.fromTo("#t-stamp", { opacity: 0, scale: 1.7 }, { opacity: 1, scale: 1, duration: 0.18, ease: "power4.in" }, 6.0);
+    tl.fromTo("#t-out", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, 7.3);
+    window.__timelines["thesis"] = tl;
+  </script>
+</template>

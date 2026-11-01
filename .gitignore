@@ -27,3 +27,9 @@ dist/
 # heavy media (videos + audio stay local)
 .artifacts/code/*/assets/
 .artifacts/pages/*.mp4
+
+# video (VD4): renders, heavy media, HyperFrames caches
+video/out/
+video/roughcut/assets/
+video/*/.hyperframes/
+video/*/renders/
