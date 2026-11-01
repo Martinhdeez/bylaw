@@ -38,8 +38,7 @@ class Proxy:
     def __init__(self, domain, ruleset: dict | None = None, monitor: bool = True, monitor_goals=None):
         self.domain = domain
         self.ruleset = default_ruleset(domain.name) if ruleset is None else ruleset
-        # an amendment keyed to no goal of the domain (DM5 A11, `U1:`) has no goal to monitor
-        goals = ratified_goals(domain.name) & domain.goals.keys() if monitor_goals is None else set(monitor_goals)
+        goals = ratified_goals(domain.name) if monitor_goals is None else set(monitor_goals)
         self.monitor_goals = sorted(goals) if monitor else []
         self.env = domain.fresh_env()
         self.start = domain.snapshot(self.env)

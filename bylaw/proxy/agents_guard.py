@@ -12,13 +12,14 @@ NAME = "bylaw"
 
 
 def customer_text(items) -> str:
-    """CS-C1 v1.6: every customer (`user`) message of the run's input, in order, lowercased, one per line."""
+    """CS-C2 v1.6: every customer (`user`) message of the run's input, in order, lowercased, one per line."""
     said = [i.get("content") for i in items if isinstance(i, dict) and i.get("role") == "user"]
     return "\n".join(c if isinstance(c, str) else " ".join(p.get("text", "") for p in c or []) for c in said).lower()
 
 
 def snapshot(state, trace: list[dict], said: str = "") -> dict:
-    """CS-C1 snapshot of a live AirlineAgentContext and the guard's trace, plus what the customer said (v1.6)."""
+    """CS-C2 guard snapshot of a live AirlineAgentContext and the guard's trace (CS-C1 shape), plus what the
+    customer said (CS-C2 v1.6)."""
     from bylaw.env.cs_demo import facts  # v1.5: the airline's record, as in the domain snapshot
 
     return {"facts": facts(), "context": {"session": state.model_dump(mode="json"), "customer_text": said},
