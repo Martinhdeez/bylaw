@@ -23,6 +23,8 @@ Target app: OpenAI's MIT-licensed `openai-cs-agents-demo` (airline customer serv
 | PA1 | A PydanticAI agent (Muse as model) whose only tools come through the Bylaw MCP proxy; the same ratified RuleSet denies the D1 attack and lets a legitimate request through; offline test with a stub model that fails if the proxy is bypassed | feature | full | builder, then reviewer | DM4 |
 | RD1 | README for submission: csdemo showcase, quickstart, figures traced to committed files, limits; secret scan of the whole history | docs | light | assistant | DM4 |
 | VZ3 | The real OpenAI demo UI running with Bylaw inside it: vendor OpenAI's `ui/` (MIT, upstream bd7bfca), replace only ChatKit with a plain chat box, add a Bylaw guardrail card in their Agent View and a slim Bylaw rail that narrates each check in plain words; guard on/off toggle; live typing on Muse plus one-click replays of the recorded attacks | view | full | designer (prototype, then user approval), builder for the backend contract, then reviewer | DM4, PA1 |
+| LV1 | Live session backend for VZ3: `vz3-contract.md` v1.0 C2–C6 (session, SSE turn, extra `bylaw_check` fields, demo guardrail events, agents list, limits) | feature | full | test-author and builder in parallel, then reviewer | VZ3 prototype approved |
+| DM5 | Close D3 on the customer's own words and cover unrequested write actions (the PA441 status question that rebooked NY950); ratify, backtest 0/8, re-run the affected guarded scripts | evidence | full | builder, then reviewer | DM4 |
 | VZ2 | Scan and Fix views on the csdemo data (agent app pane, Bylaw lane, scenes) | view | full | designer, then reviewer | VZ1 approved, CS2, CS3 contracts |
 
 CS1 verdict (2026-10-28): go with changes (`.scratch/cs-demo-spike.md`). User decisions: scope cut to about 4 days (no ChatKit, no demo Next.js UI; Bylaw web shows the whole scene from recorded event files), vendor the backend only.
@@ -91,3 +93,4 @@ From the DM2 review (PR #41, merged c34d698):
 - Show the real OpenAI customer-service demo UI, not a replica; Bylaw appears inside it as a guardrail card plus a narration rail.
 - Live typing on Muse and one-click replays of the recorded runs.
 - Goal: a viewer understands Bylaw just by watching the app run.
+- 2026-11-01: prototype approved; the user delegated the six open design questions ("be autonomous"). Answers: keep Guardrails above Context; the toggle switches recordings (live makes it one conversation); keep D2 honest, D4 is the second showcase; rail stays dark; "$280 stayed with the airline" wording kept; the UI build joins the gate.

@@ -1,6 +1,6 @@
-# VZ3 contract: live chat for the real demo UI (designer ask, draft v0.1)
+# VZ3 contract: live chat for the real demo UI (v1.0, frozen)
 
-Status: draft from the VZ3 prototype (branch `view/vz3-real-ui`), 2026-11-01. Frozen only after the user approves the prototype. The builder owns `bylaw/`; the designer owns `targets/cs_demo/ui/` and `web/`.
+Status: v1.0, frozen 2026-11-01 after the user approved the VZ3 prototype (branch `view/vz3-real-ui`). A change is a new version, announced to builder, test author and designer. The builder owns `bylaw/`; the designer owns `targets/cs_demo/ui/` and `web/`.
 
 What the UI needs that does not exist yet: a live conversation on Muse with the guard on or off, streamed event by event in the CS-C3 event shape, and a few extra fields on `bylaw_check` so the rail's plain-language narration comes from the backend instead of a table copied into the UI.
 
@@ -52,13 +52,20 @@ Added to every `bylaw_check` event, live and in event files recorded from now on
 - `prior_tools`: tools of the guard's trace so far (allowed calls only, CS-C2 v1.2 item 4).
 - `rules_checked`: ids of every rule on this tool in the effective RuleSet, in order.
 
-## VZ3-C4 Demo guardrails (optional)
+## VZ3-C4 Demo guardrails (required in v1.0)
 
 The demo's own Relevance and Jailbreak guardrails run on Muse too. When one runs, emit `{"type": "guardrail", "name": "relevance_guardrail" | "jailbreak_guardrail", "passed": bool, "reasoning": str}` so their two cards light up as upstream does. If a tripwire fires, the turn ends after this event, then `done`.
 
-## VZ3-C5 Agents list (optional)
+## VZ3-C5 Agents list (required in v1.0)
 
 `GET /api/csdemo/agents` → `_build_agents_list()` shape (`name`, `description`, `handoffs`, `tools`, `input_guardrails`) from `targets.cs_demo.airline.agents`. Today the UI holds a static copy (`lib/agents.ts`).
+
+## VZ3-C6 Limits for a public demo (added in v1.0)
+
+- At most 12 turns per session: the 13th turn returns `429 {"detail": "turn limit"}`.
+- A process-wide Muse token cap, `BYLAW_LIVE_TOKEN_CAP` (default 300000 input plus output tokens, counted from the model layer's reported usage). Once reached, `POST /api/live/session` and `/turn` return `429 {"detail": "token cap"}` until restart.
+- `BYLAW_LIVE=0` disables the live endpoints (`503 {"detail": "live disabled"}`); replays keep working. Default on.
+- `GET /api/live/status` → `{"enabled": bool, "model": str, "tokens_used": int, "token_cap": int, "sessions": int}` so the UI can grey out live typing and offer replays.
 
 ## Tests the builder should add
 
