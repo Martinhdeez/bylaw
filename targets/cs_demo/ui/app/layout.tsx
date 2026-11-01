@@ -9,8 +9,8 @@ const FONTS =
   "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap";
 
 export const metadata: Metadata = {
-  title: "Airlines Agent Orchestration · guarded by Bylaw",
-  description: "OpenAI's airline customer-service agents demo, with Bylaw checking every tool call",
+  title: "Airlines Agent Orchestration · guarded by bylaw",
+  description: "OpenAI's airline customer-service agents demo, with bylaw checking every tool call",
   icons: {
     icon: "/openai_logo.svg",
   },

@@ -119,7 +119,7 @@ function BylawRow({ event }: { event: AgentEvent }) {
   const state = c.allowed ? "allowed" : c.enforced ? "blocked" : "would-block";
   return (
     <div className="flex items-start gap-2 bylaw-runner" data-state={state}>
-      <div className="bylaw-runner-chip">Bylaw check</div>
+      <div className="bylaw-runner-chip">bylaw check</div>
       <div className="flex-1 min-w-0 text-sm leading-relaxed">
         {c.allowed ? "Allowed" : c.enforced ? "Blocked before it ran" : "Would block (guard off), ran anyway"}
         {c.rule_id && <span className="bylaw-runner-rule"> {c.rule_id}</span>}

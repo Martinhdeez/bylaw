@@ -58,7 +58,7 @@ function CheckEntry({ c, latest }: { c: BylawCheck; latest: boolean }) {
         <p className="br-wants">{c.wants}</p>
         {c.reads.length > 0 && (
           <>
-            <div className="br-label">Bylaw reads</div>
+            <div className="br-label">bylaw reads</div>
             <ul className="br-facts">
               {c.reads.map((f) => (
                 <li key={f.label} data-ok={f.ok}>
@@ -100,11 +100,11 @@ export function BylawRail(p: BylawRailProps) {
   }, [p.checks.length, p.moneyOut, p.moneyStopped, p.step]);
 
   return (
-    <aside className="bylaw-rail" aria-label="Bylaw guard">
+    <aside className="bylaw-rail" aria-label="bylaw guard">
       <header className="br-head">
         <BylawMark className="br-logo" />
         <div>
-          <div className="br-title">Bylaw</div>
+          <div className="br-title">bylaw</div>
           <div className="br-sub">guards every tool call</div>
         </div>
         <button type="button" className="br-watch" onClick={p.onWatch}>
@@ -183,7 +183,7 @@ export function BylawRail(p: BylawRailProps) {
         {p.live.on
           ? isLive
             ? "Pick a recorded conversation above to go back to the replays."
-            : "Or type in the chat: the agents answer live on Muse and Bylaw guards them."
+            : "Or type in the chat: the agents answer live on Muse and bylaw guards them."
           : "Live chat is off on this server; the recorded conversations show the same agents."}
       </p>
 
@@ -193,7 +193,7 @@ export function BylawRail(p: BylawRailProps) {
           <dd>{usd(p.moneyOut)}</dd>
         </div>
         <div data-tone={p.moneyStopped > 0 ? "kept" : undefined}>
-          <dt>Stopped by Bylaw</dt>
+          <dt>Stopped by bylaw</dt>
           <dd>{usd(p.moneyStopped)}</dd>
         </div>
         <div>
@@ -214,7 +214,7 @@ export function BylawRail(p: BylawRailProps) {
               ? "Each tool call the agents make stops here first. Ask for something and watch."
               : p.step === 0
               ? `Press Play. The customer ${scenario?.ask.charAt(0).toLowerCase()}${scenario?.ask.slice(1)} Each tool call the agents make stops here first.`
-              : "No tool call yet. Bylaw speaks when an agent reaches for a tool."}
+              : "No tool call yet. bylaw speaks when an agent reaches for a tool."}
           </p>
         ) : (
           <ol className="br-steps">
@@ -229,7 +229,7 @@ export function BylawRail(p: BylawRailProps) {
             {p.moneyOut > 0
               ? `${usd(p.moneyOut)} in vouchers left the airline.`
               : p.moneyStopped > 0
-                ? `Nothing was paid; Bylaw stopped ${usd(p.moneyStopped)}.`
+                ? `Nothing was paid; bylaw stopped ${usd(p.moneyStopped)}.`
                 : "No money moved."}
           </p>
         )}

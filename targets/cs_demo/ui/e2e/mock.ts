@@ -17,6 +17,12 @@ export function sse(events: object[], done = { current_agent: "Triage Agent", co
   return events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join("") + `event: done\ndata: ${JSON.stringify(done)}\n\n`;
 }
 
+/** Navigate and wait until the app has hydrated and loaded its first recording (the rail footer appears then). */
+export async function open(page: Page, url: string) {
+  await page.goto(url);
+  await page.locator(".br-foot").waitFor({ timeout: 30_000 });
+}
+
 const json = (route: Route, status: number, body: unknown) =>
   route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 

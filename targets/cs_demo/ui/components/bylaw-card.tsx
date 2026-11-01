@@ -20,7 +20,7 @@ export function BylawCard({ check, guard, count }: BylawCardProps) {
       <CardHeader className="p-3 pb-1">
         <CardTitle className="text-sm flex items-center gap-1.5 text-zinc-900">
           <BylawMark className="h-4 w-4" />
-          Bylaw
+          bylaw
           <span className="bylaw-card-mode">{guard ? "enforcing" : "watching only"}</span>
         </CardTitle>
       </CardHeader>

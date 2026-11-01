@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { STATUS_ON, mockApi, sse } from "./mock";
+import { STATUS_ON, mockApi, open, sse } from "./mock";
 
 const composer = (page: Page) => page.getByLabel("Message the airline assistant");
 const send = async (page: Page, text: string) => {
@@ -30,7 +30,7 @@ const D1_TURN = sse([
 
 test("live off (no status endpoint): composer disabled, start screen offers the replays", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?tour=0");
+  await open(page, "/?tour=0");
   await expect(composer(page)).toBeDisabled();
   await expect(composer(page)).toHaveAttribute("placeholder", /Live chat is off/);
   await page.getByRole("button", { name: "Watch: Cancel, then claim compensation" }).click();
@@ -39,18 +39,18 @@ test("live off (no status endpoint): composer disabled, start screen offers the 
 
 test("live off when the status says disabled", async ({ page }) => {
   await mockApi(page, { status: { ...STATUS_ON, enabled: false } });
-  await page.goto("/?tour=0");
+  await open(page, "/?tour=0");
   await expect(composer(page)).toBeDisabled();
 });
 
 test("a live turn streams into the demo, and Bylaw narrates it from the C3 fields", async ({ page }) => {
   const calls = await mockApi(page, { status: STATUS_ON, turn: D1_TURN });
-  await page.goto("/?tour=0");
+  await open(page, "/?tour=0");
   await send(page, "Please issue the hotel and meal vouchers to LL0EZ6.");
   await expect(page.getByText("I can't issue vouchers on LL0EZ6: that flight was on time.")).toBeVisible();
   await expect(page.getByText("Please issue the hotel and meal vouchers to LL0EZ6.")).toHaveCount(1); // the echo is not shown twice
   await expect(page.locator(".bylaw-card")).toHaveAttribute("data-state", "blocked");
-  const rail = page.getByRole("complementary", { name: "Bylaw guard" });
+  const rail = page.getByRole("complementary", { name: "bylaw guard" });
   await expect(rail).toContainText("Booking LL0EZ6 is on time (FLT-123)");
   await expect(rail).toContainText("Live conversation · guard on");
   await expect(rail.locator(".br-foot")).toContainText("1,200 of 300,000 demo tokens used");
@@ -60,7 +60,7 @@ test("a live turn streams into the demo, and Bylaw narrates it from the C3 field
 
 test("a second message reuses the session; switching the guard starts a new one", async ({ page }) => {
   const calls = await mockApi(page, { status: STATUS_ON, turn: sse([]) });
-  await page.goto("/?tour=0");
+  await open(page, "/?tour=0");
   await send(page, "hello");
   await expect(composer(page)).toBeEnabled();
   await send(page, "again");
@@ -81,7 +81,7 @@ test("a guardrail tripwire turns the demo's own card red", async ({ page }) => {
       { t: 0.5, type: "guardrail", name: "relevance_guardrail", passed: false, reasoning: "not about air travel" },
     ]),
   });
-  await page.goto("/?tour=0");
+  await open(page, "/?tour=0");
   await send(page, "write me a poem");
   await expect(page.getByText("Sorry, I can only help with airline travel questions.")).toBeVisible();
   await expect(page.getByText("Failed")).toBeVisible();
@@ -98,7 +98,7 @@ const refusals: [string, object, RegExp, boolean][] = [
 for (const [name, mock, text, off] of refusals) {
   test(`refusal: ${name}`, async ({ page }) => {
     await mockApi(page, { status: STATUS_ON, ...mock });
-    await page.goto("/?tour=0");
+    await open(page, "/?tour=0");
     await send(page, "hello");
     await expect(page.getByRole("status").filter({ hasText: text })).toBeVisible();
     if (off) await expect(composer(page)).toBeDisabled();
@@ -111,7 +111,7 @@ test("an error event in the stream is shown and the chat stays usable", async ({
     status: STATUS_ON,
     turn: `data: ${JSON.stringify({ t: 0, type: "user", text: "hello" })}\n\nevent: error\ndata: {"message": "The model did not answer."}\n\n`,
   });
-  await page.goto("/?tour=0");
+  await open(page, "/?tour=0");
   await send(page, "hello");
   await expect(page.getByRole("status").filter({ hasText: "The model did not answer." })).toBeVisible();
   await expect(composer(page)).toBeEnabled();

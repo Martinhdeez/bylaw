@@ -58,7 +58,7 @@ export interface LiveFile {
 
 export async function fetchLiveFile(file: string): Promise<LiveFile> {
   const res = await fetch(`/api/live/${encodeURIComponent(file)}`);
-  if (!res.ok) throw new Error(`Could not load ${file} (HTTP ${res.status}). Is the Bylaw API running?`);
+  if (!res.ok) throw new Error(`Could not load ${file} (HTTP ${res.status}). Is the bylaw API running?`);
   return res.json();
 }
 

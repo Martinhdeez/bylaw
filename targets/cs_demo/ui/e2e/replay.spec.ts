@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { mockApi } from "./mock";
+import { mockApi, open } from "./mock";
 
-const rail = (page: import("@playwright/test").Page) => page.getByRole("complementary", { name: "Bylaw guard" });
+const rail = (page: import("@playwright/test").Page) => page.getByRole("complementary", { name: "bylaw guard" });
 const bylawCard = (page: import("@playwright/test").Page) => page.locator(".bylaw-card");
 
 test("the replay buttons are D1, D4, D2, then the honest request", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?tour=0");
+  await open(page, "/?tour=0");
   const titles = await rail(page).locator(".br-scn-title").allTextContents();
   expect(titles).toEqual([
     "Vouchers on an on-time flight",
@@ -18,7 +18,7 @@ test("the replay buttons are D1, D4, D2, then the honest request", async ({ page
 
 test("D1 guard on: Bylaw blocks the vouchers and $280 stays with the airline", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?scenario=d1&step=-1");
+  await open(page, "/?scenario=d1&step=-1");
   await expect(bylawCard(page)).toHaveAttribute("data-state", "blocked");
   await expect(bylawCard(page)).toContainText("LL0EZ6 is on time");
   const ledger = rail(page).locator(".br-ledger");
@@ -32,7 +32,7 @@ test("D1 guard on: Bylaw blocks the vouchers and $280 stays with the airline", a
 
 test("D1 guard off: Bylaw would block, but $280 leaves the airline", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?scenario=d1&guard=off&step=-1");
+  await open(page, "/?scenario=d1&guard=off&step=-1");
   await expect(bylawCard(page)).toHaveAttribute("data-state", "would-block");
   await expect(rail(page).locator(".br-ledger div").nth(0)).toContainText("$280");
   await expect(rail(page)).toContainText("The guard is off, so the call ran anyway.");
@@ -41,21 +41,21 @@ test("D1 guard off: Bylaw would block, but $280 leaves the airline", async ({ pa
 
 test("D4 guard on: compensation after the passenger's own cancellation is blocked", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?scenario=d4&step=-1");
+  await open(page, "/?scenario=d4&step=-1");
   await expect(bylawCard(page)).toHaveAttribute("data-state", "blocked");
   await expect(rail(page)).toContainText("This chat already cancelled IR-D204");
 });
 
 test("the honest missed connection is allowed and paid in both modes", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?scenario=legit&step=-1");
+  await open(page, "/?scenario=legit&step=-1");
   await expect(rail(page).locator(".br-ledger div").nth(0)).toContainText("$280");
   await expect(rail(page).locator(".br-stamp", { hasText: "Blocked" })).toHaveCount(0);
 });
 
 test("Play runs a conversation to its end", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?scenario=d2&speed=8&tour=0");
+  await open(page, "/?scenario=d2&speed=8&tour=0");
   await rail(page).getByRole("button", { name: "Play" }).click();
   await expect(page.getByText("Thanks. Please put me in seat 14A on confirmation IR-D204.")).toBeVisible();
   await expect(rail(page).locator(".br-end")).toBeVisible({ timeout: 30_000 });
@@ -64,7 +64,7 @@ test("Play runs a conversation to its end", async ({ page }) => {
 
 test("the guard switch works from the keyboard and changes the recording", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?scenario=d1&tour=0");
+  await open(page, "/?scenario=d1&tour=0");
   const sw = rail(page).getByRole("switch");
   await expect(sw).toHaveAttribute("aria-checked", "true");
   await sw.focus();
@@ -75,7 +75,7 @@ test("the guard switch works from the keyboard and changes the recording", async
 
 test("the intro plays guard off, then guard on, with captions; Esc skips it", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/?tour=1");
+  await open(page, "/?tour=1");
   const cap = page.getByRole("region", { name: "Intro" });
   await expect(cap).toContainText("1 of 2 · guard off");
   await expect(cap).toContainText("$280 in vouchers just left the airline", { timeout: 30_000 });
@@ -86,9 +86,9 @@ test("the intro plays guard off, then guard on, with captions; Esc skips it", as
 
 test("first visit starts the intro once; later visits do not", async ({ page }) => {
   await mockApi(page);
-  await page.goto("/");
+  await open(page, "/");
   await expect(page.getByRole("region", { name: "Intro" })).toBeVisible();
-  await page.goto("/");
+  await open(page, "/");
   await page.waitForTimeout(1500);
   await expect(page.getByRole("region", { name: "Intro" })).toHaveCount(0);
 });
