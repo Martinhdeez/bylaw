@@ -3,7 +3,7 @@ import type { Page, Route } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const LIVE_DIR = join(__dirname, "..", "..", "..", "..", "reports", "live");
+export const LIVE_DIR = join(__dirname, "..", "..", "..", "..", "reports", "live");
 
 export const STATUS_ON = { enabled: true, model: "muse-spark-1.3", tokens_used: 1200, token_cap: 300000, sessions: 1 };
 

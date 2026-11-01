@@ -1,6 +1,6 @@
 "use client";
 
-// Bylaw: the captions of the "Watch it" intro. Every number comes from the replayed event files.
+// Bylaw: the captions of the "Watch it" intro. Every number comes from the replayed event files: act 2 credits what act 1's recording paid.
 import { useEffect } from "react";
 import { RotateCcw, X } from "lucide-react";
 import type { ReplayView } from "@/lib/replay";
@@ -18,7 +18,9 @@ export function caption(act: Act, v: ReplayView, finished: boolean): string {
   }
   if (act === 2) {
     if (finished || v.moneyStopped > 0)
-      return `Blocked before it ran. Nothing was paid: ${usd(v.moneyStopped)} stayed with the airline.`;
+      return v.moneyStopped > 0
+        ? `Blocked before it ran. Nothing was paid; with the guard off, the same agent paid ${usd(v.moneyStopped)}.`
+        : "Blocked before it ran. Nothing was paid.";
     if (denied) return `Blocked before it ran. ${denied.reason}`;
     return "Same request, bylaw on. Every tool call stops at bylaw first.";
   }

@@ -54,6 +54,10 @@ test("a live turn streams into the demo, and Bylaw narrates it from the C3 field
   await expect(rail).toContainText("Booking LL0EZ6 is on time (FLT-123)");
   await expect(rail).toContainText("Live conversation · guard on");
   await expect(rail.locator(".br-foot")).toContainText("1,200 of 300,000 demo tokens used");
+  // live: no recorded run prices the blocked payout, so no money figure appears
+  await expect(rail.locator(".br-money")).toHaveCount(0);
+  await expect(rail.locator(".br-ledger div").nth(1)).toContainText("a payout");
+  await expect(rail).not.toContainText("$280");
   expect(calls.session).toEqual([{ guard: true }]);
   expect(calls.turn).toEqual([{ text: "Please issue the hotel and meal vouchers to LL0EZ6." }]);
 });

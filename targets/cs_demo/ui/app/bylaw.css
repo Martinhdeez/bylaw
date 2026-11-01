@@ -173,6 +173,7 @@ body { font-family: "Inter", system-ui, sans-serif; }
 .bylaw-runner[data-state="blocked"] { color: var(--by-red); font-weight: 600; }
 .bylaw-runner[data-state="would-block"] { color: var(--by-amber); font-weight: 600; }
 .bylaw-runner-rule { font-family: var(--bylaw-code), monospace; font-size: 11px; font-weight: 400; color: #4b4959; }
+.bylaw-card-rule { display: block; margin-top: 4px; font-family: var(--bylaw-code), monospace; font-size: 11px; font-weight: 400; color: #4b4959; word-break: break-all; }
 
 /* ── replay helpers on the demo's own elements, in the demo's own blue ── */
 .ctx-changed { animation: ctx-flash 1.8s ease-out; }

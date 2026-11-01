@@ -68,7 +68,6 @@ const BOOKINGS: Record<string, { onTime: boolean; status: string }> = {
   LL0EZ6: { onTime: true, status: "on time (FLT-123, San Francisco to Los Angeles)" },
   "IR-D204": { onTime: false, status: "disrupted (PA441 delayed 5 hours, connection missed)" },
 };
-const VOUCHERS_TOTAL = 280; // hotel $180 + meal $60 + ground $40, demo_data.py
 
 const EMPTY_CONTEXT: Record<string, any> = {
   passenger_name: null,
@@ -193,11 +192,20 @@ export interface ReplayView {
   changedKeys: string[];
   guardrails: GuardrailCheck[];
   moneyOut: number;
+  /** what the same agent paid without bylaw in the recorded run, credited when bylaw blocks the payout */
   moneyStopped: number;
+  /** bylaw blocked a payout but no recorded figure prices it (live) */
+  stoppedUnpriced: boolean;
 }
 
-/** View state after the first `n` events of a file. Pure: the player recomputes it at every step. */
-export function derive(file: LiveFile | null, n: number): ReplayView {
+/** Vouchers a recording paid out: the counterfactual for the same scenario with the guard on. */
+export function paidOut(file: LiveFile): number {
+  return derive(file, file.events.length).moneyOut;
+}
+
+/** View state after the first `n` events of a file. Pure: the player recomputes it at every step.
+ *  `unpaid` is what the guard-off recording of the same conversation paid; null when there is none (live). */
+export function derive(file: LiveFile | null, n: number, unpaid: number | null = null): ReplayView {
   const v: ReplayView = {
     messages: [],
     events: [],
@@ -208,6 +216,7 @@ export function derive(file: LiveFile | null, n: number): ReplayView {
     guardrails: [],
     moneyOut: 0,
     moneyStopped: 0,
+    stoppedUnpriced: false,
   };
   if (!file) return v;
   const done: string[] = [];
@@ -263,9 +272,11 @@ export function derive(file: LiveFile | null, n: number): ReplayView {
         const blocked = String(e.output).startsWith("Bylaw: blocked");
         if (!blocked) done.push(e.tool);
         if (e.tool === "issue_compensation" && lastCheck) {
-          if (blocked) {
-            lastCheck.money = -VOUCHERS_TOTAL;
-            v.moneyStopped += VOUCHERS_TOTAL;
+          if (blocked && unpaid === null) {
+            v.stoppedUnpriced = true;
+          } else if (blocked) {
+            lastCheck.money = -unpaid!;
+            v.moneyStopped += unpaid!;
           } else {
             lastCheck.money = dollars(String(e.output));
             v.moneyOut += lastCheck.money;

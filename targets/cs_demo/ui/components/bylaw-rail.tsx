@@ -28,6 +28,7 @@ interface BylawRailProps {
   checks: BylawCheck[];
   moneyOut: number;
   moneyStopped: number;
+  stoppedUnpriced: boolean;
   error: string | null;
 }
 
@@ -79,7 +80,9 @@ function CheckEntry({ c, latest }: { c: BylawCheck; latest: boolean }) {
         {!c.allowed && !c.enforced && <p className="br-reason br-off">The guard is off, so the call ran anyway.</p>}
         {c.money !== 0 && (
           <p className="br-money" data-tone={c.money > 0 ? "out" : "kept"}>
-            {c.money > 0 ? `${usd(c.money)} left the airline` : `${usd(-c.money)} stayed with the airline`}
+            {c.money > 0
+              ? `${usd(c.money)} left the airline`
+              : `${usd(-c.money)} stayed with the airline: what this agent paid without bylaw in the recorded run`}
           </p>
         )}
       </div>
@@ -194,7 +197,7 @@ export function BylawRail(p: BylawRailProps) {
         </div>
         <div data-tone={p.moneyStopped > 0 ? "kept" : undefined}>
           <dt>Stopped by bylaw</dt>
-          <dd>{usd(p.moneyStopped)}</dd>
+          <dd>{p.stoppedUnpriced && p.moneyStopped === 0 ? "a payout" : usd(p.moneyStopped)}</dd>
         </div>
         <div>
           <dt>Checks</dt>
@@ -229,7 +232,7 @@ export function BylawRail(p: BylawRailProps) {
             {p.moneyOut > 0
               ? `${usd(p.moneyOut)} in vouchers left the airline.`
               : p.moneyStopped > 0
-                ? `Nothing was paid; bylaw stopped ${usd(p.moneyStopped)}.`
+                ? `Nothing was paid. Without bylaw, this agent paid ${usd(p.moneyStopped)} in the recorded run.`
                 : "No money moved."}
           </p>
         )}

@@ -9,7 +9,7 @@ import { BylawRail } from "@/components/bylaw-rail";
 import { BylawCaption, caption, type Act } from "@/components/bylaw-caption";
 import type { Agent } from "@/lib/types";
 import { AGENTS } from "@/lib/agents";
-import { SCENARIOS, derive, fetchLiveFile, gapMs, type LiveEvent, type LiveFile } from "@/lib/replay";
+import { SCENARIOS, derive, fetchLiveFile, gapMs, paidOut, type LiveEvent, type LiveFile } from "@/lib/replay";
 import { createSession, explain, fetchAgents, fetchStatus, sendTurn, type LiveStatus } from "@/lib/live";
 
 const INTRO_KEY = "bylaw-intro-seen";
@@ -41,6 +41,7 @@ export default function Home() {
   const [scenarioId, setScenarioId] = useState("d1");
   const [guard, setGuard] = useState(true);
   const [file, setFile] = useState<LiveFile | null>(null);
+  const [unpaid, setUnpaid] = useState<number | null>(null); // what the guard-off recording paid
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -96,6 +97,19 @@ export default function Home() {
       alive = false;
     };
   }, [fileName]);
+
+  // with the guard on, a blocked payout is priced by what the guard-off recording of the same conversation paid
+  useEffect(() => {
+    let alive = true;
+    setUnpaid(null);
+    if (fileName !== scenario.files.off)
+      fetchLiveFile(scenario.files.off)
+        .then((f) => alive && setUnpaid(paidOut(f)))
+        .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [fileName, scenario.files.off]);
 
   // the intro: once the act's file is loaded, jump to the second customer turn and play
   useEffect(() => {
@@ -206,8 +220,8 @@ export default function Home() {
 
   const shown = mode === "live" ? live : file;
   const view = useMemo(
-    () => (mode === "live" ? derive(live, live?.events.length ?? 0) : derive(file, step)),
-    [mode, live, file, step]
+    () => (mode === "live" ? derive(live, live?.events.length ?? 0) : derive(file, step, unpaid)),
+    [mode, live, file, step, unpaid]
   );
 
   const next = file?.events[step];
@@ -290,6 +304,7 @@ export default function Home() {
         checks={view.checks}
         moneyOut={view.moneyOut}
         moneyStopped={view.moneyStopped}
+        stoppedUnpriced={view.stoppedUnpriced}
         error={mode === "replay" ? error : null}
       />
       {act !== null && (

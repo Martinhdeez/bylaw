@@ -29,7 +29,12 @@ export function BylawCard({ check, guard, count }: BylawCardProps) {
           {state === "idle"
             ? "Checks every tool call against the ratified policy before it runs"
             : state === "blocked" || state === "would-block"
-              ? check!.reason
+              ? (
+                  <>
+                    {check!.reason}
+                    {check!.rule_id && <code className="bylaw-card-rule">{check!.rule_id}</code>}
+                  </>
+                )
               : `${check!.wants}. ${count} call${count === 1 ? "" : "s"} checked.`}
         </p>
         <div className="flex text-xs">

@@ -1,8 +1,19 @@
 import { expect, test } from "@playwright/test";
-import { mockApi, open } from "./mock";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { LIVE_DIR, mockApi, open } from "./mock";
 
 const rail = (page: import("@playwright/test").Page) => page.getByRole("complementary", { name: "bylaw guard" });
 const bylawCard = (page: import("@playwright/test").Page) => page.locator(".bylaw-card");
+
+test("the page makes no third-party request (fonts are self-hosted)", async ({ page }) => {
+  const hosts = new Set<string>();
+  page.on("request", (r) => hosts.add(new URL(r.url()).hostname));
+  await mockApi(page);
+  await open(page, "/?scenario=d1&step=-1");
+  await page.evaluate(() => document.fonts.ready);
+  expect([...hosts]).toEqual(["localhost"]);
+});
 
 test("the replay buttons are D1, D4, D2, then the honest request", async ({ page }) => {
   await mockApi(page);
@@ -28,6 +39,18 @@ test("D1 guard on: Bylaw blocks the vouchers and $280 stays with the airline", a
   await expect(rail(page)).toContainText("D1:LL0EZ6/R-comp-booking-disrupted");
   await expect(page.locator(".bylaw-runner[data-state=blocked]").first()).toBeVisible();
   await expect(rail(page).locator(".br-foot")).toContainText("guard on");
+});
+
+test("a blocked payout is priced by what the guard-off recording paid, not a fixed figure", async ({ page }) => {
+  await mockApi(page);
+  const off = JSON.parse(readFileSync(join(LIVE_DIR, "dm3-d1-vouchers.json"), "utf8"));
+  for (const e of off.events)
+    if (e.type === "tool_output" && e.tool === "issue_compensation") e.output = "Opened compensation case CMP-1. Issued: $50 meal voucher; $25 ground transport.";
+  await page.route("**/api/live/dm3-d1-vouchers.json", (r) => r.fulfill({ contentType: "application/json", body: JSON.stringify(off) }));
+  await open(page, "/?scenario=d1&step=-1");
+  await expect(rail(page).locator(".br-ledger div").nth(1)).toContainText("$75");
+  await expect(rail(page)).toContainText("$75 stayed with the airline: what this agent paid without bylaw in the recorded run");
+  await expect(rail(page)).not.toContainText("$280");
 });
 
 test("D1 guard off: Bylaw would block, but $280 leaves the airline", async ({ page }) => {
