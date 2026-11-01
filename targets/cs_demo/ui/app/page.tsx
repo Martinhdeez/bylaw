@@ -54,7 +54,8 @@ export default function Home() {
   const [live, setLive] = useState<LiveFile | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const liveOn = !!status?.enabled && status.tokens_used < status.token_cap;
+  const [liveBlocked, setLiveBlocked] = useState(false); // a 503 or the token cap holds until reload
+  const liveOn = !liveBlocked && !!status?.enabled && status.tokens_used < status.token_cap;
 
   useEffect(() => {
     const s = param("scenario");
@@ -147,9 +148,11 @@ export default function Home() {
   }, []);
 
   const endIntro = useCallback(() => {
-    setAct(null);
+    setAct((a) => {
+      if (a !== null) setSpeed(1); // leave the intro's speed behind, keep a speed the viewer chose
+      return null;
+    });
     positioned.current = null;
-    setSpeed(1);
   }, []);
 
   const restart = useCallback((play: boolean) => {
@@ -193,7 +196,7 @@ export default function Home() {
     } catch (err) {
       const why = explain(err);
       setNote(why.text);
-      if (why.liveOff) setStatus((st) => (st ? { ...st, enabled: false } : st));
+      if (why.liveOff) setLiveBlocked(true);
       if (why.newSession) setSession(null);
     } finally {
       setBusy(false);
@@ -214,7 +217,7 @@ export default function Home() {
   const inChat = mode === "live" && (live?.events.length ?? 0) > 0;
 
   const placeholder = !liveOn
-    ? "Live chat is off here. Watch a recorded conversation."
+    ? "Live chat is off. Watch a replay."
     : busy
       ? "The agents are answering…"
       : replaying
@@ -228,9 +231,9 @@ export default function Home() {
   };
 
   return (
-    <main className="flex h-screen gap-2 bg-gray-100 p-2 max-md:h-auto max-md:flex-col">
-      <div className="flex flex-1 min-w-0 gap-2 max-md:contents">
-        <div className="contents max-md:block max-md:order-3">
+    <main className="flex h-screen gap-2 bg-gray-100 p-2 max-xl:h-auto max-xl:flex-wrap max-md:flex-col">
+      <div className="flex flex-1 min-w-0 gap-2 max-xl:contents">
+        <div className="contents max-xl:block max-xl:order-3 max-xl:w-full">
           <AgentPanel
             agents={agents}
             currentAgent={view.currentAgent}
@@ -241,7 +244,7 @@ export default function Home() {
             changedKeys={view.changedKeys}
           />
         </div>
-        <div className="contents max-md:block max-md:order-1">
+        <div className="contents max-xl:block max-xl:order-1 max-xl:flex-1 max-xl:min-w-0 max-xl:h-[760px] max-md:h-[640px]">
           <ChatPanel
             messages={mode === "live" && !inChat ? [] : view.messages}
             typingAgent={typingAgent}

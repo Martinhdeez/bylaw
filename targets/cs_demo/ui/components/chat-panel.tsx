@@ -50,7 +50,7 @@ export function ChatPanel({ messages, typingAgent, disabled, placeholder, note, 
     "text-left text-sm rounded-full border border-gray-200 px-4 py-2 text-zinc-700 hover:bg-gray-50 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600";
 
   return (
-    <div className="flex flex-col h-full flex-1 min-w-0 bg-white shadow-sm border border-gray-200 border-t-0 rounded-xl max-md:h-[640px]">
+    <div className="flex flex-col h-full flex-1 min-w-0 bg-white shadow-sm border border-gray-200 border-t-0 rounded-xl">
       <div className="bg-blue-600 text-white h-12 px-4 flex items-center rounded-t-xl">
         <h2 className="font-semibold text-sm sm:text-base lg:text-lg">Customer View</h2>
       </div>

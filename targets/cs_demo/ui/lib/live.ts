@@ -130,6 +130,7 @@ export function explain(err: unknown): { text: string; liveOff: boolean; newSess
       return { text: "The live demo has used its Muse budget for now. Watch a recorded conversation instead.", liveOff: true, newSession: false };
     if (err.status === 429)
       return { text: "This conversation reached its 12-message limit. Send again to start a new one.", liveOff: false, newSession: true };
+    if (err.status === 422) return { text: "That message is empty or longer than 2,000 characters.", liveOff: false, newSession: false };
     if (err.status === 409) return { text: "The agents are still answering your last message.", liveOff: false, newSession: false };
     if (err.status === 404) return { text: "This conversation expired. Send again to start a new one.", liveOff: false, newSession: true };
     return { text: `The live server refused the message (${err.detail}).`, liveOff: false, newSession: false };

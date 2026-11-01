@@ -123,7 +123,7 @@ function record(conf: string | null, booking?: Booking | null) {
 }
 
 interface Booking {
-  confirmation_number: string;
+  confirmation_number?: string; // not required (contract v1.1)
   on_time: boolean;
   flights?: { flight_number: string; status: string; on_time: boolean }[];
 }

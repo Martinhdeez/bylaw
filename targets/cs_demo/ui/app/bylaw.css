@@ -220,6 +220,11 @@ body { font-family: "Inter", system-ui, sans-serif; }
 .bylaw-caption :focus-visible { outline: 2px solid #bd9bff; outline-offset: 2px; }
 @keyframes bc-swap { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
 
+/* below 1280: chat and rail side by side on top, the Agent View full width below */
+@media (max-width: 1279px) {
+  .bylaw-rail { order: 2; height: 760px; }
+  .bylaw-caption { right: 16px; }
+}
 @media (max-width: 767px) {
   .bylaw-caption { grid-template-columns: 1fr; bottom: 12px; right: 16px; }
   .bc-text { font-size: 16px; }
