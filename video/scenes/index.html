@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <!-- written by video/figures.py from committed files; the scenes draw every figure from it -->
+    <script src="assets/figures.js"></script>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #0f1122; }
@@ -11,22 +13,26 @@
     </style>
   </head>
   <body>
-    <!-- VD4 generated beats, back to back. Each is cut out to its own MP4 by video/build.sh:
-         hook 0-12 (B1), thesis 12-22 (B2), how 22-52 (B4), generality 52-70 (B7),
-         measured 70-90 (B8), close 90-102 (B9). Durations match video/storyboard.md. -->
-    <div id="root" data-composition-id="main" data-start="0" data-duration="102" data-width="1920" data-height="1080">
+    <!-- VD4 v2 generated beats, back to back. video/build.sh cuts each to its own MP4:
+         opening 0-7 (B0), hook 7-19 (B2), thesis 19-33 (B3), how 33-63 (B4), generality 63-79 (B7),
+         measured 79-97 (B8), trace 97-117 (B9), close 117-125 (B10). Durations match video/storyboard.md. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="125" data-width="1920" data-height="1080">
+      <div id="opening" data-composition-id="opening" data-composition-src="compositions/opening.html"
+        data-start="0" data-duration="7" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="hook" data-composition-id="hook" data-composition-src="compositions/hook.html"
-        data-start="0" data-duration="12" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+        data-start="7" data-duration="12" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="thesis" data-composition-id="thesis" data-composition-src="compositions/thesis.html"
-        data-start="12" data-duration="10" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+        data-start="19" data-duration="14" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="how" data-composition-id="how" data-composition-src="compositions/how.html"
-        data-start="22" data-duration="30" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+        data-start="33" data-duration="30" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="generality" data-composition-id="generality" data-composition-src="compositions/generality.html"
-        data-start="52" data-duration="18" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+        data-start="63" data-duration="16" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="measured" data-composition-id="measured" data-composition-src="compositions/measured.html"
-        data-start="70" data-duration="20" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+        data-start="79" data-duration="18" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="trace" data-composition-id="trace" data-composition-src="compositions/trace.html"
+        data-start="97" data-duration="20" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="close" data-composition-id="close" data-composition-src="compositions/close.html"
-        data-start="90" data-duration="12" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+        data-start="117" data-duration="8" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
     </div>
     <script>
       window.__timelines["main"] = gsap.timeline({ paused: true });

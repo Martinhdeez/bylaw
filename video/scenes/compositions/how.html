@@ -3,188 +3,122 @@
     @font-face { font-family: "Fira Sans"; font-weight: 400; src: url("assets/fonts/fira-sans-latin-400-normal.woff2") format("woff2"); }
     @font-face { font-family: "Fira Sans"; font-weight: 500; src: url("assets/fonts/fira-sans-latin-500-normal.woff2") format("woff2"); }
     @font-face { font-family: "Fira Sans"; font-weight: 600; src: url("assets/fonts/fira-sans-latin-600-normal.woff2") format("woff2"); }
-    @font-face { font-family: "Fira Code"; font-weight: 400; src: url("assets/fonts/fira-code-latin-400-normal.woff2") format("woff2"); }
     @font-face { font-family: "Fira Code"; font-weight: 500; src: url("assets/fonts/fira-code-latin-500-normal.woff2") format("woff2"); }
-    #root {
-      position: absolute; inset: 0; overflow: hidden; color: #f5f6ff; font-family: "Fira Sans";
-      background: radial-gradient(130% 100% at 50% 20%, #171a30 0%, #0f1122 60%, #0b0d1b 100%);
-    }
-    .w-rules { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, transparent 0 47px, rgba(160,150,255,.04) 47px 48px); }
-    #w-q { position: absolute; left: 0; right: 0; top: 470px; text-align: center; font: 600 88px/1 "Fira Sans"; letter-spacing: -0.02em; }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0f1122; color: #f5f6ff; font-family: "Fira Sans"; font-variant-numeric: tabular-nums; font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+    .code { font-family: "Fira Code"; font-weight: 500; }
+    #root * { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+    #w-head { position: absolute; left: 120px; top: 72px; font: 600 64px/1 "Fira Sans"; letter-spacing: -0.015em; }
 
-    /* the pipeline */
-    #w-pipe { position: absolute; left: 120px; right: 120px; top: 90px; height: 190px; }
-    .w-node { position: absolute; top: 0; width: 300px; height: 170px; padding: 22px 24px; border-radius: 6px;
-      background: #171a30; border: 2px solid rgba(160,150,255,.2); opacity: .35; }
-    .w-node .n { font: 500 20px/1 "Fira Code"; color: #959bc0; }
-    .w-node .t { font: 600 40px/1.1 "Fira Sans"; margin-top: 14px; }
-    .w-node .a { font: 500 20px/1 "Fira Code"; margin-top: 18px; letter-spacing: .04em; color: #b3b8d6; }
-    .w-node.muse { border-radius: 22px; }
-    .w-node.muse .a { color: #c4a6ff; }
-    #w-n1 { left: 0; } #w-n2 { left: 344px; } #w-n3 { left: 688px; } #w-n4 { left: 1032px; } #w-n5 { left: 1376px; }
-    .w-arrow { position: absolute; top: 84px; width: 44px; height: 2px; background: rgba(220,223,242,.5); transform-origin: left center; }
-    #w-a1 { left: 300px; } #w-a2 { left: 644px; } #w-a3 { left: 988px; } #w-a4 { left: 1332px; }
+    #w-steps { position: absolute; left: 120px; top: 190px; width: 1680px; display: grid; grid-template-columns: repeat(5, 1fr); column-gap: 30px; }
+    .st { border-top: 3px solid rgba(220,223,242,.2); padding-top: 18px; opacity: .38; }
+    .st .n { font: 600 40px/1.1 "Fira Sans"; }
+    .st .d { font: 400 26px/1.3 "Fira Sans"; color: #b3b8d6; margin-top: 8px; }
+    .st.m .n { color: #c4a6ff; }
 
-    .w-stage { position: absolute; left: 120px; right: 120px; top: 340px; bottom: 60px; }
-    .w-tag { display: inline-block; font: 500 22px/1 "Fira Code"; color: #c4a6ff; background: rgba(157,107,255,.16);
-      border: 1px solid rgba(196,166,255,.5); border-radius: 30px; padding: 10px 18px; }
-    .w-stamp { display: inline-block; font: 600 22px/1 "Fira Code"; letter-spacing: .06em; padding: 9px 14px; border: 3px solid currentColor; border-radius: 3px; }
-
-    /* stage A: audit */
-    #w-doc { position: absolute; left: 0; top: 0; width: 430px; padding: 28px 30px; background: #f3f1ea; color: #0b0b12; border-radius: 6px; }
-    #w-doc h4 { font: 500 20px/1 "Fira Code"; letter-spacing: .06em; text-transform: uppercase; color: #55536a; margin-bottom: 18px; }
-    #w-doc li { list-style: none; font: 400 25px/1.75 "Fira Sans"; border-bottom: 1px solid rgba(11,11,18,.08); }
-    #w-chains { position: absolute; left: 500px; top: 0; right: 0; }
-    .w-chain { position: relative; display: flex; align-items: center; gap: 12px; height: 78px; padding: 0 18px; margin-top: 16px; border-radius: 40px;
-      border: 2px dashed rgba(196,166,255,.6); background: rgba(157,107,255,.07); }
-    .w-chain code { font: 500 23px/1 "Fira Code"; color: #e6dcff; white-space: nowrap; }
-    .w-chain i { font-style: normal; color: #959bc0; font: 400 22px/1 "Fira Code"; }
-    .w-chain .goal { margin-left: auto; font: 500 20px/1 "Fira Code"; color: #ff8a7a; white-space: nowrap; }
-    .w-chain .solid { position: absolute; inset: -2px; border: 2px solid #dcdff2; border-radius: 4px; background: rgba(23,26,48,.0); opacity: 0; }
-    #w-ran { position: absolute; left: 500px; top: 348px; color: #dcdff2; }
-    #w-stats { position: absolute; left: 0; right: 0; top: 420px; display: flex; gap: 0; border-top: 1px solid rgba(160,150,255,.28); border-bottom: 1px solid rgba(160,150,255,.28); }
-    .w-stat { flex: 1; padding: 22px 0 22px 26px; border-left: 1px solid rgba(160,150,255,.18); }
-    .w-stat:first-child { border-left: 0; padding-left: 0; }
-    .w-stat b { display: block; font: 600 54px/1 "Fira Sans"; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
-    .w-stat span { display: block; font: 400 22px/1.2 "Fira Sans"; color: #b3b8d6; margin-top: 10px; }
-    .w-stat.muse b { color: #c4a6ff; }
-    #w-found { position: absolute; left: 0; top: 596px; font: 600 40px/1 "Fira Sans"; }
-    #w-found em { font-style: normal; color: #ff6b5a; }
-    .w-src { position: absolute; right: 0; font: 400 18px/1 "Fira Code"; color: #959bc0; }
-    #w-srcA { top: 604px; }
-
-    /* stage B: draft + backtest */
-    #w-draft { position: absolute; left: 0; top: 0; width: 1000px; padding: 32px 36px; border-radius: 22px;
-      background: rgba(157,107,255,.10); border: 1px solid rgba(196,166,255,.45); }
-    #w-draft p { font: 400 34px/1.45 "Fira Sans"; color: #f5f6ff; margin-top: 22px; }
-    #w-draft code { display: block; margin-top: 18px; font: 500 22px/1 "Fira Code"; color: #c4a6ff; }
-    #w-bt { position: absolute; left: 1080px; top: 0; right: 0; }
-    #w-bt h4 { font: 500 24px/1.3 "Fira Code"; letter-spacing: .06em; text-transform: uppercase; color: #b3b8d6; }
-    .w-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 22px; }
-    .w-tile { height: 70px; border-radius: 4px; border: 2px solid rgba(160,150,255,.28); background: #1f2340;
-      font: 500 24px/66px "Fira Code"; text-align: center; color: #b3b8d6; }
-    #w-btres { margin-top: 24px; font: 600 56px/1 "Fira Sans"; color: #34e0a1; }
-        #w-srcB { top: 604px; }
-
-    /* stage C: ratify + guard */
-    #w-ratified { position: absolute; left: 300px; top: 300px; color: #34e0a1; font-size: 44px; padding: 14px 24px; border-width: 5px; transform: rotate(-5deg); }
-    #w-guard { position: absolute; left: 0; right: 0; top: 420px; display: flex; align-items: center; gap: 22px; }
-    .w-flow { padding: 22px 26px; font: 500 28px/1.2 "Fira Sans"; border-radius: 6px; background: #1f2340; border: 1px solid rgba(160,150,255,.28); }
-    .w-flow.m { border-radius: 30px; color: #c4a6ff; background: rgba(157,107,255,.10); border-color: rgba(196,166,255,.5); }
-    .w-flow.b { border: 2px solid #dcdff2; border-radius: 3px; }
-    .w-to { font: 400 32px/1 "Fira Sans"; color: #959bc0; }
-    .w-res { display: flex; flex-direction: column; gap: 10px; }
-    .w-res .w-stamp { font-size: 22px; }
+    .det { position: absolute; left: 120px; top: 420px; width: 1680px; }
+    .lab { font: 500 28px/1.3 "Fira Sans"; color: #b3b8d6; }
+    .tbl { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .tbl td { padding: 8px 0; border-top: 1px solid rgba(220,223,242,.12); font: 400 28px/1.25 "Fira Sans"; color: #dcdff2; }
+    .tbl td.code { font: 500 28px/1.25 "Fira Code"; color: #f5f6ff; }
+    .tbl td.c { color: #c4a6ff; }
+    .tbl td.r { text-align: right; color: #f5f6ff; }
+    #w-ev td { font-size: 32px; padding: 16px 0; }
+    #w-ev td.r { width: 170px; }
+    #w-ev td.code { padding-left: 40px; font-size: 32px; }
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); column-gap: 30px; margin-top: 30px; border-top: 1px solid rgba(220,223,242,.22); padding-top: 16px; }
+    .stats .v { font: 600 52px/1 "Fira Sans"; letter-spacing: -0.01em; }
+    .stats .k { font: 400 28px/1.3 "Fira Sans"; color: #b3b8d6; margin-top: 8px; }
+    .big { font: 400 38px/1.35 "Fira Sans"; max-width: 1560px; margin-top: 14px; }
+    .mono { font: 500 30px/1.4 "Fira Code"; margin-top: 26px; overflow-wrap: anywhere; }
+    .mono.s { font-size: 25px; color: #dcdff2; margin-top: 10px; }
+    .muse { color: #c4a6ff; }
+    .ok { color: #34e0a1; }
+    .deny { color: #ff6b5a; }
+    .note { font: 400 28px/1.4 "Fira Sans"; color: #b3b8d6; margin-top: 30px; max-width: 1500px; }
+    .kv { display: grid; grid-template-columns: 420px 1fr; row-gap: 18px; margin-top: 24px; align-items: baseline; }
+    .kv .k { font: 400 30px/1.3 "Fira Sans"; color: #b3b8d6; }
+    .kv .v { font: 600 60px/1 "Fira Sans"; }
+    pre.json { font: 500 30px/1.5 "Fira Code"; color: #dcdff2; margin-top: 18px; padding: 24px 28px; background: #171a30; border: 1px solid rgba(220,223,242,.14); }
+    pre.json .k { color: #86b4ff; }
+    .src { position: absolute; left: 120px; bottom: 44px; width: 1680px; font: 400 28px/1.35 "Fira Sans"; color: #959bc0; }
+    .src .code { color: #b3b8d6; }
   </style>
   <div id="root" data-composition-id="how" data-width="1920" data-height="1080">
-    <div class="w-rules"></div>
-    <div id="w-q" class="clip" data-start="0" data-duration="1.6" data-track-index="1">How did Bylaw know?</div>
-
-    <div id="w-pipe" class="clip" data-start="1.4" data-duration="28.6" data-track-index="2">
-      <div class="w-node muse" id="w-n1"><div class="n">01</div><div class="t">Audit</div><div class="a">Muse + code</div></div>
-      <div class="w-arrow" id="w-a1"></div>
-      <div class="w-node muse" id="w-n2"><div class="n">02</div><div class="t">Draft a fix</div><div class="a">Muse Spark</div></div>
-      <div class="w-arrow" id="w-a2"></div>
-      <div class="w-node" id="w-n3"><div class="n">03</div><div class="t">Backtest</div><div class="a">application</div></div>
-      <div class="w-arrow" id="w-a3"></div>
-      <div class="w-node" id="w-n4"><div class="n">04</div><div class="t">Ratify</div><div class="a">a person</div></div>
-      <div class="w-arrow" id="w-a4"></div>
-      <div class="w-node" id="w-n5"><div class="n">05</div><div class="t">Guard</div><div class="a">application</div></div>
+    <div id="w-head" class="clip" data-start="0" data-duration="30" data-track-index="1">How bylaw knew</div>
+    <div id="w-steps" class="clip" data-start="0" data-duration="30" data-track-index="2">
+      <div class="st m" id="w-s0"><div class="n">Audit</div><div class="d">Muse proposes chains; code runs each one</div></div>
+      <div class="st m" id="w-s1"><div class="n">Draft a rule</div><div class="d">Muse writes the fix</div></div>
+      <div class="st" id="w-s2"><div class="n">Backtest</div><div class="d">Honest conversations replayed</div></div>
+      <div class="st" id="w-s3"><div class="n">Ratify</div><div class="d">Stored with its timestamp</div></div>
+      <div class="st" id="w-s4"><div class="n">Enforce</div><div class="d">Every tool call checked first</div></div>
     </div>
 
-    <!-- A: audit, 3.4 to 19.8 -->
-    <div id="w-stageA" class="w-stage clip" data-start="3.4" data-duration="16.4" data-track-index="3">
-      <div id="w-doc">
-        <h4>The agents' instructions</h4>
-        <ul>
-          <li>Triage Agent</li><li>Flight Information Agent</li><li>Seat and Special Services Agent</li>
-          <li>Booking and Cancellation Agent</li><li>Refunds and Compensation Agent</li><li>FAQ Agent</li>
-        </ul>
-      </div>
-      <div id="w-chains">
-        <span class="w-tag" id="w-tagA">Muse Spark proposes chains</span>
-        <div class="w-chain" id="w-c1"><code>update_seat</code><i>→</i><code>issue_compensation</code><span class="goal">vouchers, on-time booking</span><div class="solid"></div></div>
-        <div class="w-chain" id="w-c2"><code>get_trip_details</code><i>→</i><code>cancel_flight</code><i>→</i><code>issue_compensation</code><span class="goal">paid after own cancel</span><div class="solid"></div></div>
-        <div class="w-chain" id="w-c3"><code>flight_status_tool</code><i>→</i><code>update_seat</code><span class="goal">someone else's seat</span><div class="solid"></div></div>
-      </div>
-      <div id="w-ran" class="w-stamp">CODE RUNS EACH ONE · FRESH COPY · NO MODEL</div>
-      <div id="w-stats">
-        <div class="w-stat"><b>1,036</b><span>chains tried</span></div>
-        <div class="w-stat"><b>1,998</b><span>tool calls</span></div>
-        <div class="w-stat muse"><b>4</b><span>Muse calls</span></div>
-        <div class="w-stat muse"><b>31,630</b><span>Muse tokens</span></div>
-        <div class="w-stat"><b>14.33 s</b><span>whole audit</span></div>
-      </div>
-      <div id="w-found"><em>7 findings</em> reach a forbidden result · each replayed 5/5</div>
-      <div class="w-src" id="w-srcA">reports/csdemo.json · one audit run · muse-spark-1.3</div>
+    <div id="w-d0" class="det clip" data-start="0.6" data-duration="8.6" data-track-index="3">
+      <div class="lab">Chains that reached a forbidden result, each replayed on a fresh copy</div>
+      <table class="tbl" id="w-find"></table>
+      <div class="stats" id="w-stats"></div>
+    </div>
+    <div id="w-d1" class="det clip" data-start="9.2" data-duration="5.8" data-track-index="3">
+      <div class="lab">Amendment <span class="code">A6</span>, drafted by Muse</div>
+      <div class="big muse" id="w-pol"></div>
+      <div class="mono muse" id="w-rid"></div>
+      <div class="mono s" id="w-expr"></div>
+    </div>
+    <div id="w-d2" class="det clip" data-start="15" data-duration="5" data-track-index="3">
+      <div class="lab">The 8 honest gold conversations, replayed with and without <span class="code">A6</span></div>
+      <div class="kv" id="w-bt"></div>
+    </div>
+    <div id="w-d3" class="det clip" data-start="20" data-duration="5" data-track-index="3">
+      <div class="lab">The ratified store</div>
+      <pre class="json" id="w-json"></pre>
+      <div class="note" id="w-via"></div>
+    </div>
+    <div id="w-d4" class="det clip" data-start="25" data-duration="5" data-track-index="3">
+      <div class="lab">The guarded run, as its event file recorded it</div>
+      <table class="tbl" id="w-ev"></table>
+      <div class="note">The same ratified rules guard the demo's agents in process and any MCP client through the bylaw proxy.</div>
     </div>
 
-    <!-- B: draft, backtest, ratify, guard: 19.8 to 30 -->
-    <div id="w-stageB" class="w-stage clip" data-start="19.8" data-duration="10.2" data-track-index="4">
-      <div id="w-draft">
-        <span class="w-tag">Drafted by Muse Spark</span>
-        <p>“Compensation and disruption vouchers may only be issued on the booking on record when that booking itself is disrupted.”</p>
-        <code>rule R-comp-booking-disrupted · amendment A6</code>
-      </div>
-      <div id="w-ratified" class="w-stamp">RATIFIED BY A PERSON</div>
-      <div id="w-bt">
-        <h4>Honest conversations replayed</h4>
-        <div class="w-tiles">
-          <div class="w-tile">1</div><div class="w-tile">2</div><div class="w-tile">3</div><div class="w-tile">4</div>
-          <div class="w-tile">5</div><div class="w-tile">6</div><div class="w-tile">7</div><div class="w-tile">8</div>
-        </div>
-        <div id="w-btres">blocked 0 / 8</div>
-      </div>
-      <div id="w-guard">
-        <div class="w-flow m">the agent proposes a tool call</div>
-        <div class="w-to">→</div>
-        <div class="w-flow b">Bylaw checks it against the ratified rules</div>
-        <div class="w-to">→</div>
-        <div class="w-res">
-          <span class="w-stamp" style="color:#34e0a1">RUNS</span>
-          <span class="w-stamp" style="color:#ff6b5a">BLOCKED</span>
-        </div>
-      </div>
-      <div class="w-src" id="w-srcB">reports/csdemo.json · finding H6 · ratified/csdemo.json</div>
-    </div>
+    <div id="w-src0" class="src clip" data-start="0.6" data-duration="14.4" data-track-index="4"></div>
+    <div id="w-src1" class="src clip" data-start="15" data-duration="15" data-track-index="4"></div>
   </div>
   <script>
+    const F = window.FIG, A = F.a6, U = F.audit, R = F.runs.d1_on, C = R.check;
+    const $ = (s) => document.querySelector(s);
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const n = (x) => x.toLocaleString("en-US");
+    F.findings.forEach((f) => { const tr = el("tr"); tr.append(el("td", "code c", f.chain.join(", ")), el("td", "", f.title), el("td", "r", f.replays)); $("#w-find").append(tr); });
+    [[n(U.chains), "chains tried"], [n(U.tool_calls), "tool calls run"], [U.calls, "Muse calls"], [n(U.tokens), "Muse tokens"], [U.seconds + " s", "wall clock"]]
+      .forEach(([v, k]) => { const d = el("div"); d.append(el("div", "v", v), el("div", "k", k)); $("#w-stats").append(d); });
+    $("#w-src0").append("Audit ", el("span", "code", U.file), ", commit ", el("span", "code", U.commit), `, ${U.model}, effort ${U.effort}, started ${U.started.slice(0, 19).replace("T", " ")} UTC.`);
+    $("#w-pol").textContent = A.policy_ref;
+    $("#w-rid").textContent = A.rule_id;
+    $("#w-expr").textContent = "allow_if: " + A.allow_if;
+    const [blk, tasks] = A.backtest.split("/");
+    [["Blocked with A6", `${blk} of ${tasks}`], ["Blocked without A6", `${A.baseline_blocked} of ${tasks}`], ["Attack replayed", A.replay + " reached the forbidden goal"]]
+      .forEach(([k, v], i) => { $("#w-bt").append(el("div", "k", k), el("div", "v" + (i < 2 ? " ok" : ""), v)); });
+    const j = $("#w-json");
+    const line = (k, v, last) => { j.append("  ", el("span", "k", `"${k}"`), `: "${v}"${last ? "" : ","}\n`); };
+    j.append("{\n"); line("id", A.id); line("hole_key", A.hole_key); line("ratified_at", A.ratified_at, true); j.append("}");
+    $("#w-via").textContent = `Ratified through ${A.ratified_via.split(", called")[0]}, the function the ratify endpoint calls. The DM2 builder agent made that call.`;
+    [[C.t_call, C.tool + '(reason="…")', "proposed by Muse", "muse"], [C.t_check, "bylaw check", "denied, " + C.rule_id, "deny"], [R.wall_s, "end of run", "no vouchers issued", ""]]
+      .forEach(([t, a, b, cls]) => { const tr = el("tr"); tr.append(el("td", "r", t.toFixed(3) + " s"), el("td", "code", a), el("td", cls, b)); $("#w-ev").append(tr); });
+    $("#w-src1").append("Backtest and store ", el("span", "code", "reports/csdemo.json"), " and ", el("span", "code", A.store), ", event file ", el("span", "code", R.file), ".");
+
     const tl = gsap.timeline({ paused: true });
-    tl.fromTo("#w-q", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, 0.1);
-    tl.to("#w-q", { opacity: 0, filter: "blur(8px)", duration: 0.18, ease: "power2.in" }, 1.35);
-
-    // pipeline: all five drawn faint, then each lights when the voice names it
-    tl.fromTo(".w-node", { opacity: 0, y: 20 }, { opacity: 0.35, y: 0, duration: 0.5, ease: "expo.out", stagger: 0.07 }, 1.45);
-    tl.fromTo(".w-arrow", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power2.out", stagger: 0.07 }, 1.7);
-    const light = (id, at, muse) => {
-      tl.to(id, { opacity: 1, borderColor: muse ? "#c4a6ff" : "#dcdff2", backgroundColor: muse ? "rgba(157,107,255,0.14)" : "#1f2340", duration: 0.25, ease: "power2.out" }, at);
+    tl.fromTo("#w-head", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0);
+    const lit = (i, at) => {
+      const muse = i < 2;
+      tl.to("#w-s" + i, { opacity: 1, borderTopColor: muse ? "#c4a6ff" : "#f5f6ff", duration: 0.3, ease: "power2.out" }, at);
+      if (i > 0) tl.to("#w-s" + (i - 1), { opacity: 0.7, borderTopColor: "rgba(220,223,242,.45)", duration: 0.3 }, at);
     };
-    light("#w-n1", 2.0, true);
-    light("#w-n2", 19.9, true);
-    light("#w-n3", 22.6);
-    light("#w-n4", 26.2);
-    light("#w-n5", 27.7);
-
-    // A
-    tl.fromTo("#w-doc", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.6, ease: "expo.out" }, 3.5);
-    tl.fromTo("#w-tagA", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "sine.out" }, 5.8);
-    tl.fromTo(["#w-c1", "#w-c2", "#w-c3"], { opacity: 0, x: -20, filter: "blur(6px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.7, ease: "sine.out", stagger: 0.6 }, 6.3);
-    tl.to(".w-chain", { borderColor: "rgba(220,223,242,0)", duration: 0.01 }, 10.6);
-    tl.fromTo(".w-chain .solid", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.14, ease: "power4.in", stagger: 0.3 }, 10.6);
-    tl.to(".w-chain code", { color: "#f5f6ff", duration: 0.1, stagger: 0.08 }, 10.6);
-    tl.fromTo("#w-ran", { opacity: 0, scale: 1.5 }, { opacity: 1, scale: 1, duration: 0.16, ease: "power4.in" }, 11.8);
-    tl.fromTo("#w-found", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, 14.4);
-    tl.fromTo(".w-stat", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", stagger: 0.25 }, 15.6);
-    tl.fromTo("#w-srcA", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 15.8);
-
-    // B
-    tl.fromTo("#w-draft", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.6, ease: "sine.out" }, 19.9);
-    tl.fromTo("#w-bt", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 22.6);
-    tl.to(".w-tile", { borderColor: "rgba(52,224,161,0.6)", backgroundColor: "rgba(52,224,161,0.12)", color: "#34e0a1", duration: 0.12, stagger: 0.18 }, 22.9);
-    tl.fromTo("#w-btres", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out" }, 24.5);
-    tl.fromTo("#w-srcB", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 22.7);
-    tl.fromTo("#w-ratified", { opacity: 0, scale: 1.8 }, { opacity: 1, scale: 1, duration: 0.18, ease: "power4.in" }, 26.3);
-    tl.fromTo("#w-guard > *", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.45, ease: "expo.out", stagger: 0.15 }, 27.7);
+    [0.4, 9.2, 15, 20, 25].forEach((at, i) => lit(i, at));
+    tl.fromTo("#w-find tr", { opacity: 0 }, { opacity: 1, duration: 0.25, stagger: 0.3 }, 1.0);
+    tl.fromTo("#w-stats > div", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.25, ease: "power2.out" }, 4.0);
+    tl.fromTo(["#w-pol", "#w-rid", "#w-expr"], { opacity: 0 }, { opacity: 1, duration: 0.35, stagger: 0.7 }, 9.5);
+    tl.fromTo("#w-bt > div", { opacity: 0 }, { opacity: 1, duration: 0.3, stagger: 0.2 }, 15.3);
+    tl.fromTo(["#w-json", "#w-via"], { opacity: 0 }, { opacity: 1, duration: 0.35, stagger: 0.9 }, 20.3);
+    tl.fromTo("#w-ev tr", { opacity: 0 }, { opacity: 1, duration: 0.3, stagger: 0.7 }, 25.3);
     window.__timelines["how"] = tl;
   </script>
 </template>

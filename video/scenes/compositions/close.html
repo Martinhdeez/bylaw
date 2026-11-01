@@ -1,51 +1,29 @@
 <template>
   <style>
     @font-face { font-family: "Fira Sans"; font-weight: 400; src: url("assets/fonts/fira-sans-latin-400-normal.woff2") format("woff2"); }
-    @font-face { font-family: "Fira Sans"; font-weight: 500; src: url("assets/fonts/fira-sans-latin-500-normal.woff2") format("woff2"); }
     @font-face { font-family: "Fira Sans"; font-weight: 600; src: url("assets/fonts/fira-sans-latin-600-normal.woff2") format("woff2"); }
-    @font-face { font-family: "Fira Sans"; font-weight: 700; src: url("assets/fonts/fira-sans-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Sans"; font-weight: 800; src: url("assets/fonts/fira-sans-latin-800-normal.woff2") format("woff2"); }
     @font-face { font-family: "Fira Code"; font-weight: 500; src: url("assets/fonts/fira-code-latin-500-normal.woff2") format("woff2"); }
-    #root {
-      position: absolute; inset: 0; overflow: hidden; color: #f5f6ff; font-family: "Fira Sans";
-      background: radial-gradient(110% 90% at 50% 40%, #171a30 0%, #0f1122 60%, #0b0d1b 100%);
-    }
-    .c-rules { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, transparent 0 47px, rgba(160,150,255,.04) 47px 48px); }
-    #c-brand { position: absolute; left: 0; right: 0; top: 150px; display: flex; justify-content: center; align-items: center; gap: 34px; }
-    #c-brand img { width: 150px; height: 150px; }
-    #c-brand span { font: 700 150px/1 "Fira Sans"; letter-spacing: -0.03em; }
-    #c-sub { position: absolute; left: 0; right: 0; top: 345px; text-align: center; font: 400 32px/1 "Fira Sans"; color: #b3b8d6; }
-    #c-sub em { font-style: normal; color: #c4a6ff; }
-
-    #c-verbs { position: absolute; left: 0; right: 0; top: 470px; display: flex; justify-content: center; gap: 18px; }
-    .c-v { font: 600 40px/1 "Fira Sans"; padding: 18px 28px; }
-    .c-v.m { color: #c4a6ff; border: 2px solid rgba(196,166,255,.5); border-radius: 40px; background: rgba(157,107,255,.10); }
-    .c-v.a { border: 3px solid #dcdff2; border-radius: 3px; }
-
-    #c-line { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font: 600 76px/1.1 "Fira Sans"; letter-spacing: -0.02em; }
-    #c-line .v { color: #c4a6ff; }
-    #c-url { position: absolute; left: 0; right: 0; top: 820px; text-align: center; font: 500 40px/1 "Fira Code"; color: #86b4ff; }
-    #c-foot { position: absolute; left: 0; right: 0; top: 900px; text-align: center; font: 400 28px/1 "Fira Sans"; color: #959bc0; }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0f1122; color: #f5f6ff; font-family: "Fira Sans"; font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+    /* the lockup of the web app (web/src/styles.css .lockup): logo, then "bylaw" in Fira Sans 800, -0.035em */
+    #c-brand { position: absolute; left: 120px; top: 200px; display: flex; align-items: center; gap: 40px; }
+    #c-brand img { width: 168px; height: 168px; }
+    #c-brand b { font: 800 176px/1 "Fira Sans"; letter-spacing: -0.035em; }
+    #c-line { position: absolute; left: 120px; top: 480px; width: 1680px; font: 600 80px/1.1 "Fira Sans"; letter-spacing: -0.02em; }
+    #c-url { position: absolute; left: 120px; top: 760px; font: 500 52px/1 "Fira Code"; color: #86b4ff; }
+    #c-foot { position: absolute; left: 120px; top: 850px; font: 400 32px/1.35 "Fira Sans"; color: #b3b8d6; }
   </style>
   <div id="root" data-composition-id="close" data-width="1920" data-height="1080">
-    <div class="c-rules"></div>
-    <div id="c-brand" class="clip" data-start="0" data-duration="12" data-track-index="1"><img src="assets/logo.svg" alt="" /><span>Bylaw</span></div>
-    <div id="c-sub" class="clip" data-start="0.6" data-duration="11.4" data-track-index="2">Open source · built on <em>Muse Spark · Meta Model API</em></div>
-    <div id="c-verbs" class="clip" data-start="3.6" data-duration="8.4" data-track-index="3">
-      <span class="c-v m">Find</span><span class="c-v a">Prove</span><span class="c-v m">Fix</span><span class="c-v a">Ratify</span><span class="c-v a">Enforce</span>
-    </div>
-    <div id="c-line" class="clip" data-hold data-start="9.4" data-duration="2.6" data-track-index="4">The model <span class="v">proposes</span>. The application decides.</div>
-    <div id="c-url" class="clip" data-start="9.9" data-duration="2.1" data-track-index="5">github.com/Martinhdeez/meta-hackathon</div>
-    <div id="c-foot" class="clip" data-start="9.6" data-duration="2.4" data-track-index="6">Built for the Meta Global AI Developer Hackathon</div>
+    <div id="c-brand" class="clip" data-start="0" data-duration="8" data-track-index="1"><img src="assets/logo.svg" alt="" /><b>bylaw</b></div>
+    <div id="c-line" class="clip" data-start="0" data-duration="8" data-track-index="2">The model proposes.<br />The application decides.</div>
+    <div id="c-url" class="clip" data-start="0" data-duration="8" data-track-index="3">github.com/Martinhdeez/bylaw</div>
+    <div id="c-foot" class="clip" data-start="0" data-duration="8" data-track-index="4">Open source, built on Muse Spark for the Meta Global AI Developer Hackathon.</div>
   </div>
   <script>
     const tl = gsap.timeline({ paused: true });
-    tl.fromTo("#c-brand img", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.6, ease: "expo.out" }, 0.1);
-    tl.fromTo("#c-brand span", { opacity: 0.3, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power4.out" }, 0.25);
-    tl.fromTo("#c-sub", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.6);
-    tl.fromTo(".c-v", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out", stagger: 1.1 }, 3.7);
-    tl.fromTo("#c-line", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, 9.5);
-    tl.fromTo("#c-url", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 9.9);
-    tl.fromTo("#c-foot", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 9.6);
+    tl.fromTo("#c-brand", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
+    tl.fromTo("#c-line", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.9);
+    tl.fromTo(["#c-url", "#c-foot"], { opacity: 0 }, { opacity: 1, duration: 0.4, stagger: 0.5 }, 2.2);
     window.__timelines["close"] = tl;
   </script>
 </template>

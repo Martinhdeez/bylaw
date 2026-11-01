@@ -1,0 +1,27 @@
+<template>
+  <style>
+    @font-face { font-family: "Fira Sans"; font-weight: 400; src: url("assets/fonts/fira-sans-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Sans"; font-weight: 600; src: url("assets/fonts/fira-sans-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Code"; font-weight: 500; src: url("assets/fonts/fira-code-latin-500-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0f1122; color: #f5f6ff; font-family: "Fira Sans"; font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+    #o-head { position: absolute; left: 120px; top: 56px; font: 600 56px/1 "Fira Sans"; letter-spacing: -0.015em; }
+    #o-url { position: absolute; right: 120px; top: 72px; font: 500 28px/1 "Fira Code"; color: #b3b8d6; }
+    #o-frame { position: absolute; left: 120px; top: 150px; width: 1680px; height: 880px; overflow: hidden;
+      border: 1px solid rgba(220,223,242,.35); background: #fff; }
+    #o-shot { position: absolute; left: 0; top: 0; width: 1680px; height: 945px; transform-origin: 18% 18%; }
+  </style>
+  <div id="root" data-composition-id="opening" data-width="1920" data-height="1080">
+    <div id="o-head" class="clip" data-start="0" data-duration="7" data-track-index="1">The open-source app we put bylaw on</div>
+    <div id="o-url" class="clip" data-start="0" data-duration="7" data-track-index="2">github.com/openai/openai-cs-agents-demo</div>
+    <div id="o-frame" class="clip" data-start="0" data-duration="7" data-track-index="3">
+      <img id="o-shot" src="assets/gh-openai-cs-agents-demo.png" alt="GitHub page of openai/openai-cs-agents-demo" />
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    
+
+    tl.fromTo("#o-shot", { scale: 1 }, { scale: 1.16, duration: 6.4, ease: "sine.inOut" }, 0.4);
+    window.__timelines["opening"] = tl;
+  </script>
+</template>

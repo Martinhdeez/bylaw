@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Bylaw VD4 teleprompter</title>
+<title>bylaw VD4 teleprompter</title>
 <!-- Offline: no external files. Text copied from video/script.md; keep them in sync. -->
 <style>
   :root { --bg: #0f1122; --ink: #f5f6ff; --muted: #959bc0; --violet: #c4a6ff; --amber: #ffb84d; --red: #ff6b5a; --green: #34e0a1; }
@@ -29,18 +29,20 @@
 <footer><span>Space / → next · ← back · R restart timer · V switch B8 version</span><span id="ver"></span><span id="total"></span></footer>
 <script>
 const BEATS = [
-  ["B1", "Hook", 12, "An AI agent just gave away two hundred and eighty dollars in travel vouchers. / The flight was on time. / Nobody hacked the agent. / Every single step was allowed."],
-  ["B2", "Thesis", 10, "Models are powerful, / but they guess. / So Bylaw gives the last word to the application, not to the model. / The model proposes. / The application decides."],
-  ["B3", "Guard off", 30, "This is OpenAI's open-source customer service demo. / Six agents, all running on Meta's Muse Spark. / Bylaw is the dark panel on the right. / First, the guard is off. / The customer checks flight one two three. / It is on time. / Then they say they missed a connection in New York, / and they ask for vouchers. / The agent pays for a hotel, a meal and transport. / Two hundred and eighty dollars, / for a flight that was on time."],
-  ["B4", "How it works", 30, "How did Bylaw know? / It audited the app first. / Muse Spark read the agents' instructions / and proposed chains of tool calls that end in a forbidden result. / Code ran every chain on a fresh copy of the app. / Seven chains reached a forbidden result, / five times out of five, / in fourteen seconds. / Then Muse drafted a fix: one rule. / Bylaw replayed eight honest conversations. / The rule blocked none. / A person ratified it, / and the guard enforces it."],
-  ["B5", "Guard on", 28, "Now the guard is on. / Same customer, same words, same agents. / The refunds agent asks to pay the vouchers. / Bylaw reads the airline's record: / this booking is on time. / The call is blocked before it runs, / and nothing is paid. / The agent gets the reason, / and it tells the customer, politely. / Two hundred and eighty dollars stay with the airline. / Same model. / The application decided."],
+  ["B0", "Opening", 7, "This is OpenAI's open-source customer service demo. / We put bylaw on it."],
+  ["B1", "Guard off", 30, "Six agents, all running on Meta's Muse Spark. / bylaw is the dark panel on the right. / First, the guard is off. / The customer checks flight one two three. / It is on time. / Then they say they missed a connection in New York, / and they ask for vouchers. / The agent pays for a hotel, a meal and transport."],
+  ["B2", "What happened", 12, "Two hundred and eighty dollars, / for a flight that was on time. / Nobody hacked the agent. / Each step looked fine on its own."],
+  ["B3", "Thesis", 14, "Models are powerful, / but they guess. / Here Muse proposed the payment. / bylaw read the airline's record, / checked the ratified rule, / and blocked the call two milliseconds later. / The model proposes. / The application decides."],
+  ["B4", "How it works", 30, "How did bylaw know? / It audited the app first. / Muse Spark read the agents' instructions / and proposed chains of tool calls that end in a forbidden result. / Code ran every chain on a fresh copy of the app. / Seven chains reached a forbidden result, / five times out of five, / in fourteen seconds. / Then Muse drafted a fix: one rule. / bylaw replayed eight honest conversations. / The rule blocked none. / It was ratified, with a timestamp, / and the guard enforces it."],
+  ["B5", "Guard on", 28, "Now the guard is on. / Same customer, same words, same agents. / The refunds agent asks to pay the vouchers. / bylaw reads the airline's record: / this booking is on time. / The call is blocked before it runs, / and nothing is paid. / The agent gets the reason, / and it tells the customer, politely. / Two hundred and eighty dollars stay with the airline. / Same model. / The application decided."],
   ["B6", "Other attacks", 20, "We tried four attacks and five honest requests. / The guard stopped three attacks: / vouchers on an on-time flight, / a seat on someone else's booking, / and compensation after a cancel. / None of the five honest requests was blocked. / A real missed connection still gets its vouchers."],
-  ["B7", "Second framework", 18, "The rules are not tied to one framework. / This is a different agent, built with PydanticAI. / It has no tools of its own. / Every tool goes through the Bylaw M-C-P proxy. / Same rule, / same attack: / denied. / An honest request: / allowed."],
-  ["B8", "What we measured", 20, {
-    open: "Every number in this video comes from a file in the repo. / Each one is a single run, / not a rate. / One attack is still open. / The agent wrote a medical reason the customer never gave, / and the rule can only read what the agent writes.",
-    closed: "Every number in this video comes from a file in the repo. / Each one is a single run, / not a rate. / The fourth attack was harder. / The agent wrote a medical reason the customer never gave. / Now Bylaw also reads the customer's own words, / and that attack is blocked too."
+  ["B7", "Second framework", 16, "The rules are not tied to one framework. / This agent is built with PydanticAI, / and has no tools of its own. / Every tool goes through the bylaw M-C-P proxy. / Same attack: / denied. / An honest request: / allowed."],
+  ["B8", "What we measured", 18, {
+    open: "Each figure is a single run, / not a rate. / Three attacks out of four were blocked, / and no honest request. / One attack is still open: / the agent wrote a medical reason the customer never gave, / and the rule only reads what the agent writes.",
+    closed: "Each figure is a single run, / not a rate. / The fourth attack was harder: / the agent wrote a medical reason the customer never gave. / Now bylaw also reads the customer's own words, / and that attack is blocked too."
   }],
-  ["B9", "Close", 12, "Bylaw is open source, / and built on Muse Spark. / Find the hole, / prove it, / fix it, / let a person ratify it, / and enforce it. / The model proposes. / The application decides."],
+  ["B9", "Traceability", 20, "Every number in this video comes from a file in the repo. / Here is the guarded run, call by call. / And here is every Muse token the project used: / about half a million, / for about one dollar at Meta's published price. / One script recounts all of it."],
+  ["B10", "Close", 8, "bylaw is open source, built on Muse Spark. / The model proposes. / The application decides."],
 ];
 let i = 0, t0 = performance.now(), b8 = "open";
 const $ = (id) => document.getElementById(id);

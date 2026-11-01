@@ -1,0 +1,112 @@
+<template>
+  <style>
+    @font-face { font-family: "Fira Sans"; font-weight: 400; src: url("assets/fonts/fira-sans-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Sans"; font-weight: 500; src: url("assets/fonts/fira-sans-latin-500-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Sans"; font-weight: 600; src: url("assets/fonts/fira-sans-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Fira Code"; font-weight: 500; src: url("assets/fonts/fira-code-latin-500-normal.woff2") format("woff2"); }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0f1122; color: #f5f6ff; font-family: "Fira Sans"; font-variant-numeric: tabular-nums; font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+    .code { font-family: "Fira Code"; font-weight: 500; }
+    #root * { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+    #r-head { position: absolute; left: 120px; top: 80px; width: 1680px; font: 600 64px/1.08 "Fira Sans"; letter-spacing: -0.015em; }
+    .lab { font: 500 30px/1.3 "Fira Sans"; color: #b3b8d6; }
+    .lab .code { color: #dcdff2; }
+
+    #r-tl { position: absolute; left: 120px; top: 200px; width: 1680px; height: 800px; }
+    /* proportional strip: one tick per check at its time in the run */
+    #r-axis { position: absolute; left: 0; top: 130px; width: 1680px; height: 2px; background: rgba(220,223,242,.4); }
+    .tk { position: absolute; top: 100px; width: 3px; height: 62px; }
+    .ax { position: absolute; top: 176px; font: 400 24px/1 "Fira Sans"; color: #959bc0; }
+    /* the event log itself */
+    #r-log { position: absolute; left: 0; top: 240px; width: 1680px; border-collapse: collapse; }
+    #r-log td { font: 400 32px/1.2 "Fira Sans"; padding: 16px 0; border-top: 1px solid rgba(220,223,242,.14); }
+    #r-log td.t { width: 190px; text-align: right; padding-right: 44px; color: #b3b8d6; }
+    #r-log td.tool { width: 520px; font: 500 32px/1.2 "Fira Code"; }
+    #r-log td.v { width: 220px; font-weight: 500; }
+    #r-log td.rid { font: 500 26px/1.2 "Fira Code"; color: #dcdff2; }
+    .ok { color: #34e0a1; } .deny { color: #ff6b5a; }
+
+    #r-sum { position: absolute; left: 0; top: 640px; font: 500 36px/1.3 "Fira Sans"; }
+
+    #r-tot { position: absolute; left: 120px; top: 180px; width: 1680px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed; }
+    th { text-align: left; font: 400 26px/1.2 "Fira Sans"; color: #959bc0; padding: 6px 0 8px; white-space: nowrap; }
+    td { font: 400 28px/1.2 "Fira Sans"; padding: 10px 0; border-top: 1px solid rgba(220,223,242,.12); color: #f5f6ff; white-space: nowrap; }
+    th.n, td.n { text-align: right; padding-right: 32px; }
+    td.s { font: 500 24px/1.2 "Fira Code"; color: #b3b8d6; overflow: hidden; text-overflow: ellipsis; }
+    td.na { color: #959bc0; }
+    tr.total td { font-weight: 600; font-size: 32px; border-top: 2px solid rgba(220,223,242,.5); padding-top: 14px; }
+    #r-price { margin-top: 16px; font: 400 26px/1.4 "Fira Sans"; color: #b3b8d6; }
+    #r-price .code { color: #dcdff2; }
+    #r-cmd { position: absolute; left: 120px; top: 930px; width: 1680px; display: flex; align-items: center; gap: 36px; }
+    #r-cmd .c { font: 500 44px/1 "Fira Code"; padding: 18px 26px; background: #171a30; border: 1px solid rgba(220,223,242,.18); }
+    #r-cmd .d { font: 400 30px/1.35 "Fira Sans"; color: #b3b8d6; }
+    .code { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+  </style>
+  <div id="root" data-composition-id="trace" data-width="1920" data-height="1080">
+    <div id="r-head" class="clip" data-start="0" data-duration="20" data-track-index="1">Every number on screen comes from a committed file</div>
+    <div id="r-tl" class="clip" data-start="0" data-duration="8.4" data-track-index="2">
+      <div class="lab" id="r-tllab"></div>
+      <div id="r-axis"></div>
+    </div>
+    <div id="r-tot" class="clip" data-start="8.6" data-duration="11.4" data-track-index="2">
+      <div class="lab">All Muse usage of the project, summed from the files that recorded it</div>
+      <table id="r-table">
+        <colgroup><col style="width: 360px" /><col style="width: 150px" /><col style="width: 150px" /><col style="width: 150px" /><col style="width: 170px" /><col style="width: 220px" /><col /></colgroup>
+        <tr><th>Work</th><th class="n">Muse calls</th><th class="n">Input</th><th class="n">Output</th><th class="n">Tokens</th><th class="n">Est. cost</th><th>Source</th></tr>
+      </table>
+      <div id="r-price"></div>
+    </div>
+    <div id="r-cmd" class="clip" data-start="8.6" data-duration="11.4" data-track-index="3">
+      <span class="c" id="r-c"></span><span class="d" id="r-d"></span>
+    </div>
+  </div>
+  <script>
+    const F = window.FIG, P = F.price, R = F.runs.d1_on, T = F.total;
+    const $ = (s) => document.querySelector(s);
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const n = (x) => x == null ? "" : x.toLocaleString("en-US");
+    const usd = (a, b) => a === b ? `$${a.toFixed(2)}` : `$${a.toFixed(2)} to ${b.toFixed(2)}`;
+
+    $("#r-tllab").append("Guarded run, every check the guard made. ", el("span", "code", R.file), `, ${R.started.slice(0, 19).replace("T", " ")} UTC, commit `, el("span", "code", R.commit));
+    const W = 1680, span = R.wall_s;
+    const log = el("table"); log.id = "r-log"; $("#r-tl").append(log);
+    F.timeline.forEach((c, i) => {
+      const tk = el("div", "tk"); tk.style.left = Math.round(c.t / span * W) + "px"; tk.style.background = c.allowed ? "#34e0a1" : "#ff6b5a"; tk.id = "r-k" + i;
+      const tr = el("tr"); tr.id = "r-l" + i;
+      tr.append(el("td", "t", c.t.toFixed(3) + " s"), el("td", "tool", c.tool), el("td", "v " + (c.allowed ? "ok" : "deny"), c.allowed ? "allowed" : "denied"), el("td", "rid", c.rule_id || ""));
+      $("#r-tl").append(tk); log.append(tr);
+    });
+    [[0, "0 s"], [W - 110, span.toFixed(3) + " s"]].forEach(([x, t]) => { const a = el("div", "ax", t); a.style.left = x + "px"; $("#r-tl").append(a); });
+    const denied = F.timeline.filter((c) => !c.allowed).length;
+    const sum = el("div", "", `${F.timeline.length} tool calls checked in ${span} s. ${denied} denied before they ran, ${F.timeline.length - denied} allowed.`); sum.id = "r-sum";
+    $("#r-tl").append(sum);
+
+    F.totals.forEach((r, i) => {
+      const tr = el("tr"); tr.id = "r-t" + i;
+      const num = (x, alt) => el("td", "n" + (x == null ? " na" : ""), x == null ? alt : n(x));
+      tr.append(el("td", "", r.name), num(r.calls, "–"), num(r.input, "–"), num(r.output, "–"), num(r.tokens, "not recorded"),
+        el("td", "n" + (r.tokens ? "" : " na"), r.tokens ? usd(r.cost_lo, r.cost_hi) : "–"), el("td", "s", r.source));
+      $("#r-table").append(tr);
+    });
+    const tot = el("tr", "total"); tot.id = "r-tsum";
+    tot.append(el("td", "", "Total recorded"), el("td", "n", n(T.calls_known)), el("td", "n", ""), el("td", "n", ""), el("td", "n", n(T.tokens)), el("td", "n", usd(T.cost_lo, T.cost_hi)), el("td", "s", ""));
+    $("#r-table").append(tot);
+    $("#r-price").append(`Price: Meta Model API, ${P.mode} mode, ${P.model}, $${P.input} per 1M input and $${P.output} per 1M output tokens (`,
+      el("span", "code", P.url.replace("https://", "")), `, read ${P.read}). No cache discount. Rows with no input and output split are a range. `,
+      "Change notes: ", el("span", "code", F.notes["DM2 change note"].split(",")[0]), " records no usage; ", el("span", "code", F.notes["LV1 change note"].split(" at ")[0]),
+      " is on branch feat/lv1-live-session, not yet merged.");
+    $("#r-c").textContent = F.recount;
+    $("#r-d").textContent = `rechecks ${F.figures_checked} figures against the files and rewrites this data.`;
+
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#r-head", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0);
+    tl.fromTo(["#r-tllab", "#r-axis"], { opacity: 0 }, { opacity: 1, duration: 0.35 }, 0.5);
+    F.timeline.forEach((c, i) => tl.fromTo(["#r-k" + i, "#r-l" + i], { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.0 + c.t / span * 4.5));
+    tl.fromTo("#r-sum", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 5.2);
+    tl.fromTo("#r-tot .lab", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 8.6);
+    tl.fromTo("#r-table tr", { opacity: 0 }, { opacity: 1, duration: 0.25, stagger: 0.28 }, 8.8);
+    tl.fromTo("#r-price", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 9.6);
+    tl.fromTo("#r-cmd", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 10.4);
+    window.__timelines["trace"] = tl;
+  </script>
+</template>

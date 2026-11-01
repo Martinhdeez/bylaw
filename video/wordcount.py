@@ -1,7 +1,7 @@
 """Words per beat in video/script.md. Usage: python3 video/wordcount.py [--closed]
 
-Counts the quoted lines (> ...) under each '## B<n>' heading. B8 has two versions;
-the open one is counted unless --closed is given. Also checks the beat durations sum to 180 s.
+Counts the quoted lines (> ...) under each "## B<n>" heading. B8 has two versions;
+the open one is counted unless --closed is given. Also checks the beat durations sum to 203 s (v2).
 """
 import re
 import sys
@@ -22,11 +22,11 @@ for b in beats:
     total_s += secs
     print(f"{bid:3} {secs:3d} s {words:3d} words {words / secs:.2f} w/s")
 print(f"total {total_s} s {total_w} words {total_w / total_s * 60:.0f} wpm")
-assert total_s == 180, total_s
+assert total_s == 203, total_s
 
 # The teleprompter carries a copy of the script; it must match word for word.
 tp = (Path(__file__).parent / "teleprompter.html").read_text()
-tp_lines = re.findall(r'(?:"B\d", "[^"]+", \d+, |open: |closed: )"([^"]+)"', tp)
+tp_lines = re.findall(r'(?:"B\d+", "[^"]+", \d+, |open: |closed: )"([^"]+)"', tp)
 md_lines = [l[2:] for l in text.splitlines() if l.startswith("> ")]
 assert tp_lines == md_lines, "teleprompter.html and script.md differ"
 print("teleprompter matches script.md")

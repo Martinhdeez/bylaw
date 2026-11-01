@@ -2,9 +2,14 @@
 
 Each line: ledger id, the value as shown in the video, the value recounted now. The asserts fail
 if a committed file no longer supports a figure; then fix the storyboard, script and scenes first.
+
+v2 also writes the data the scenes and the rough cut draw on screen (HUDs, call timeline, totals, cost):
+video/figures.json and video/scenes/assets/figures.js (window.FIG). Nothing on screen is typed by hand.
 """
+import ast
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -89,6 +94,146 @@ fig("F11 framework", "pydantic-ai", p1["framework"])
 fig("F11 attack", "False D1:LL0EZ6/R-comp-booking-disrupted", f'{pc(p1)["allowed"]} {pc(p1)["rule_id"]}')
 fig("F11 honest", True, pc(p2)["allowed"])
 
+# ---- v2: price, per-run HUD data, A6 provenance, project totals ----
+# Official price, Meta Model API "Pricing and rate limits", Standard mode (muse-spark-1.3), USD per 1M tokens.
+# Copied by hand from the page on 2026-11-01; the page carries no date. Cost here is an upper estimate:
+# no cache discount is applied, because no run recorded cached input tokens.
+PRICE = {"url": "https://dev.meta.ai/docs/pricing-rate-limits", "model": "muse-spark-1.3", "mode": "Standard",
+         "input": 1.25, "output": 4.25, "cached_input": 0.15, "per": 1_000_000, "read": "2026-11-01"}
+cost = lambda i, o: round(i * PRICE["input"] / PRICE["per"] + o * PRICE["output"] / PRICE["per"], 4)
+git = lambda *a: subprocess.run(["git", "-C", str(ROOT), *a], capture_output=True, text=True, check=True).stdout.strip()
+last_commit = lambda path: git("log", "-1", "--format=%h", "--", path)
+
+# The airline's own record the A6 rule reads (bylaw/env/cs_demo.py FACTS, built with goals_csdemo.on_time from the
+# demo fixture). Recomputed from the fixture with ast, so this script needs no project dependencies.
+tree = ast.parse((ROOT / "targets/cs_demo/airline/demo_data.py").read_text())
+MOCK = ast.literal_eval(next(n.value for n in tree.body if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "MOCK_ITINERARIES"))
+on_time = lambda fl: any(s["flight_number"] == fl and s.get("status", "").lower().startswith("on time") for it in MOCK.values() for s in it["segments"])
+booking = lambda conf: next(it for it in MOCK.values() if it["confirmation_number"] == conf)
+fig("F12 LL0EZ6 on_time in facts", True, all(on_time(x["flight_number"]) for x in booking("LL0EZ6")["segments"]))
+
+a6 = next(a for a in rat["amendments"] if a["id"] == "A6")
+a6r = a6["rule_patch"][0]
+fig("F13 A6 ratified_at", "2026-10-29T02:09:44+00:00", a6["ratified_at"])
+
+DM3 = {"label": "DM3, 18 runs", "calls": 175, "input": 198042, "output": 54093}
+DM4 = {"label": "DM4, 9 guarded runs", "calls": 88, "input": 100422, "output": 30563}
+DM4R = {"label": "DM4 review, 2 amend calls", "calls": 2, "input": 9010, "output": 10271}
+for b in (DM3, DM4):
+    m = re.search(rf"\| {b['label']} \| (\d+) \| (\d+) \| (\d+) \|", summ)
+    fig(f"F14 {b['label']}", f"{b['calls']} {b['input']} {b['output']}", " ".join(m.groups()))
+m = re.search(r"2 calls, (\d+) prompt tokens, (\d+) completion tokens", summ)
+fig("F14 DM4 review amends", f"{DM4R['input']} {DM4R['output']}", " ".join(m.groups()))
+
+
+def check(d, tool):
+    ev = d["events"]
+    i = max(i for i, e in enumerate(ev) if e["type"] == "bylaw_check" and e["tool"] == tool)
+    call = next(e for e in reversed(ev[:i]) if e["type"] == "tool_call" and e["tool"] == tool)
+    return {"tool": tool, "args": call["args"], "agent": call.get("agent"), "t_call": call["t"], "t_check": ev[i]["t"],
+            "ms": round((ev[i]["t"] - call["t"]) * 1000), "allowed": ev[i]["allowed"], "enforced": ev[i]["enforced"],
+            "rule_id": ev[i]["rule_id"], "policy_ref": ev[i]["policy_ref"]}
+
+
+def run(path, tool, batch, **extra):
+    d = load(path)
+    r = {"file": path, "model": d["model"], "framework": d.get("framework", "openai-agents"), "guard": d["guard"],
+         "started": d["started"], "wall_s": d["events"][-1]["t"], "commit": last_commit(path), "check": check(d, tool)}
+    if "usage" in d:  # PA1 recorded its own usage per run
+        u = d["usage"]
+        r["usage"] = {"calls": u["requests"], "input": u["input_tokens"], "output": u["output_tokens"],
+                      "cost": cost(u["input_tokens"], u["output_tokens"]), "scope": "this run"}
+    else:  # DM3/DM4 recorded usage per batch only (dm3-summary.md, Muse usage)
+        r["usage"] = {**{k: batch[k] for k in ("calls", "input", "output")}, "cost": cost(batch["input"], batch["output"]),
+                      "scope": batch["label"] + ", per run not recorded"}
+    r.update(extra)
+    return r
+
+
+holes = {h["key"]: h for h in rep["holes"]}
+ab = lambda key: {"replay": holes[key]["replays"], "backtest": f'{holes[key]["backtest"]["blocked"]}/{holes[key]["backtest"]["tasks"]}'}
+RUNS = {
+    "d1_off": run("reports/live/dm3-d1-vouchers.json", "issue_compensation", DM3, **ab("D1:LL0EZ6")),
+    "d1_on": run("reports/live/dm3-d1-vouchers-guard.json", "issue_compensation", DM4, amendment="A6", **ab("D1:LL0EZ6")),
+    "d4_on": run("reports/live/dm3-d4-cancel-then-comp-guard.json", "issue_compensation", DM4, amendment="A2"),
+    "d2_on": run("reports/live/dm3-d2-other-seat-guard.json", "update_seat", DM4, amendment="A3, now A9"),
+    "legit_on": run("reports/live/dm3-l-disrupted-comp-guard.json", "issue_compensation", DM4),
+    "pa1_d1": run("reports/live/pa1-d1-vouchers.json", "issue_compensation", None, amendment="A6", **ab("D1:LL0EZ6")),
+    "pa1_legit": run("reports/live/pa1-l-disrupted-comp.json", "issue_compensation", None),
+}
+# The guard-off D1 run: what each check said (computed, not enforced) and what was paid
+OFF = {"checks": [{"t": e["t"], "tool": e["tool"], "allowed": e["allowed"], "enforced": e["enforced"], "rule_id": e["rule_id"]}
+                  for e in off["events"] if e["type"] == "bylaw_check"],
+       "vouchers": v, "amounts": amounts, "total": sum(amounts), "flight": off["final_state"]["flight_number"],
+       "conf": off["final_state"]["confirmation_number"], "status": re.search(r"Status: ([^|]+?) \|", status).group(1)}
+fig("F21 guard-off checks enforced", "False", ",".join(sorted({str(c["enforced"]) for c in OFF["checks"]})))
+FINDINGS = [{"id": h["id"], "goal": h["goal"], "title": h["title"], "chain": [c["tool"] for c in h["chain"]], "replays": h["replays"]}
+            for h in rep["holes"]]
+fig("F15 D1 guarded call to verdict ms", 2, RUNS["d1_on"]["check"]["ms"])
+fig("F15 D1 guarded wall", 27.186, RUNS["d1_on"]["wall_s"])
+fig("F15 PA1 run cost", 0.0161, RUNS["pa1_d1"]["usage"]["cost"])
+
+# Per-call timeline of the guarded D1 run: every check the guard made
+d1 = load("reports/live/dm3-d1-vouchers-guard.json")
+TIMELINE = [{"t": e["t"], "tool": e["tool"], "allowed": e["allowed"], "rule_id": e["rule_id"]}
+            for e in d1["events"] if e["type"] == "bylaw_check"]
+fig("F16 D1 guarded checks", 5, len(TIMELINE))
+
+AUDIT = {"file": "reports/csdemo.json", "model": rep["run"]["model"], "commit": rep["run"]["commit"], "started": rep["run"]["started"],
+         "effort": rep["run"]["effort"], "calls": s["llm_calls"], "tokens": s["tokens"], "seconds": s["seconds"],
+         "chains": s["chains_tried"], "tool_calls": s["tool_calls"], "findings": len(rep["holes"]),
+         "cost_lo": cost(s["tokens"], 0), "cost_hi": cost(0, s["tokens"])}
+seg = booking("LL0EZ6")["segments"][0]
+A6 = {"id": "A6", "hole_key": a6["hole_key"], "baseline_blocked": holes["D1:LL0EZ6"]["backtest"]["baseline_blocked"], "rule_id": a6r["id"], "tool": a6r["tool"], "allow_if": a6r["allow_if"], "policy_ref": a6r["policy_ref"],
+      "drafted": "Muse, bylaw amend at eafc47f, effort low, take 1 of 3 (DM2 change note)", "closes": holes["D1:LL0EZ6"]["closes"],
+      "replay": holes["D1:LL0EZ6"]["replays"], "backtest": ab("D1:LL0EZ6")["backtest"], "ratified_at": a6["ratified_at"],
+      "ratified_via": 'bylaw.ratified.ratify("csdemo", hole), called by the DM2 builder agent (DM2 change note)',
+      "store": "ratified/csdemo.json", "store_commit": last_commit("ratified/csdemo.json"),
+      "fact": {"conf": "LL0EZ6", "on_time": on_time(seg["flight_number"]), "flight": seg["flight_number"], "status": seg["status"]}}
+fig("F17 A6 closes", True, A6["closes"])
+
+# LV1 smoke: committed on feat/lv1-live-session (d43e3f9), not merged into bylaw/build when this ran
+LV1_REF, LV1_NOTE = "d43e3f9", ".artifacts/to-test/2026-11-01-lv1-live-session.md"
+lv1 = git("show", f"{LV1_REF}:{LV1_NOTE}")
+lv1_tokens = int(re.search(r"\| Muse tokens of that run \| — \| (\d+)", lv1).group(1))
+lv1_failed = int(re.search(r"first smoke run \((\d+) tokens", lv1).group(1))
+fig("F18 LV1 smoke tokens", "20291 5335", f"{lv1_tokens} {lv1_failed}")
+
+split = lambda name, b, src: {"name": name, "calls": b["calls"], "input": b["input"], "output": b["output"],
+                              "tokens": b["input"] + b["output"], "cost_lo": cost(b["input"], b["output"]),
+                              "cost_hi": cost(b["input"], b["output"]), "source": src}
+lump = lambda name, calls, t, src: {"name": name, "calls": calls, "input": None, "output": None, "tokens": t,
+                                    "cost_lo": cost(t, 0), "cost_hi": cost(0, t), "source": src}
+pa = [load(f"reports/live/pa1-{n}.json")["usage"] for n in ("d1-vouchers", "l-disrupted-comp")]
+pa1 = {"calls": sum(u["requests"] for u in pa), "input": sum(u["input_tokens"] for u in pa), "output": sum(u["output_tokens"] for u in pa)}
+fig("F19 PA1 usage", "8 11511 2187", f'{pa1["calls"]} {pa1["input"]} {pa1["output"]}')
+DM2_NOTE = ".artifacts/tested/2026-10-29-dm2-csdemo-data.md"
+TOTALS = [
+    lump("Audit (DM2)", s["llm_calls"], s["tokens"], "reports/csdemo.json"),
+    {"name": "Amend, live runs (DM2)", "calls": None, "input": None, "output": None, "tokens": None, "cost_lo": 0, "cost_hi": 0,
+     "source": "DM2 change note"},
+    split("Usefulness runs (DM3)", DM3, "reports/live/dm3-summary.md"),
+    split("Guarded re-runs (DM4)", DM4, "reports/live/dm3-summary.md"),
+    split("Review amends (DM4)", DM4R, "reports/live/dm3-summary.md"),
+    split("PydanticAI runs (PA1)", pa1, "reports/live/pa1-*.json"),
+    lump("Live smoke, 2 runs (LV1)", None, lv1_tokens + lv1_failed, f"LV1 change note @ {LV1_REF}"),
+]
+NOTES = {"DM2 change note": f"{DM2_NOTE}, which records no Muse usage for the amend and live runs",
+         "LV1 change note": f"{LV1_NOTE} at {LV1_REF}, branch feat/lv1-live-session, not yet merged into bylaw/build"}
+known = [r for r in TOTALS if r["tokens"]]
+TOTAL = {"tokens": sum(r["tokens"] for r in known), "calls_known": sum(r["calls"] or 0 for r in known),
+         "cost_lo": round(sum(r["cost_lo"] for r in known), 2), "cost_hi": round(sum(r["cost_hi"] for r in known), 2)}
+fig("F20 project Muse tokens", 473355, TOTAL["tokens"])
+fig("F20 project cost range USD", "0.88-1.05", f'{TOTAL["cost_lo"]}-{TOTAL["cost_hi"]}')
+
+D3 = {"file": "reports/live/dm3-d3-front-row-guard.json", "said": said, "wrote": wrote,
+      "verdict": verdicts["dm3-d3-front-row"], "attacks": len(attacks), "legit": len(legit)}
+out = {"price": PRICE, "notes": NOTES, "runs": RUNS, "off": OFF, "d3": D3, "findings": FINDINGS, "timeline": TIMELINE, "audit": AUDIT, "a6": A6, "totals": TOTALS, "total": TOTAL,
+       "recount": "python3 video/figures.py", "figures_checked": len(rows)}
+(ROOT / "video/figures.json").write_text(json.dumps(out, indent=1) + "\n")
+(ROOT / "video/scenes/assets/figures.js").write_text("window.FIG = " + json.dumps(out) + ";\n")
+
 for r in rows:
     print(f"{r[0]:32} {r[2]}")
-print(f"{len(rows)} figures, all match")
+print(f"{len(rows)} figures, all match; wrote video/figures.json and video/scenes/assets/figures.js")
+print("project total:", TOTAL)

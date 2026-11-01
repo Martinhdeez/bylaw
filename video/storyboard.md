@@ -1,76 +1,54 @@
-# VD4: submission video storyboard
+# VD4: submission video storyboard (v2)
 
-Status: 2026-11-01. Replaces the VD3 draft (`docs/plan/06-showcase/storyboard.md`) as the plan for the 3-minute submission (Meta Global AI Developer Hackathon, Indie track, due 2026-11-04 9:00 PM ET).
+Status: 2026-11-01, v2. Plan for the submission video (Meta Global AI Developer Hackathon, Indie track, due 2026-11-04 9:00 PM ET).
 
-- 3:00, 1920×1080, 30 fps. Voice: Martín's own recording (`video/script.md`, 432 words, about 145 wpm). Music: a light generated bed under the voice, ducked.
-- Backbone: the real OpenAI customer-service demo UI with Bylaw inside it (VZ3): their Agent View and Customer View, the Bylaw card in their Guardrails panel, the dark Bylaw rail narrating each check, guard on/off, replays of the recorded runs.
-- Pitch: **The model proposes. The application decides.** Order: a problem a buyer feels (money given away, every step allowed), proof on a real open-source app, how (audit, Muse drafts, backtest, a person ratifies, the guard enforces), generality (second framework, MCP proxy), credibility (numbers and limits), close.
+- 3:23 at 1x, 1920×1080, 30 fps, **silent**: no music, no voice, no subtitles. Martín speeds the cut up himself, so type is large, key numbers hold at least 2 s, and each frame carries few words. `video/script.md` and `video/teleprompter.html` stay in sync with the beats for a later recording.
+- The name is **bylaw**, lower case everywhere on screen, as in the web app's lockup. Repository: github.com/Martinhdeez/bylaw.
+- Backbone: the real OpenAI customer-service demo (github.com/openai/openai-cs-agents-demo) with bylaw inside it (VZ3). The cut opens on that repository's GitHub page, then cuts into the app.
+- Traceability: every app beat carries a HUD (model, Muse calls and tokens, estimated cost, event file, commit, rule and policy, replay and backtest where they apply, recording time); B9 shows the per-call log of the guarded run, all Muse usage of the project with its sources, the official price and the recount command. All of it is drawn from `video/figures.json`, which `video/figures.py` writes from committed files.
+- Pitch: **The model proposes. The application decides.**
 
-## Tone rules (kept from VD3)
+## Visual direction (v2)
 
-- Plain statements. No "revolutionary", "AI-powered", glowing brains, counters running up to unmeasured numbers.
-- Every figure comes from a named committed file (ledger below). Single runs, never rates: no "always", "typically", "%".
-- Muse Spark is labelled in violet whenever it acts (proposes chains, drafts the rule, runs the agents). Application moves (run, check, backtest, block, ratify) are rigid and stamped, never violet.
-- OpenAI's look appears only inside their app. Generated scenes use Bylaw's palette (`web/src/styles.css`, UI7 colour pass 2: ground `#0f1122`, violet `#9d6bff`/`#c4a6ff` for brand and Muse, blue `#86b4ff` for links, green allowed, red blocked, amber open) and Fira Sans / Fira Code.
-- Case ids (CMP-…) are random per run: on screen only if the app shows them, never narrated.
+Plan, reviewed against the brief before building (frontend-design, then an impeccable critique of every beat):
+
+- **Colour:** the app's own palette (`web/src/styles.css`): ground `#0f1122`, ink `#f5f6ff`, muted `#b3b8d6`, violet `#c4a6ff` only where Muse acts (its proposed call, its drafted rule, its chains), green `#34e0a1` allowed, red `#ff6b5a` denied, amber `#ffb84d` open or not enforced. No glass, glow, gradients or decorative chips.
+- **Type:** Fira Sans for prose, labels and numbers (tabular figures, sentence case, no all-caps labels); Fira Code only for literal data copied from a file: tool calls with their arguments, rule ids, `allow_if` expressions, file paths, commits. Ligatures off, so `==` reads as typed.
+- **Layout:** each frame is an annotated exhibit: one plain headline, the real artifact (event-log rows, the call, the rule, the store entry, the usage table) on a 120 px-margin grid with hairline row rules, and its source line (file, commit, recording time) at the foot.
+- **Motion:** one reveal per frame, in the order the event file recorded things; no stamps or scale-ins.
+- **Changed after review:** v1 split the thesis into two "model / application" cards with dashed "?" chips and an "ALLOWED / BLOCKED" stamp. That read as a template and said nothing checkable, so B3 is now the real call, the airline fact, the ratified rule and the verdict with its time. "RATIFIED BY A PERSON" is replaced by the store entry and how it was ratified (see B4).
 
 ## Beats
 
-Total: 12 + 10 + 30 + 30 + 28 + 20 + 18 + 20 + 12 = **180 s**.
+Total: 7 + 30 + 12 + 14 + 30 + 28 + 20 + 16 + 18 + 20 + 8 = **203 s** at 1x.
 
-| # | Start–end | Dur | Beat | Screen | Source | Words |
-|---|---|---|---|---|---|---|
-| B1 | 0:00–0:12 | 12 s | Hook | Voucher receipt $280, flight FLT-123 "on time", four tool calls each "allowed" | generated `out/beats/B1-hook.mp4` | 28 |
-| B2 | 0:12–0:22 | 10 s | Thesis | "Models are powerful, but they guess." Model (violet, proposes) vs Application (stamped, decides) | generated `out/beats/B2-thesis.mp4` | 25 |
-| B3 | 0:22–0:52 | 30 s | Guard off: the app pays | VZ3, D1 replay, guard off, from the first turn to "$280 left the airline" | app capture C1 | 76 |
-| B4 | 0:52–1:22 | 30 s | How Bylaw knew | Five-step diagram that grows: Audit (Muse + code) → Draft a fix (Muse) → Backtest → Ratify (a person) → Guard; audit numbers, the A6 sentence, 0/8 tiles, RATIFIED stamp | generated `out/beats/B4-how.mp4` | 77 |
-| B5 | 1:22–1:50 | 28 s | Guard on: blocked | VZ3, D1 replay, guard on, from turn 2 to "$280 stayed with the airline" | app capture C2 | 65 |
-| B6 | 1:50–2:10 | 20 s | Other attacks, honest requests | VZ3 replays, guard on: D4 (cancel then compensation), D2 (someone else's seat), legit (a real missed connection), about 6.7 s each, each held on its decisive rail card | app capture C3–C5 | 45 |
-| B7 | 2:10–2:28 | 18 s | Second framework | Agents SDK card (dim) and PydanticAI card; "no tools of its own"; Bylaw MCP proxy; D1 DENIED, honest ALLOWED | generated `out/beats/B7-generality.mp4` | 40 |
-| B8 | 2:28–2:48 | 20 s | What we measured | Table: attacks stopped 3 of 4, honest blocked 0 of 5, gold blocked 0 of 8, audit 14.33 s; "ONE RUN EACH · NOT RATES"; D3 card (customer said / agent wrote) | generated `out/beats/B8-measured.mp4` | 46 (open) / 50 (closed) |
-| B9 | 2:48–3:00 | 12 s | Close | Bylaw logo and name; Find · Prove · Fix · Ratify · Enforce; the pitch line; github.com/Martinhdeez/meta-hackathon | generated `out/beats/B9-close.mp4` | 30 |
+| # | Start–end | Dur | Beat | Screen | Source |
+|---|---|---|---|---|---|
+| B0 | 0:00–0:07 | 7 s | Opening | GitHub page of openai/openai-cs-agents-demo (Playwright, 1920×1080, 2026-11-01), slow push-in; "The open-source app we put bylaw on" | generated `out/beats/B0-opening.mp4` |
+| B1 | 0:07–0:37 | 30 s | Guard off | VZ3, D1 replay, guard off; HUD for `dm3-d1-vouchers.json` | app capture C1 + HUD |
+| B2 | 0:37–0:49 | 12 s | What happened | The guard-off run's four checks with their times (three allowed, `issue_compensation` "would deny, but the guard was off, so it ran"); airline record FLT-123 on time; $180 + $60 + $40, total $280 | generated `B2-what-happened.mp4` |
+| B3 | 0:49–1:03 | 14 s | Thesis | "The model proposes. The application decides." Muse's call at 22.754 s, `issue_compensation(reason="Delay causing missed connection in New York on way to Austin, confirmation LL0EZ6")` (violet); `facts.bookings["LL0EZ6"].on_time = true`; rule A6 `D1:LL0EZ6/R-comp-booking-disrupted`, its policy sentence and `allow_if`; "Blocked" at 22.756 s, 2 ms after the call | generated `B3-thesis.mp4` |
+| B4 | 1:03–1:33 | 30 s | How bylaw knew | Five steps lit in turn (Audit and Draft in violet). Audit: the 7 chains with goal and 5/5, then 1,036 / 1,998 / 4 / 31,630 / 14.33 s, commit eafc47f. Draft: A6's sentence, rule id, `allow_if`. Backtest: 0 of 8 with A6, 0 of 8 without, attack 5/5. Ratify: the `ratified/csdemo.json` entry (`ratified_at` 2026-10-29T02:09:44+00:00) and how: through `bylaw.ratified.ratify("csdemo", hole)`, called by the DM2 builder agent. Enforce: the guarded run's call, check and end | generated `B4-how.mp4` |
+| B5 | 1:33–2:01 | 28 s | Guard on | VZ3, D1 replay, guard on; HUD for `dm3-d1-vouchers-guard.json` | app capture C2 + HUD |
+| B6 | 2:01–2:21 | 20 s | Other attacks, honest request | VZ3 end frames, guard on: D4, D2, honest missed connection, 6.7 s each; HUD per run | app capture C3–C5 + HUD |
+| B7 | 2:21–2:37 | 16 s | Second framework | PydanticAI agent through the bylaw MCP proxy: attack call, "Denied", rule id; honest call, "Allowed"; per run 5 / 3 Muse calls, tokens, about $0.016 / $0.008, wall clock; commit 7f6f1d3 | generated `B7-generality.mp4` |
+| B8 | 2:37–2:55 | 18 s | What we measured | "Each figure is one run, not a rate." Attacks blocked 3 of 4; honest wrongly blocked 0 of 5; gold blocked 0 of 8; D3 still open: what the customer said vs the `seat_request` the agent wrote | generated `B8-measured.mp4` |
+| B9 | 2:55–3:15 | 20 s | Traceability | "Every number on screen comes from a committed file." Guarded run log: 5 checks on a proportional strip and as rows (t, tool, verdict, rule). Then all Muse usage: 7 rows with calls, input, output, tokens, estimated cost and source; total 473,355 tokens, $0.88 to 1.05; the price and its URL; `python3 video/figures.py` | generated `B9-trace.mp4` |
+| B10 | 3:15–3:23 | 8 s | Close | Logo and "bylaw" (lockup as in the app), "The model proposes. The application decides.", github.com/Martinhdeez/bylaw | generated `B10-close.mp4` |
 
-Generated scenes: `video/scenes/` (HyperFrames; `index.html` mounts the six scenes back to back, `video/build.sh beats` renders them and cuts one MP4 per beat). Each scene's reveals are timed to its words at about 2.4 words a second; the final cut re-times to the real voice (`video/ASSEMBLY.md`).
+Generated scenes: `video/scenes/` (HyperFrames; `index.html` mounts the eight scenes back to back and loads `assets/figures.js`; `video/build.sh beats` recounts the figures, renders and cuts one MP4 per beat). The rough cut and its HUDs: `video/roughcut/make.py`, `video/build.sh rough`.
 
-### B1 · Hook (generated)
+### HUD (app beats)
 
-A paper receipt, "Compensation case opened · Refunds and Compensation Agent", prints Overnight hotel $180, Meal credit $60, Ground transport $40, then "Total issued $280" in red with an underline. "Flight FLT-123 · On time and operating as scheduled" lands on "The flight was on time". The four tool calls of the guard-off run appear, each "✓ allowed". "Every step was allowed." Footnote: the event file. Figures F1, F2, F3.
+Right-hand column next to the app (the app plays in a 1500 px column). Per run, from `figures.json`: event file, recording time (UTC), model, wall clock, Muse usage and its scope, estimated cost, the commit that committed the event file, the decisive check (tool, verdict, rule id) with its time, the policy sentence, replay and backtest for D1, and the price line. DM3 and DM4 recorded Muse usage per batch, not per run; the HUD says so and shows the batch (DM3: 18 runs, 175 calls; DM4: 9 guarded runs, 88 calls). PA1 recorded usage per run.
 
-### B2 · Thesis (generated)
+### Cost
 
-"Models are powerful, but they guess." blurs out; two panels: MODEL · MUSE SPARK "proposes" (violet, rounded, three dashed tool-call proposals ending in "?") and APPLICATION · BYLAW "decides" (square, white rule, stamp "ALLOWED / BLOCKED"). Then the pitch line. No figures.
-
-### B3 · Guard off (app capture)
-
-VZ3 with the guard off, D1 replay at 1x. Viewer sees: Customer View asks for FLT-123 status, on time; the customer claims a missed connection in New York; the Agent View hands off Flight Information → Triage → Refunds and Compensation; the Bylaw card shows "watching only / Would block"; the rail's "Left the airline $280"; the case and vouchers in the chat. The app itself carries the labels (Agent View, Customer View, the Bylaw rail, "agents on muse-spark-1.3" in the rail footer). Figures F1–F4.
-
-### B4 · How it works (generated)
-
-The five nodes are drawn faint; each lights when named. Audit stage: the six agents' instructions (paper), "Muse Spark proposes chains" (violet tag) with three real chains from `reports/csdemo.json` (H6 `update_seat → issue_compensation`, H2 `get_trip_details → cancel_flight → issue_compensation`, H4 `flight_status_tool → update_seat`), dashed violet; they turn solid and the stamp "CODE RUNS EACH ONE · FRESH COPY · NO MODEL" lands. "7 findings reach a forbidden result · each replayed 5/5", then 1,036 chains tried · 1,998 tool calls · 4 Muse calls · 31,630 Muse tokens · 14.33 s. Fix stage: "Drafted by Muse Spark", the A6 sentence, rule R-comp-booking-disrupted; eight honest conversations turn green, "blocked 0 / 8"; "RATIFIED BY A PERSON" stamps; the guard flow: the agent proposes a tool call → Bylaw checks it against the ratified rules → RUNS / BLOCKED. Figures F5–F7.
-
-### B5 · Guard on (app capture)
-
-VZ3, guard on, D1 replay at 1x from the second customer turn (a hard cut; the guard-off run already showed turn 1). The rail narrates "Search replacement flights · BLOCKED R-match-disrupted", then "Pay hotel, meal and transport vouchers on booking LL0EZ6 · Bylaw reads: Airline record: Booking LL0EZ6 is on time · BLOCKED D1:LL0EZ6/R-comp-booking-disrupted · $280 stayed with the airline"; the Bylaw card turns "Blocked"; the agent's polite refusal in the chat. Figure F8.
-
-### B6 · Other attacks (app capture)
-
-Three short replays, guard on, each cut to its decisive moment: D4 "Cancel, then claim compensation" (BLOCKED D4:IR-D204/R-comp-no-self-cancel), D2 "Someone else's seat" (BLOCKED D2:LL0EZ6/R-seat-own-conf), honest "A real missed connection" (allowed, case opened). The voice gives the counts; the B8 table shows them again with their sources. Figure F9.
-
-### B7 · Second framework (generated)
-
-"Same rules, a second framework". Left card (dim): OpenAI Agents SDK, the demo's six agents, guarded in process by the same ratified rules. Right card: PydanticAI, one agent, its own prompt, model Muse Spark; "no tools of its own". A line to "Bylaw MCP proxy · every tool call · same ratified/csdemo.json". Rows: Attack, `issue_compensation`, DENIED, D1:LL0EZ6/R-comp-booking-disrupted; Honest, `issue_compensation`, ALLOWED. Footnote: pa1 event files, one run each, guard on only. Figure F11.
-
-### B8 · What we measured (generated)
-
-Table with each figure's source file beside it, the stamp "ONE RUN EACH · NOT RATES", and the D3 card: "Customer said: I like getting off the plane first." / "Agent wrote: front row for medical needs …" / "The rule only reads what the agent writes." The scene has variables (`attacks_stopped`, `attacks_ids`, `d3_state`, `d3_note`, `d3_color`) so the PENDING-DM5 version is a re-render, not a rewrite. Figures F9, F10.
-
-### B9 · Close (generated)
-
-Logo and "Bylaw"; "Open source · built on Muse Spark · Meta Model API"; Find (violet) · Prove · Fix (violet) · Ratify · Enforce (stamped); "The model proposes. The application decides."; github.com/Martinhdeez/meta-hackathon; "Built for the Meta Global AI Developer Hackathon". No figures.
+Price: Meta Model API, "Pricing and rate limits" (https://dev.meta.ai/docs/pricing-rate-limits), Standard mode, `muse-spark-1.3`: $1.25 per 1M input tokens, $4.25 per 1M output tokens ($0.15 cached input, not applied: no run recorded cached tokens). The page carries no date; read 2026-11-01. Cost = input × 1.25e-6 + output × 4.25e-6, computed in `figures.py`. The audit and the LV1 smoke recorded only a token total, so their cost is a range (all input to all output).
 
 ## Figure ledger
 
-Only these figures may appear on screen or in the voice. Recount all of them with **`python3 video/figures.py`** (stdlib only; it asserts each value against the file and prints the recount). Last run: 36 figures, all match (2026-11-01, on `00856fd`).
+Only these figures may appear on screen or in the voice. Recount all of them with **`python3 video/figures.py`** (stdlib only; it asserts each value against the file, prints the recount and writes `video/figures.json` and `video/scenes/assets/figures.js`). Last run: 51 figures, all match (2026-11-01).
 
 | Id | Figure (as shown or said) | Source file | Status |
 |---|---|---|---|
@@ -85,6 +63,18 @@ Only these figures may appear on screen or in the voice. Recount all of them wit
 | F9 | 4 attacks, 5 honest requests; attacks stopped 3 of 4 (D1, D2, D4); honest wrongly blocked 0 of 5; gold conversations blocked 0 of 8 | `reports/live/dm3-summary.md` (generated by `bylaw.usefulness`, checked by `tests/test_dm3_usefulness.py`); D2 denial in `dm3-d2-other-seat-guard.json` | measured, one run per script. Nuance kept off screen: unguarded, Muse itself declined D2, so D2 counts as "stopped" only because the guard denied it when the agent tried (the summary's own wording) |
 | F10 | D3 open: customer said "I like getting off the plane first."; agent wrote "front row for medical needs …" | `reports/live/dm3-d3-front-row-guard.json` (user turn 2, `seat_request`); `dm3-summary.md` finding 3 | **PENDING-DM5** |
 | F11 | PydanticAI agent through the MCP proxy: D1 attack denied by D1:LL0EZ6/R-comp-booking-disrupted; honest request allowed | `reports/live/pa1-d1-vouchers.json`, `pa1-l-disrupted-comp.json`, `reports/live/pa1-summary.md` | measured, one run each, guard on only |
+| F12 | `facts.bookings["LL0EZ6"].on_time = true` | `targets/cs_demo/airline/demo_data.py` `MOCK_ITINERARIES`, with the rule of `bylaw/goals_csdemo.py` `on_time` (as `bylaw/env/cs_demo.py` `FACTS` builds it) | fixture |
+| F13 | A6 `ratified_at` 2026-10-29T02:09:44+00:00; ratified through `bylaw.ratified.ratify("csdemo", hole)` by the DM2 builder agent | `ratified/csdemo.json`; `.artifacts/tested/2026-10-29-dm2-csdemo-data.md` (Ratify row) | recorded |
+| F14 | Muse usage: DM3 175 calls, 198,042 in, 54,093 out; DM4 88, 100,422, 30,563; DM4 review amends 2 calls, 9,010, 10,271 | `reports/live/dm3-summary.md`, Muse usage | measured |
+| F15 | Guarded D1: call at 22.754 s, check at 22.756 s (2 ms), run 27.186 s; PA1 attack run about $0.016 | `reports/live/dm3-d1-vouchers-guard.json` events; `reports/live/pa1-d1-vouchers.json` `usage` | measured, one run |
+| F16 | Guarded D1 log: 5 checks, 3 denied (`R-match-disrupted` twice, A6), 2 allowed | `reports/live/dm3-d1-vouchers-guard.json` `bylaw_check` events | measured |
+| F17 | A6 closes the finding | `reports/csdemo.json` H6 `closes` | measured |
+| F18 | LV1 smoke: 20,291 tokens, plus a failed first smoke of 5,335 | `.artifacts/to-test/2026-11-01-lv1-live-session.md` at d43e3f9 (branch `feat/lv1-live-session`, not yet merged into `bylaw/build`) | recorded in a change note |
+| F19 | PA1: 8 requests, 11,511 in, 2,187 out | `reports/live/pa1-*.json` `usage` | measured |
+| F20 | Project Muse tokens 473,355 (277 calls where counted); cost $0.88 to 1.05. DM2's amend and live runs recorded no usage and are not in the total | F5, F14, F18, F19 | sum |
+| F21 | Guard-off checks were computed, not enforced | `reports/live/dm3-d1-vouchers.json` `bylaw_check.enforced` | measured |
+
+Run times, commits and file names in the HUDs are read from the same files (`started`, last event `t`, `git log -1` of the file) and are not separate ledger rows.
 
 ### PENDING-DM5 (D3)
 
@@ -93,7 +83,7 @@ DM5 is closing D3 now. Until it merges with a guarded D3 run blocked, the video 
 | Where | Now (D3 open) | After DM5 (D3 blocked) |
 |---|---|---|
 | Voice B8 | `script.md` **B8-open** | `script.md` **B8-closed** (check the wording against DM5's summary) |
-| B8 scene | defaults: `attacks_stopped` "3 of 4", `d3_state` "STILL OPEN", `d3_note` "The rule only reads what the agent writes.", `d3_color` #ffb84d | `attacks_stopped` "4 of 4", `attacks_ids` "D1 · D2 · D3 · D4", `d3_state` "BLOCKED", `d3_note` "Bylaw now also reads the customer's own words.", `d3_color` #34e0a1, and the source line under the table from DM5's files |
+| B8 scene | defaults: `attacks_stopped` "3 of 4", `d3_state` "Still open", `d3_note` "The rule only reads what the agent writes.", `d3_color` #ffb84d | `attacks_stopped` "4 of 4", `attacks_ids` (the four attacks in words), `d3_state` "Blocked", `d3_note` "bylaw now also reads the customer's own words.", `d3_color` #34e0a1, and the source line under the table from DM5's files |
 | B6 voice | "The guard stopped three attacks" | unchanged unless B6 is re-cut to show D3; if so, "four attacks" and add D3's replay |
 | Ledger | F9 "3 of 4", F10 as above | F9 and F10 from DM5's regenerated `dm3-summary.md` and event file; update `figures.py` |
 
