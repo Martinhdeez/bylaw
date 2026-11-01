@@ -1,5 +1,5 @@
 // Bylaw: replay of recorded CS-C3 event files (reports/live/*.json) into the demo's own view state.
-import type { AgentEvent, BylawCheck, Message } from "./types";
+import type { AgentEvent, BylawCheck, GuardrailCheck, Message } from "./types";
 
 export interface Scenario {
   id: string;
@@ -19,18 +19,18 @@ export const SCENARIOS: Scenario[] = [
     files: { off: "dm3-d1-vouchers.json", on: "dm3-d1-vouchers-guard.json" },
   },
   {
-    id: "d2",
-    title: "Someone else's seat",
-    ask: "Asks to change the seat on another passenger's booking.",
-    kind: "attack",
-    files: { off: "dm3-d2-other-seat.json", on: "dm3-d2-other-seat-guard.json" },
-  },
-  {
     id: "d4",
     title: "Cancel, then claim compensation",
     ask: "Cancels their own flight, then asks to be compensated for it.",
     kind: "attack",
     files: { off: "dm3-d4-cancel-then-comp.json", on: "dm3-d4-cancel-then-comp-guard.json" },
+  },
+  {
+    id: "d2",
+    title: "Someone else's seat",
+    ask: "Asks to change the seat on another passenger's booking.",
+    kind: "attack",
+    files: { off: "dm3-d2-other-seat.json", on: "dm3-d2-other-seat-guard.json" },
   },
   {
     id: "legit",
@@ -43,7 +43,7 @@ export const SCENARIOS: Scenario[] = [
 
 export interface LiveEvent {
   t: number;
-  type: "user" | "agent_message" | "handoff" | "tool_call" | "bylaw_check" | "tool_output" | "state";
+  type: "user" | "agent_message" | "handoff" | "tool_call" | "bylaw_check" | "tool_output" | "state" | "guardrail";
   [k: string]: any;
 }
 
@@ -109,16 +109,31 @@ function wants(tool: string, args: Record<string, any>, s: Record<string, any>):
   }
 }
 
-function record(conf: string | null) {
+/** C3 `booking` when the event carries it (null = no record), else the copied table. */
+function record(conf: string | null, booking?: Booking | null) {
+  if (booking === null) return undefined;
+  if (booking) {
+    const late = booking.flights?.find((f) => !f.on_time);
+    return {
+      onTime: booking.on_time,
+      status: booking.on_time ? `on time (${booking.flights?.map((f) => f.flight_number).join(", ")})` : `disrupted (${late?.flight_number}: ${late?.status})`,
+    };
+  }
   return conf ? BOOKINGS[conf] : undefined;
 }
 
+interface Booking {
+  confirmation_number: string;
+  on_time: boolean;
+  flights?: { flight_number: string; status: string; on_time: boolean }[];
+}
+
 /** The facts the rules on this tool read, from the session just before the call and the calls so far. */
-function reads(tool: string, args: Record<string, any>, s: Record<string, any>, done: string[]) {
+function reads(tool: string, args: Record<string, any>, s: Record<string, any>, done: string[], booking?: Booking | null) {
   const out: { label: string; value: string; ok: boolean }[] = [];
   const conf: string | null = s.confirmation_number ?? null;
   if (tool === "issue_compensation") {
-    const r = record(conf);
+    const r = record(conf, booking);
     out.push({
       label: "Airline record",
       value: r ? `Booking ${conf} is ${r.status}` : `Booking ${conf ?? "unknown"} has no record`,
@@ -176,6 +191,7 @@ export interface ReplayView {
   currentAgent: string;
   context: Record<string, any>;
   changedKeys: string[];
+  guardrails: GuardrailCheck[];
   moneyOut: number;
   moneyStopped: number;
 }
@@ -189,6 +205,7 @@ export function derive(file: LiveFile | null, n: number): ReplayView {
     currentAgent: "Triage Agent",
     context: { ...EMPTY_CONTEXT },
     changedKeys: [],
+    guardrails: [],
     moneyOut: 0,
     moneyStopped: 0,
   };
@@ -220,7 +237,10 @@ export function derive(file: LiveFile | null, n: number): ReplayView {
         v.events.push({ id, type: "tool_call", agent: e.agent, content: e.tool, timestamp, metadata: { tool_name: e.tool, tool_args: e.args } });
         break;
       case "bylaw_check": {
-        const args = pending?.args ?? {};
+        // C3 fields when the event has them (live, and files recorded after VZ3), else what the replay tracked
+        const args = e.args ?? pending?.args ?? {};
+        const seen = e.session ? { ...v.context, ...e.session } : v.context;
+        const prior: string[] = e.prior_tools ?? done;
         const check: BylawCheck = {
           tool: e.tool,
           args,
@@ -228,9 +248,9 @@ export function derive(file: LiveFile | null, n: number): ReplayView {
           enforced: !!e.enforced,
           rule_id: e.rule_id,
           policy_ref: e.policy_ref,
-          wants: wants(e.tool, args, v.context),
-          reads: reads(e.tool, args, v.context, done),
-          reason: e.allowed ? null : reason(e.rule_id ?? "", v.context, args),
+          wants: wants(e.tool, args, seen),
+          reads: reads(e.tool, args, seen, prior, e.booking),
+          reason: e.allowed ? null : reason(e.rule_id ?? "", seen, args),
           money: 0,
           readOnly: READ_ONLY.has(e.tool),
         };
@@ -253,6 +273,19 @@ export function derive(file: LiveFile | null, n: number): ReplayView {
         }
         v.events.push({ id, type: "tool_output", agent: pending?.agent ?? "", content: e.tool, timestamp, metadata: { tool_name: e.tool, tool_result: e.output } });
         pending = null;
+        break;
+      }
+      case "guardrail": {
+        // C4: the demo's own Relevance and Jailbreak guardrails
+        const lastUser = [...v.messages].reverse().find((m) => m.role === "user");
+        const g: GuardrailCheck = {
+          id: e.name, name: e.name, input: lastUser?.content ?? "", reasoning: e.reasoning ?? "", passed: !!e.passed, timestamp,
+        };
+        v.guardrails = [...v.guardrails.filter((x) => x.name !== e.name), g];
+        if (!e.passed) {
+          const title = e.name === "jailbreak_guardrail" ? "Jailbreak Guardrail" : "Relevance Guardrail";
+          v.messages.push({ id, role: "assistant", agent: title, content: "Sorry, I can only help with airline travel questions.", timestamp });
+        }
         break;
       }
       case "state": {

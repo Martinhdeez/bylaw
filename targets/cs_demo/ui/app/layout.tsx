@@ -1,13 +1,12 @@
 import type React from "react";
 import type { Metadata } from "next";
-import { Inter, Fira_Sans, Fira_Code } from "next/font/google";
 import "./globals.css";
 import "./bylaw.css";
 
-const inter = Inter({ subsets: ["latin"] });
-// Bylaw's own faces, used only inside Bylaw's elements (web/src/styles.css, UI7)
-const fira = Fira_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--bylaw-sans" });
-const firaCode = Fira_Code({ subsets: ["latin"], weight: ["400", "500"], variable: "--bylaw-code" });
+// Fonts load at run time, as web/ does, so `next build` needs no network (the gate is offline).
+// Inter is the demo's face; Fira Sans and Fira Code are Bylaw's (web/src/styles.css, UI7).
+const FONTS =
+  "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap";
 
 export const metadata: Metadata = {
   title: "Airlines Agent Orchestration · guarded by Bylaw",
@@ -23,8 +22,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fira.variable} ${firaCode.variable}`}>
-      <body className={inter.className}>{children}</body>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link rel="stylesheet" href={FONTS} />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

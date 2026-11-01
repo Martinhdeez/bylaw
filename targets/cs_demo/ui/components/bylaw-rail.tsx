@@ -2,10 +2,12 @@
 
 // Bylaw: the rail beside the demo. Picks a recorded run, switches the guard, and narrates every check.
 import { useEffect, useRef } from "react";
-import { Check, X, Pause, Play, RotateCcw, ShieldCheck, ShieldOff } from "lucide-react";
+import { Check, X, Pause, Play, RotateCcw, ShieldCheck, ShieldOff, Clapperboard } from "lucide-react";
 import type { BylawCheck } from "@/lib/types";
 import type { LiveFile, Scenario } from "@/lib/replay";
+import type { LiveStatus } from "@/lib/live";
 import { BylawMark } from "./bylaw-mark";
+import { scrollMode } from "@/lib/utils";
 
 interface BylawRailProps {
   scenarios: Scenario[];
@@ -13,6 +15,9 @@ interface BylawRailProps {
   onScenario: (id: string) => void;
   guard: boolean;
   onGuard: (on: boolean) => void;
+  mode: "replay" | "live";
+  live: { on: boolean; status: LiveStatus | null; busy: boolean };
+  onWatch: () => void;
   playing: boolean;
   onPlay: () => void;
   onRestart: () => void;
@@ -85,12 +90,13 @@ function CheckEntry({ c, latest }: { c: BylawCheck; latest: boolean }) {
 export function BylawRail(p: BylawRailProps) {
   const feed = useRef<HTMLDivElement>(null);
   const total = p.file?.events.length ?? 0;
-  const done = total > 0 && p.step >= total;
+  const isLive = p.mode === "live";
+  const done = !isLive && total > 0 && p.step >= total;
   const blocked = p.checks.filter((c) => !c.allowed).length;
   const scenario = p.scenarios.find((s) => s.id === p.scenarioId);
 
   useEffect(() => {
-    feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: "smooth" });
+    feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: scrollMode() });
   }, [p.checks.length, p.moneyOut, p.moneyStopped, p.step]);
 
   return (
@@ -99,8 +105,12 @@ export function BylawRail(p: BylawRailProps) {
         <BylawMark className="br-logo" />
         <div>
           <div className="br-title">Bylaw</div>
-          <div className="br-sub">checks every tool call this app makes</div>
+          <div className="br-sub">guards every tool call</div>
         </div>
+        <button type="button" className="br-watch" onClick={p.onWatch}>
+          <Clapperboard className="h-4 w-4" aria-hidden="true" />
+          Watch it
+        </button>
       </header>
 
       <button
@@ -140,6 +150,15 @@ export function BylawRail(p: BylawRailProps) {
         ))}
       </fieldset>
 
+      {isLive ? (
+        <div className="br-live" data-busy={p.live.busy}>
+          <span className="br-live-dot" aria-hidden="true" />
+          <span>
+            <b>Live conversation</b> · guard {p.guard ? "on" : "off"}
+            {p.live.busy ? " · the agents are working" : ""}
+          </span>
+        </div>
+      ) : (
       <div className="br-transport">
         <button type="button" onClick={p.onPlay} className="br-play" disabled={!p.file}>
           {p.playing ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
@@ -159,6 +178,14 @@ export function BylawRail(p: BylawRailProps) {
           <i style={{ transform: `scaleX(${total ? p.step / total : 0})` }} />
         </div>
       </div>
+      )}
+      <p className="br-livehint">
+        {p.live.on
+          ? isLive
+            ? "Pick a recorded conversation above to go back to the replays."
+            : "Or type in the chat: the agents answer live on Muse and Bylaw guards them."
+          : "Live chat is off on this server; the recorded conversations show the same agents."}
+      </p>
 
       <dl className="br-ledger">
         <div data-tone={p.moneyOut > 0 ? "out" : undefined}>
@@ -183,7 +210,9 @@ export function BylawRail(p: BylawRailProps) {
           <p className="br-empty br-error">{p.error}</p>
         ) : p.checks.length === 0 ? (
           <p className="br-empty">
-            {p.step === 0
+            {isLive
+              ? "Each tool call the agents make stops here first. Ask for something and watch."
+              : p.step === 0
               ? `Press Play. The customer ${scenario?.ask.charAt(0).toLowerCase()}${scenario?.ask.slice(1)} Each tool call the agents make stops here first.`
               : "No tool call yet. Bylaw speaks when an agent reaches for a tool."}
           </p>
@@ -206,11 +235,18 @@ export function BylawRail(p: BylawRailProps) {
         )}
       </div>
 
-      {p.file && (
+      {isLive && p.live.status ? (
         <footer className="br-foot">
-          Recorded {p.file.started.slice(0, 10)} · guard {p.file.guard ? "on" : "off"} · agents on{" "}
-          <span className="br-muse">{p.file.model}</span>
+          Live · agents on <span className="br-muse">{p.live.status.model}</span> ·{" "}
+          {p.live.status.tokens_used.toLocaleString("en-US")} of {p.live.status.token_cap.toLocaleString("en-US")} demo tokens used
         </footer>
+      ) : (
+        p.file && (
+          <footer className="br-foot">
+            Recorded {p.file.started.slice(0, 10)} · guard {p.file.guard ? "on" : "off"} · agents on{" "}
+            <span className="br-muse">{p.file.model}</span>
+          </footer>
+        )
       )}
     </aside>
   );

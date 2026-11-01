@@ -30,4 +30,7 @@ dist/
 
 # next
 .next/
+.next-dev/
+targets/cs_demo/ui/test-results/
+targets/cs_demo/ui/playwright-report/
 tsconfig.tsbuildinfo

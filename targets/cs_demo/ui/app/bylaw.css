@@ -10,7 +10,10 @@
   --by-green: #08774e;
   --by-amber: #965400;
   --by-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --bylaw-sans: "Fira Sans";
+  --bylaw-code: "Fira Code";
 }
+body { font-family: "Inter", system-ui, sans-serif; }
 
 /* ── the rail ── */
 .bylaw-rail {
@@ -184,10 +187,45 @@
 .typing-dots i:nth-child(3) { animation-delay: .3s; }
 @keyframes dot { 0%, 80%, 100% { opacity: .3; } 40% { opacity: 1; } }
 
+/* ── live and intro ── */
+.br-head > div { flex: 1; min-width: 0; }
+.br-watch {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px;
+  border: 1px solid rgba(189, 155, 255, 0.5); color: var(--violet-hi); font-weight: 600; font-size: 13px; transition: background-color .15s;
+}
+.br-watch:hover { background: var(--violet-soft); }
+.br-live { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+.br-live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--violet); flex: none; }
+.br-live[data-busy="true"] .br-live-dot { animation: br-pulse 1s ease-in-out infinite; }
+@keyframes br-pulse { 50% { opacity: .3; } }
+.br-livehint { color: var(--faint); font-size: 12px; margin-top: -4px; }
+
+.bylaw-caption {
+  position: fixed; left: 16px; right: 396px; bottom: 24px; z-index: 50; margin: 0 auto;
+  max-width: 760px; padding: 16px 20px; border-radius: 16px;
+  background: rgba(11, 11, 15, 0.94); color: #fbfbfd; border: 1px solid rgba(189, 155, 255, 0.5);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.85);
+  font-family: var(--bylaw-sans), system-ui, sans-serif;
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center;
+  animation: br-in .45s var(--by-ease) both;
+}
+.bc-step { grid-column: 1 / -1; color: #bd9bff; font-size: 12px; font-weight: 600; }
+.bc-text { font-size: 20px; font-weight: 600; line-height: 1.35; text-wrap: pretty; animation: bc-swap .4s var(--by-ease) both; }
+.bylaw-caption[data-act="1"] .bc-step { color: #ffb43a; }
+.bc-actions { display: flex; gap: 8px; }
+.bc-btn { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.2); color: #dddbe6; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.bc-btn:hover { background: rgba(255, 255, 255, 0.06); }
+.bc-primary { background: #7a3ff0; border-color: #7a3ff0; color: #fff; }
+.bc-primary:hover { background: #8a52f8; }
+.bylaw-caption :focus-visible { outline: 2px solid #bd9bff; outline-offset: 2px; }
+@keyframes bc-swap { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
+
 @media (max-width: 767px) {
+  .bylaw-caption { grid-template-columns: 1fr; bottom: 12px; right: 16px; }
+  .bc-text { font-size: 16px; }
   .bylaw-rail { width: 100%; height: auto; overflow: visible; order: 2; }
   .br-feed { overflow: visible; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .bylaw-rail *, .bylaw-card, .ctx-changed, .chat-in, .typing-dots i { animation: none !important; transition: none !important; }
+  .bylaw-rail *, .bylaw-card, .ctx-changed, .chat-in, .typing-dots i, .bylaw-caption, .bylaw-caption * { animation: none !important; transition: none !important; }
 }

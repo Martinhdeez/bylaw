@@ -4,8 +4,9 @@
 // Same frame, header and start screen as the upstream ChatKitPanel.
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Play } from "lucide-react";
 import type { Message } from "@/lib/types";
+import { scrollMode } from "@/lib/utils";
 
 const PROMPTS = [
   { label: "Change my seat", prompt: "Can you move me to seat 14C?" },
@@ -20,26 +21,33 @@ const PROMPTS = [
 interface ChatPanelProps {
   messages: Message[];
   typingAgent: string | null;
-  replaying: boolean;
+  /** composer and prompts unusable (a replay is running, a live turn is streaming, or live is off) */
+  disabled: boolean;
+  placeholder: string;
+  note: string | null;
   onSend: (text: string) => void;
-  liveNote: string | null;
+  /** when live chat is off, the start screen offers the recorded conversations instead of the prompts */
+  replays: { label: string; onClick: () => void }[] | null;
 }
 
-export function ChatPanel({ messages, typingAgent, replaying, onSend, liveNote }: ChatPanelProps) {
+export function ChatPanel({ messages, typingAgent, disabled, placeholder, note, onSend, replays }: ChatPanelProps) {
   const [draft, setDraft] = useState("");
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = scroller.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: messages.length > 1 ? "smooth" : "auto" });
-  }, [messages.length, typingAgent, liveNote]);
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: messages.length > 1 ? scrollMode() : "auto" });
+  }, [messages.length, typingAgent, note]);
 
   const send = (text: string) => {
-    const t = text.trim();
-    if (!t || replaying) return;
+    const t = text.trim().slice(0, 2000);
+    if (!t || disabled) return;
     onSend(t);
     setDraft("");
   };
+
+  const chip =
+    "text-left text-sm rounded-full border border-gray-200 px-4 py-2 text-zinc-700 hover:bg-gray-50 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600";
 
   return (
     <div className="flex flex-col h-full flex-1 min-w-0 bg-white shadow-sm border border-gray-200 border-t-0 rounded-xl max-md:h-[640px]">
@@ -48,44 +56,45 @@ export function ChatPanel({ messages, typingAgent, replaying, onSend, liveNote }
       </div>
 
       <div ref={scroller} className="flex-1 overflow-y-auto px-5 py-4" aria-live="polite">
-        {messages.length === 0 ? (
+        {messages.length === 0 && !note ? (
           <div className="h-full flex flex-col items-center justify-center text-center gap-5">
-            <p className="text-xl font-semibold text-zinc-900 max-w-[22ch]">
+            <p className="text-xl font-semibold text-zinc-900 max-w-[22ch] [text-wrap:balance]">
               Hi! I&apos;m your airline assistant. How can I help today?
             </p>
             <div className="flex flex-col gap-2 w-full max-w-sm">
-              {PROMPTS.map((p) => (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => send(p.prompt)}
-                  disabled={replaying}
-                  className="text-left text-sm rounded-full border border-gray-200 px-4 py-2 text-zinc-700 hover:bg-gray-50 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600"
-                >
-                  {p.label}
-                </button>
-              ))}
+              {replays
+                ? replays.map((r) => (
+                    <button key={r.label} type="button" onClick={r.onClick} className={`${chip} flex items-center gap-2`}>
+                      <Play className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
+                      {r.label}
+                    </button>
+                  ))
+                : PROMPTS.map((p) => (
+                    <button key={p.label} type="button" onClick={() => send(p.prompt)} disabled={disabled} className={chip}>
+                      {p.label}
+                    </button>
+                  ))}
             </div>
           </div>
         ) : (
           <ol className="flex flex-col gap-4">
             {messages.map((m) =>
               m.role === "user" ? (
-                <li key={m.id} className="self-end max-w-[85%] rounded-2xl bg-gray-100 px-4 py-2 text-sm text-zinc-900 chat-in">
+                <li key={m.id} className="self-end max-w-[85%] rounded-2xl bg-gray-100 px-4 py-2 text-sm text-zinc-900 break-words chat-in">
                   {m.content}
                 </li>
               ) : (
-                <li key={m.id} className="self-start max-w-[92%] chat-in">
+                <li key={m.id} className="self-start max-w-[92%] min-w-0 chat-in">
                   <div className="text-[11px] text-zinc-500 mb-1">{m.agent}</div>
-                  <div className="chat-md text-sm text-zinc-900 leading-relaxed">
+                  <div className="chat-md text-sm text-zinc-900 leading-relaxed break-words">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </div>
                 </li>
               )
             )}
-            {liveNote && (
-              <li className="self-stretch rounded-xl border border-dashed border-gray-300 px-4 py-3 text-xs text-zinc-600">
-                {liveNote}
+            {note && (
+              <li role="status" className="self-stretch rounded-xl border border-dashed border-gray-300 px-4 py-3 text-xs text-zinc-600">
+                {note}
               </li>
             )}
             {typingAgent && (
@@ -109,24 +118,26 @@ export function ChatPanel({ messages, typingAgent, replaying, onSend, liveNote }
           send(draft);
         }}
       >
-        <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white pl-4 pr-1.5 py-1.5 shadow-sm focus-within:border-blue-600">
+        <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white pl-4 pr-1.5 py-1.5 shadow-sm focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/20">
           <label htmlFor="composer" className="sr-only">
-            Message
+            Message the airline assistant
           </label>
           <input
             id="composer"
+            name="message"
             value={draft}
+            maxLength={2000}
             onChange={(e) => setDraft(e.target.value)}
-            disabled={replaying}
-            placeholder={replaying ? "Replaying a recorded conversation…" : "Message…"}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400 disabled:cursor-not-allowed"
+            disabled={disabled}
+            placeholder={placeholder}
+            className="flex-1 min-w-0 bg-transparent text-sm outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed"
             autoComplete="off"
           />
           <button
             type="submit"
-            disabled={replaying || !draft.trim()}
+            disabled={disabled || !draft.trim()}
             aria-label="Send message"
-            className="grid place-items-center h-8 w-8 rounded-full bg-blue-600 text-white disabled:bg-gray-200 disabled:text-gray-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className="grid place-items-center h-8 w-8 rounded-full bg-blue-600 text-white disabled:bg-gray-200 disabled:text-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
             <ArrowUp className="h-4 w-4" />
           </button>

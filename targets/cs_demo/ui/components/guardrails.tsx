@@ -30,7 +30,9 @@ export function Guardrails({ guardrails, inputGuardrails, bylaw }: GuardrailsPro
     guardrailNameMap[rawName] ?? rawName;
 
   const guardrailsToShow: GuardrailCheck[] = inputGuardrails.map((rawName) => {
-    const existing = guardrails.find((gr) => gr.name === rawName);
+    // Bylaw: the agents list (C5) names guardrails "Relevance Guardrail", the events (C4) "relevance_guardrail"
+    const key = (n: string) => n.toLowerCase().replace(/\s+/g, "_");
+    const existing = guardrails.find((gr) => key(gr.name) === key(rawName));
     if (existing) {
       return existing;
     }

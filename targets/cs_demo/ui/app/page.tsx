@@ -1,17 +1,19 @@
 "use client";
 
-// Bylaw: the demo's two panes, driven by a recorded event file instead of a ChatKit thread, plus the Bylaw rail.
-import { useCallback, useEffect, useMemo, useState } from "react";
+// Bylaw: the demo's two panes, driven by a recorded event file (replay) or by the live chat (VZ3 contract C2),
+// plus the Bylaw rail and the "Watch it" intro.
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AgentPanel } from "@/components/agent-panel";
 import { ChatPanel } from "@/components/chat-panel";
 import { BylawRail } from "@/components/bylaw-rail";
-import type { Agent, Message } from "@/lib/types";
+import { BylawCaption, caption, type Act } from "@/components/bylaw-caption";
+import type { Agent } from "@/lib/types";
 import { AGENTS } from "@/lib/agents";
-import { SCENARIOS, derive, fetchLiveFile, gapMs, type LiveFile } from "@/lib/replay";
+import { SCENARIOS, derive, fetchLiveFile, gapMs, type LiveEvent, type LiveFile } from "@/lib/replay";
+import { createSession, explain, fetchAgents, fetchStatus, sendTurn, type LiveStatus } from "@/lib/live";
 
-const LIVE_NOTE =
-  "Live typing is not wired in this prototype: Muse answers and Bylaw guards once the live endpoint exists. Pick a recorded conversation in the Bylaw rail to watch one.";
-
+const INTRO_KEY = "bylaw-intro-seen";
+const INTRO_SPEED = 1.5;
 let stepUsed = false; // ?step= applies to the first file only
 
 function param(name: string) {
@@ -19,8 +21,23 @@ function param(name: string) {
   return new URLSearchParams(window.location.search).get(name);
 }
 
+function storage(read: boolean) {
+  try {
+    if (read) return window.localStorage.getItem(INTRO_KEY);
+    window.localStorage.setItem(INTRO_KEY, "1");
+  } catch {}
+  return null;
+}
+
+/** Index of the second customer turn: the intro starts there, after the flight-status small talk. */
+function secondTurn(f: LiveFile) {
+  const users = f.events.flatMap((e, i) => (e.type === "user" ? [i] : []));
+  return users[1] ?? 0;
+}
+
 export default function Home() {
-  const [agents] = useState<Agent[]>(AGENTS);
+  const [agents, setAgents] = useState<Agent[]>(AGENTS);
+  const [mode, setMode] = useState<"replay" | "live">("replay");
   const [scenarioId, setScenarioId] = useState("d1");
   const [guard, setGuard] = useState(true);
   const [file, setFile] = useState<LiveFile | null>(null);
@@ -28,60 +45,187 @@ export default function Home() {
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [typed, setTyped] = useState<Message[]>([]);
+  const [act, setAct] = useState<Act | null>(null);
+  const positioned = useRef<Act | null>(null);
 
-  // ?scenario=d1&guard=off&speed=2&autoplay=1&step=12, for screenshots and recordings
+  // live chat (C2, C6)
+  const [status, setStatus] = useState<LiveStatus | null>(null);
+  const [session, setSession] = useState<{ id: string; guard: boolean } | null>(null);
+  const [live, setLive] = useState<LiveFile | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const liveOn = !!status?.enabled && status.tokens_used < status.token_cap;
+
   useEffect(() => {
     const s = param("scenario");
     if (s && SCENARIOS.some((x) => x.id === s)) setScenarioId(s);
     if (param("guard") === "off") setGuard(false);
     if (param("speed")) setSpeed(Number(param("speed")) || 1);
     if (param("autoplay") === "1") setPlaying(true);
+    const tour = param("tour");
+    if (tour === "1" || (tour !== "0" && !param("scenario") && !storage(true))) {
+      const id = setTimeout(() => startIntro(), 900);
+      return () => clearTimeout(id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    void fetchStatus().then(setStatus);
+    void fetchAgents().then((a) => a && setAgents(a));
   }, []);
 
   const scenario = SCENARIOS.find((s) => s.id === scenarioId)!;
   const fileName = guard ? scenario.files.on : scenario.files.off;
 
   useEffect(() => {
-    let live = true;
+    let alive = true;
     setFile(null);
     setError(null);
     fetchLiveFile(fileName)
       .then((f) => {
-        if (!live) return;
+        if (!alive) return;
         setFile(f);
         const s = Number(param("step"));
         if (s && !stepUsed) setStep(s === -1 ? f.events.length : Math.min(s, f.events.length));
         stepUsed = true;
       })
-      .catch((e) => live && setError(String(e.message ?? e)));
+      .catch((e) => alive && setError(String(e.message ?? e)));
     return () => {
-      live = false;
+      alive = false;
     };
   }, [fileName]);
 
+  // the intro: once the act's file is loaded, jump to the second customer turn and play
   useEffect(() => {
-    if (!playing || !file) return;
+    if ((act === 1 || act === 2) && file && positioned.current !== act && file.guard === (act === 2)) {
+      positioned.current = act;
+      setStep(secondTurn(file));
+      setPlaying(true);
+    }
+  }, [act, file]);
+
+  // replay clock
+  useEffect(() => {
+    if (mode !== "replay" || !playing || !file) return;
     if (step >= file.events.length) {
       setPlaying(false);
       return;
     }
     const id = setTimeout(() => setStep((n) => n + 1), step === 0 ? 400 : gapMs(file, step - 1, speed));
     return () => clearTimeout(id);
-  }, [playing, file, step, speed]);
+  }, [mode, playing, file, step, speed]);
 
-  const view = useMemo(() => derive(file, step), [file, step]);
+  const finished = !!file && step >= file.events.length;
+
+  // the intro moves on when an act's conversation ends
+  useEffect(() => {
+    if (!finished || positioned.current !== act) return;
+    if (act === 1) {
+      const id = setTimeout(() => {
+        setAct(2);
+        setGuard(true);
+      }, 3000);
+      return () => clearTimeout(id);
+    }
+    if (act === 2) {
+      const id = setTimeout(() => setAct("end"), 3500);
+      return () => clearTimeout(id);
+    }
+  }, [finished, act]);
+
+  const startIntro = useCallback(() => {
+    storage(false);
+    positioned.current = null;
+    setMode("replay");
+    setNote(null);
+    setScenarioId("d1");
+    setGuard(false);
+    setSpeed(INTRO_SPEED);
+    setPlaying(false);
+    setAct(1);
+  }, []);
+
+  const endIntro = useCallback(() => {
+    setAct(null);
+    positioned.current = null;
+    setSpeed(1);
+  }, []);
 
   const restart = useCallback((play: boolean) => {
-    setTyped([]);
+    setMode("replay");
+    setNote(null);
     setStep(0);
     setPlaying(play);
   }, []);
 
+  const send = async (text: string) => {
+    if (!liveOn || busy) return;
+    endIntro();
+    setMode("live");
+    setPlaying(false);
+    setNote(null);
+    setBusy(true);
+    try {
+      let s = session;
+      let base = live;
+      if (!s || s.guard !== guard) {
+        const created = await createSession(guard);
+        s = { id: created.session, guard: created.guard };
+        setSession(s);
+        base = { name: `live-${created.session}`, guard: created.guard, model: created.model, started: new Date().toISOString(), events: [], final_state: {} };
+      }
+      const t0 = base!.events.at(-1)?.t ?? 0;
+      const mine: LiveEvent = { t: t0, type: "user", text };
+      setLive({ ...base!, events: [...base!.events, mine] });
+      let echoed = false;
+      await sendTurn(s.id, text, {
+        onEvent: (e) => {
+          if (e.type === "user" && !echoed && e.text === text) {
+            echoed = true; // the server's copy of the message already shown
+            return;
+          }
+          setLive((f) => (f ? { ...f, events: [...f.events, e] } : f));
+        },
+        onDone: () => undefined,
+        onError: (message) => setNote(message),
+      });
+    } catch (err) {
+      const why = explain(err);
+      setNote(why.text);
+      if (why.liveOff) setStatus((st) => (st ? { ...st, enabled: false } : st));
+      if (why.newSession) setSession(null);
+    } finally {
+      setBusy(false);
+      void fetchStatus().then((st) => st && setStatus(st));
+    }
+  };
+
+  const shown = mode === "live" ? live : file;
+  const view = useMemo(
+    () => (mode === "live" ? derive(live, live?.events.length ?? 0) : derive(file, step)),
+    [mode, live, file, step]
+  );
+
   const next = file?.events[step];
-  const typingAgent = playing && next && next.type !== "user" ? view.currentAgent : null;
-  const replaying = playing || (step > 0 && !!file && step < file.events.length);
-  const messages = typed.length ? typed : view.messages;
+  const typingAgent =
+    mode === "live" ? (busy ? view.currentAgent : null) : playing && next && next.type !== "user" ? view.currentAgent : null;
+  const replaying = mode === "replay" && (playing || (step > 0 && !!file && step < file.events.length));
+  const inChat = mode === "live" && (live?.events.length ?? 0) > 0;
+
+  const placeholder = !liveOn
+    ? "Live chat is off here. Watch a recorded conversation."
+    : busy
+      ? "The agents are answering…"
+      : replaying
+        ? "Replaying a recorded conversation…"
+        : `Message… (live on ${status?.model ?? "Muse"}, guard ${guard ? "on" : "off"})`;
+
+  const pickScenario = (id: string) => {
+    endIntro();
+    setScenarioId(id);
+    restart(true);
+  };
 
   return (
     <main className="flex h-screen gap-2 bg-gray-100 p-2 max-md:h-auto max-md:flex-col">
@@ -91,56 +235,68 @@ export default function Home() {
             agents={agents}
             currentAgent={view.currentAgent}
             events={view.events}
-            guardrails={[]}
+            guardrails={view.guardrails}
             context={view.context}
-            bylaw={{ check: view.checks.at(-1) ?? null, guard, count: view.checks.length }}
+            bylaw={{ check: view.checks.at(-1) ?? null, guard: mode === "live" && session ? session.guard : guard, count: view.checks.length }}
             changedKeys={view.changedKeys}
           />
         </div>
         <div className="contents max-md:block max-md:order-1">
           <ChatPanel
-            messages={messages}
-            typingAgent={typed.length ? null : typingAgent}
-            replaying={replaying}
-            liveNote={typed.length ? LIVE_NOTE : null}
-            onSend={(text) => {
-              setStep(0);
-              setPlaying(false);
-              setTyped([{ id: "typed", role: "user", content: text, timestamp: new Date() }]);
-            }}
+            messages={mode === "live" && !inChat ? [] : view.messages}
+            typingAgent={typingAgent}
+            disabled={!liveOn || busy || replaying || act === 1 || act === 2}
+            placeholder={placeholder}
+            note={note}
+            onSend={(t) => void send(t)}
+            replays={liveOn ? null : SCENARIOS.map((s) => ({ label: `Watch: ${s.title}`, onClick: () => pickScenario(s.id) }))}
           />
         </div>
       </div>
       <BylawRail
         scenarios={SCENARIOS}
-        scenarioId={scenarioId}
-        onScenario={(id) => {
-          setScenarioId(id);
-          restart(true);
-        }}
+        scenarioId={mode === "live" ? "" : scenarioId}
+        onScenario={pickScenario}
         guard={guard}
         onGuard={(on) => {
+          endIntro();
           setGuard(on);
-          restart(playing || step > 0);
+          if (mode === "live") {
+            setSession(null);
+            setLive(null);
+            setNote(`Guard ${on ? "on" : "off"}. Your next message starts a new conversation.`);
+          } else restart(playing || step > 0);
         }}
+        mode={mode}
+        live={{ on: liveOn, status, busy }}
         playing={playing}
         onPlay={() => {
-          if (file && step >= file.events.length) restart(true);
-          else {
-            setTyped([]);
-            setPlaying((p) => !p);
-          }
+          endIntro();
+          if (mode === "live" || finished) restart(true);
+          else setPlaying((p) => !p);
         }}
-        onRestart={() => restart(true)}
+        onRestart={() => {
+          endIntro();
+          restart(true);
+        }}
+        onWatch={startIntro}
         speed={speed}
         onSpeed={setSpeed}
-        file={file}
-        step={step}
+        file={shown}
+        step={mode === "live" ? live?.events.length ?? 0 : step}
         checks={view.checks}
         moneyOut={view.moneyOut}
         moneyStopped={view.moneyStopped}
-        error={error}
+        error={mode === "replay" ? error : null}
       />
+      {act !== null && (
+        <BylawCaption
+          act={act}
+          text={caption(act, view, finished)}
+          onSkip={endIntro}
+          onAgain={startIntro}
+        />
+      )}
     </main>
   );
 }
