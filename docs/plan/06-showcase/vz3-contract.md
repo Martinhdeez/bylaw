@@ -1,8 +1,14 @@
-# VZ3 contract: live chat for the real demo UI (v1.0, frozen)
+# VZ3 contract: live chat for the real demo UI (v1.2, frozen)
 
 Status: v1.0, frozen 2026-11-01 after the user approved the VZ3 prototype (branch `view/vz3-real-ui`). A change is a new version, announced to builder, test author and designer. The builder owns `bylaw/`; the designer owns `targets/cs_demo/ui/` and `web/`.
 
 What the UI needs that does not exist yet: a live conversation on Muse with the guard on or off, streamed event by event in the CS-C3 event shape, and a few extra fields on `bylaw_check` so the rail's plain-language narration comes from the backend instead of a table copied into the UI.
+
+## Changelog
+
+- v1.2 (2026-11-01): `GET /api/live/status` is the exception to the 503 rule: it answers 200 with `enabled: false` when live is disabled. The token cap is checked when a session or a turn starts, so one running turn may finish past the cap.
+
+- v1.1 (2026-11-01): clarifications from the blind test author, no behaviour removed. Text-length refusal is `422`. A 21st session evicts the least recently used one (its next turn gets `404`). The live session reads the model endpoint the same way `bylaw live` does (`MODEL_BASE_URL`, `MODEL`). `booking` holds the CS-C1 v1.5 facts entry (`flights`, `on_time`); `confirmation_number` in the example below is not required. Token cap counts every Muse request of the session, guardrail agents included. With live disabled, every live route answers `503` before any `404`. After a guardrail tripwire, only further `guardrail` events may precede `done`.
 
 ## VZ3-C1 Replays (exists, unchanged)
 
