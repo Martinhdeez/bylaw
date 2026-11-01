@@ -25,7 +25,7 @@ DOMAINS = ["airline", "retail"]  # C9: the domains listed by /api/domains (tau2 
 Domain = Literal[tuple(MODULES)]  # every registered domain plug-in, csdemo included (RA1)
 TICK_S = 0.5  # minimum seconds between two search progress events
 
-app = FastAPI(title="Bylaw")
+app = FastAPI(title="bylaw")
 JOBS: dict[str, "Job"] = {}  # ponytail: in memory, lost on restart; a store is needed only for multi-process serving
 
 

@@ -99,7 +99,7 @@ function App() {
       <div className="routebar" key={path} aria-hidden="true" />
       <aside className="rail">
         <div className="rail-head">
-          <a className="lockup" href="#/" aria-label="Bylaw home">
+          <a className="lockup" href="#/" aria-label="bylaw home">
             <Logo />
             <b>bylaw</b>
           </a>

@@ -99,7 +99,7 @@ export function Audit({ domain, onDomain, onDone }: { domain: Domain; onDomain: 
       <div className="head">
         <div>
           <h1 className="title">Audit a <span className="v">policy</span></h1>
-          <p className="lede">Bylaw compiles the agent's policy into rules, searches for chains of allowed tool calls that reach a forbidden outcome, and proves each one in the τ²-bench simulator.</p>
+          <p className="lede">bylaw compiles the agent's policy into rules, searches for chains of allowed tool calls that reach a forbidden outcome, and proves each one in the τ²-bench simulator.</p>
         </div>
         <Status run={run} />
       </div>

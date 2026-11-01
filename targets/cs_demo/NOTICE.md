@@ -15,4 +15,4 @@
 - No OpenAI branding was present in the copied files; the model names (`gpt-5.2`, `gpt-4.1-mini`) stay as upstream.
 - Dependencies pinned in `pyproject.toml`: `openai-agents==0.24.0`, and `openai-chatkit==1.6.5` because `context.py` and `tools.py` import `chatkit.agents.AgentContext` and `chatkit.types.ProgressUpdateEvent` (a local library, no network).
 
-The demo's behaviour is unchanged on purpose: Bylaw audits it as found.
+The demo's behaviour is unchanged on purpose: bylaw audits it as found.

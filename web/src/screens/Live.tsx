@@ -103,7 +103,7 @@ export function Live({ film }: { film: boolean }) {
         <LiveHead />
         <div className="panel lv-empty">
           <b>No live runs recorded yet.</b>
-          <p>Record the script once without Bylaw and once with it, from the repository root:</p>
+          <p>Record the script once without bylaw and once with it, from the repository root:</p>
           <pre>{"uv run python -m bylaw live --domain csdemo --script scripts/live/csdemo-d1.json -o reports/live/csdemo-d1.json\nuv run python -m bylaw live --domain csdemo --script scripts/live/csdemo-d1.json --guard -o reports/live/csdemo-d1-guard.json"}</pre>
         </div>
       </div>
@@ -194,9 +194,9 @@ function Player({ before, after, film }: { before?: LiveRun; after?: LiveRun; fi
           {playing ? <Pause aria-hidden="true" /> : t >= parts.total ? <RotateCcw aria-hidden="true" /> : <Play aria-hidden="true" />}
         </button>
         <button className="lv-btn" onClick={() => setSpeed(speed === 1 ? 2 : 1)} aria-label={`Playback speed ${speed}×`}>{speed}×</button>
-        <div className="lv-seg" role="group" aria-label="Without or with Bylaw">
+        <div className="lv-seg" role="group" aria-label="Without or with bylaw">
           {parts.list.map((p) => (
-            <button key={p.side} aria-pressed={!inResult && part.side === p.side} onClick={() => jump(p.side)}>{p.side === "before" ? "Without Bylaw" : "With Bylaw"}</button>
+            <button key={p.side} aria-pressed={!inResult && part.side === p.side} onClick={() => jump(p.side)}>{p.side === "before" ? "Without bylaw" : "With bylaw"}</button>
           ))}
           <button aria-pressed={inResult} onClick={() => setT(parts.result)}>Result</button>
         </div>
@@ -223,12 +223,12 @@ function Headline({ part, at, inResult, before, after }: { part: { side: Side; r
   const tx = (v: number | null) => (v === null ? "not stated" : usd(v));
   const thesis = "The model proposes. The application decides.";
   if (inResult && before && after)
-    [lead, claim, sub] = b !== null && a !== null ? [`${usd(b)} without Bylaw.`, `${usd(a)} with it.`, thesis] : [`Without Bylaw: ${tx(b)}.`, `With it: ${tx(a)}.`, thesis];
-  else if (inResult && after) [lead, claim, sub] = [a !== null ? `${usd(a)} with Bylaw.` : "With Bylaw: not stated.", "The run without it is not recorded.", thesis];
-  else if (inResult) [lead, claim, sub] = [b !== null ? `${usd(b)} without Bylaw.` : "Without Bylaw: not stated.", "The run with it is not recorded.", thesis];
+    [lead, claim, sub] = b !== null && a !== null ? [`${usd(b)} without bylaw.`, `${usd(a)} with it.`, thesis] : [`Without bylaw: ${tx(b)}.`, `With it: ${tx(a)}.`, thesis];
+  else if (inResult && after) [lead, claim, sub] = [a !== null ? `${usd(a)} with bylaw.` : "With bylaw: not stated.", "The run without it is not recorded.", thesis];
+  else if (inResult) [lead, claim, sub] = [b !== null ? `${usd(b)} without bylaw.` : "Without bylaw: not stated.", "The run with it is not recorded.", thesis];
   // The claim follows the playhead: "stopped" only once the block has happened, so it never sits over "allows it".
-  else if (part.run.guard) [lead, claim, sub] = ["With Bylaw.", blockedBy(part.run, at) ? "The same action is stopped before it runs." : "Every action is checked before it runs.", narrate(part.run, at)];
-  else [lead, claim, sub] = ["Without Bylaw.", b ? `The agents pay ${usd(b)} in vouchers.` : "The agents run every action they propose.", narrate(part.run, at)];
+  else if (part.run.guard) [lead, claim, sub] = ["With bylaw.", blockedBy(part.run, at) ? "The same action is stopped before it runs." : "Every action is checked before it runs.", narrate(part.run, at)];
+  else [lead, claim, sub] = ["Without bylaw.", b ? `The agents pay ${usd(b)} in vouchers.` : "The agents run every action they propose.", narrate(part.run, at)];
   const r = inResult ? after ?? before : part.run;
   return (
     <header className="lv-head">
@@ -255,8 +255,8 @@ function narrate(run: LiveRun, at: number) {
     case "agent_message": return `${agentName(e.agent)} answers the customer.`;
     case "tool_call": return `${agentName(e.agent)} proposes an action: ${action(e.tool).toLowerCase()}.`;
     case "bylaw_check":
-      if (e.enforced) return e.allowed ? "Bylaw checks it against the rules and allows it." : "Bylaw blocks it before it runs.";
-      return e.allowed ? "Nothing enforces a rule here. The action runs." : "A Bylaw rule would block this, but nothing enforces it. The action runs.";
+      if (e.enforced) return e.allowed ? "bylaw checks it against the rules and allows it." : "bylaw blocks it before it runs.";
+      return e.allowed ? "Nothing enforces a rule here. The action runs." : "A bylaw rule would block this, but nothing enforces it. The action runs.";
   }
   return "";
 }
@@ -278,10 +278,10 @@ function Stage({ run, at, calls }: { run: LiveRun; at: number; calls: boolean })
   return (
     <div className="lv-grid">
       <Chat events={seen} />
-      <section className="panel lv-lane" aria-label="Bylaw: every action the agents propose, and the decision">
+      <section className="panel lv-lane" aria-label="bylaw: every action the agents propose, and the decision">
         <div className="lv-ph">
           <h2>Actions</h2>
-          <span className={run.guard ? "lv-mode on" : "lv-mode"} data-slot="status">{run.guard ? "Bylaw enforcing" : "Bylaw not enforcing"}</span>
+          <span className={run.guard ? "lv-mode on" : "lv-mode"} data-slot="status">{run.guard ? "bylaw enforcing" : "bylaw not enforcing"}</span>
           <span className="lv-counts">
             <span><b>{allowed}</b> {okWord}</span>
             {run.guard ? <span className={blocked ? "r" : ""}><b>{blocked}</b> blocked</span> : <span><b>{unenforced}</b> would be blocked</span>}
@@ -292,7 +292,7 @@ function Stage({ run, at, calls }: { run: LiveRun; at: number; calls: boolean })
             {trail.map((a, i) => <li key={i} aria-current={i === trail.length - 1 ? "step" : undefined}>{agentName(a)}</li>)}
           </ol>
         )}
-        <div className="lv-cols" aria-hidden="true"><span /><span>Proposed by the agent</span><span>Decided by Bylaw</span></div>
+        <div className="lv-cols" aria-hidden="true"><span /><span>Proposed by the agent</span><span>Decided by bylaw</span></div>
         <Rows rows={rows} at={at} calls={calls} run={run} />
       </section>
       <Ledger session={session} />
@@ -403,8 +403,8 @@ function Result({ before, after }: { before?: LiveRun; after?: LiveRun }) {
         const answered = stopped && run!.events.some((e) => e.type === "agent_message" && e.t > c!.t);
         const caseId = run?.final_state?.compensation_case_id;
         return (
-          <section key={side} className={`panel lv-side ${side}`} aria-label={side === "before" ? "Without Bylaw" : "With Bylaw"}>
-            <h2>{side === "before" ? "Without Bylaw" : "With Bylaw"}</h2>
+          <section key={side} className={`panel lv-side ${side}`} aria-label={side === "before" ? "Without bylaw" : "With bylaw"}>
+            <h2>{side === "before" ? "Without bylaw" : "With bylaw"}</h2>
             {!run ? <p className="lv-nil">This run is not recorded.</p> : (
               <>
                 <dl>
