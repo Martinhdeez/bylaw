@@ -177,16 +177,21 @@ def test_recorded_event_file_has_the_new_check_fields():
     assert not any(e["type"] == "guardrail" for e in out["events"])  # CS-C3 event files keep their types
 
 
-def test_both_demo_guardrails_report_and_a_tripwire_ends_the_turn(client, stub):
-    sid = new_session(client, stub, True, Stub([[say("hello")]],
+def test_a_tripwire_ends_the_turn_before_any_tool_runs(client, stub):
+    paris = "Paris to New York, missed my connection to Austin"
+    sid = new_session(client, stub, True, Stub([[call("get_trip_details", {"message": paris})], [say("done")]],
                                                rail={"reasoning": "poem", "is_relevant": False, "is_safe": True}))["session"]
     msgs = turn(client, sid, "Write me a poem about cats")
-    rails = [d for n, d in msgs if n == "message" and d["type"] == "guardrail"]
+    assert msgs[0] == ("message", {"t": msgs[0][1]["t"], "type": "user", "text": "Write me a poem about cats"})
+    rails = [d for _, d in msgs[1:-1]]
+    assert rails and all(d["type"] == "guardrail" for d in rails)  # only guardrail events precede done
     assert {r["name"] for r in rails} <= {"relevance_guardrail", "jailbreak_guardrail"}
     assert rails[-1] == {"t": rails[-1]["t"], "type": "guardrail", "name": "relevance_guardrail", "passed": False,
                          "reasoning": "poem"}
-    assert msgs[-2] == ("message", rails[-1])  # the tripwire is the turn's last event
-    assert msgs[-1][0] == "done" and msgs[-1][1]["current_agent"] == "Triage Agent"
+    name, done = msgs[-1]
+    assert name == "done" and done["current_agent"] == "Triage Agent"
+    assert done["context"]["confirmation_number"] is None and done["context"]["scenario"] is None  # the tool never ran
+    assert client.get(f"/api/live/session/{sid}/export").json()["events"] == []  # an aborted turn is not exported
 
 
 def test_passing_guardrails_light_up_both_cards(client, stub):
@@ -213,17 +218,23 @@ def test_a_model_failure_is_an_error_event_and_the_session_stays_usable(client, 
 def test_concurrent_turn_on_the_same_session_is_409(client, stub):
     gate = threading.Event()
     sid = new_session(client, stub, True, Stub([[say("one")], [say("two")]], gate=gate))["session"]
-    first = {}
-    t = threading.Thread(target=lambda: first.update(r=client.post(f"/api/live/session/{sid}/turn",
-                                                                   json={"text": "first"})))
-    t.start()
+    res = {}
+
+    def post(key, text):
+        res[key] = client.post(f"/api/live/session/{sid}/turn", json={"text": text})
+
+    first = threading.Thread(target=post, args=("first", "first"), daemon=True)
+    first.start()
     deadline = time.time() + 5
     while not api.SESSIONS[sid].busy and time.time() < deadline:
         time.sleep(0.01)
-    assert client.post(f"/api/live/session/{sid}/turn", json={"text": "second"}).status_code == 409
-    gate.set()
-    t.join(10)
-    assert sse(first["r"].text)[-1][0] == "done"
+    second = threading.Thread(target=post, args=("second", "second"), daemon=True)
+    second.start()
+    second.join(5)
+    gate.set()  # release the first turn whatever happened, so a failure does not hang the suite
+    assert not second.is_alive() and res["second"].status_code == 409
+    first.join(10)
+    assert not first.is_alive() and sse(res["first"].text)[-1][0] == "done"
     assert turn(client, sid, "third")[-1][0] == "done"
 
 
@@ -300,7 +311,7 @@ def test_agents_list_matches_the_demo(client):
     triage = agents[0]
     assert set(triage) == {"name", "description", "handoffs", "tools", "input_guardrails"}
     assert triage["tools"] == ["get_trip_details"]
-    assert triage["input_guardrails"] == ["relevance_guardrail", "jailbreak_guardrail"]
+    assert triage["input_guardrails"] == ["Relevance Guardrail", "Jailbreak Guardrail"]  # upstream's guardrail names
     assert triage["handoffs"] == ["Flight Information Agent", "Booking and Cancellation Agent",
                                   "Seat and Special Services Agent", "FAQ Agent", "Refunds and Compensation Agent"]
     assert agents[-1]["tools"] == ["issue_compensation", "faq_lookup_tool"]

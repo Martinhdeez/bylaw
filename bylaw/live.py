@@ -123,6 +123,8 @@ class Session:
         for ag in main + rails:
             ag.model, ag.model_settings = self.model, ModelSettings(reasoning=Reasoning(effort="low"))
         for ag in main:
+            for g in ag.input_guardrails:  # live: the demo guardrails finish before the agent may call a tool
+                g.run_in_parallel = not self.guardrail_events
             for t in ag.tools:
                 if isinstance(t, FunctionTool):
                     t.tool_input_guardrails = [g for g in t.tool_input_guardrails or []
@@ -175,26 +177,35 @@ class Session:
         # copies of the agent graph if visitors queue too long
         async with _LOCKS.setdefault(asyncio.get_running_loop(), asyncio.Lock()):
             self._apply()
+            self.log.clear()  # verdicts of an aborted turn that never reached a tool output
+            n = len(self.events)
             yield self._ev("user", text=text)
             items = self.items + [{"role": "user", "content": text}]
             run = Runner.run_streamed(self.agent, items, context=Ctx(state=self.state), max_turns=12)
             seen = 0
+
+            def tripped():
+                return any(r.output.tripwire_triggered for r in run.input_guardrail_results)
+
             try:
                 async for e in run.stream_events():
                     for ev in self._rails(run, seen):
                         yield ev
                     seen = len(run.input_guardrail_results)
-                    if e.type == "run_item_stream_event":
+                    if e.type == "run_item_stream_event" and not tripped():
                         for ev in self._item(e):
                             yield ev
             except InputGuardrailTripwireTriggered:
                 if not self.guardrail_events:
                     raise
-                for ev in self._rails(run, seen):
-                    yield ev
-                return
+            except Exception:
+                del self.events[n:]  # the export keeps only completed turns
+                raise
             for ev in self._rails(run, seen):
                 yield ev
+            if tripped():  # VZ3-C4: the turn ends here; the customer's message is not kept
+                del self.events[n:]
+                return
             self.agent, self.items = run.last_agent, run.to_input_list()
 
     def export(self, name: str) -> dict:

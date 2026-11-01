@@ -381,7 +381,7 @@ def csdemo_agents():
     return [{"name": a.name, "description": a.handoff_description or "",
              "handoffs": [getattr(h, "agent_name", None) or h.name for h in a.handoffs],
              "tools": [t.name for t in a.tools],
-             "input_guardrails": [g.guardrail_function.__name__ for g in a.input_guardrails]}
+             "input_guardrails": [g.get_name() for g in a.input_guardrails]}
             for a in _demo_agents()[0]]
 
 

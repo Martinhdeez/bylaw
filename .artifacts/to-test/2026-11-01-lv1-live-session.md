@@ -46,3 +46,17 @@ A feature, no defect. `bylaw/live.py:44` (`_run` at 00856fd) held the state, the
 - **`uv run pytest -m live`:** not run (over the ~10k token allowance).
 - **Order dependence (pre-existing):** `tests/test_live.py` before `tests/acceptance/test_06_guard_live.py::test_REQ_CS3_1_install_guards_every_function_tool_of_every_demo_agent` fails on 00856fd too (`order-dependence-base.txt`); the default gate order is not affected.
 - No change to `targets/cs_demo/ui/`, `web/` or `bylaw/proxy/agents_guard.py`.
+
+## Review round 1 (contract v1.2)
+
+Evidence under `.scratch/after/lv1-review1/`. Merged `origin/bylaw/build` at 3432ed1 (contract v1.2, which makes the status route and the cap-at-turn-start behaviour above contractual). DM5 (PR #51) was not merged yet, so its `customer_text` change to the guard was not exercised together with this one.
+
+| Finding | Fix | Before (d43e3f9) | After |
+|---|---|---|---|
+| 1. A tripwire did not end the turn: the parallel guardrails let a tool run and change state | live sessions set the demo input guardrails to `run_in_parallel=False` in `Session._apply`; no non-guardrail event is yielded once a guardrail has tripped | the tripwire test, now with a tool call, fails (`red-on-d43e3f9.txt`) | passes (`tests-green.txt`, 17 passed) |
+| 2. C5 `input_guardrails` used the function name | `g.get_name()` ("Relevance Guardrail") | agents-list test fails (`red-on-d43e3f9.txt`) | passes (`tests-green.txt`) |
+| 3. Verdicts without a tool output leaked into the next turn | `self.log.clear()` at turn start | not tested | one line, no test |
+| 4. An aborted turn (error or tripwire) stayed in the export | its events are dropped from `Session.events` | the export assertion of the tripwire test fails (`red-on-d43e3f9.txt`) | passes (`tests-green.txt`) |
+| 5. The 409 test hung when the check was removed | both requests in daemon threads with join timeouts; the model gate is released before asserting | — | with the 409 check removed the test fails in 6.5 s (`mutation-no-409.txt`) |
+
+The CLI (`live.run`) keeps parallel guardrails and its event file shape. Live sessions now wait for the two guardrail calls before the agent's first model call. No new Muse run was made.
