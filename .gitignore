@@ -27,3 +27,11 @@ dist/
 # heavy media (videos + audio stay local)
 .artifacts/code/*/assets/
 .artifacts/pages/*.mp4
+
+# next
+.next/
+.next-dev/
+targets/cs_demo/ui/test-results/
+targets/cs_demo/ui/playwright-report/
+tsconfig.tsbuildinfo
+targets/cs_demo/ui/next-env.d.ts
