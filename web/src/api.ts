@@ -91,7 +91,7 @@ export async function call<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...init });
   } catch {
-    throw new ApiError(0, "The Bylaw API is not reachable.");
+    throw new ApiError(0, "The bylaw API is not reachable.");
   }
   if (!r.ok) throw new ApiError(r.status, (await r.text().catch(() => "")) || r.statusText);
   return r.json();
