@@ -108,7 +108,7 @@ export function AmendmentView({ domain, hkey, effort }: { domain: Domain; hkey: 
             <section className={justNow ? "enforced fresh" : "enforced"} role="status" data-testid="ratified">
               <span className="stamp" data-testid="stamp">Ratified<small>{when(done.ratified_at)}</small></span>
               <span className="t"><i className="closing" aria-hidden="true" />Enforced by MCP proxy</span>
-              <div className="flow" aria-label="Your agent calls tools through the Bylaw proxy">
+              <div className="flow" aria-label="Your agent calls tools through the bylaw proxy">
                 <span><Bot aria-hidden="true" />your agent</span>
                 <ArrowRight size={14} aria-hidden="true" />
                 <span className="px"><Gavel aria-hidden="true" />bylaw proxy</span>

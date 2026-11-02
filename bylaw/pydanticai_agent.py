@@ -88,7 +88,7 @@ def run(script: dict, model, domain: str = "csdemo") -> dict:
 
 
 if __name__ == "__main__":
-    p = argparse.ArgumentParser(description="play a script through a PydanticAI agent guarded by the Bylaw MCP proxy")
+    p = argparse.ArgumentParser(description="play a script through a PydanticAI agent guarded by the bylaw MCP proxy")
     p.add_argument("--script", required=True)
     p.add_argument("--domain", default="csdemo")
     p.add_argument("-o", "--output", required=True)
