@@ -1,6 +1,6 @@
 # Checklist 06 — Showcase: scan and fix, visible
 
-Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 19 / 19.
+Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 20 / 20.
 
 - [x] **CS1** Spike on openai-cs-agents-demo — assistant — go with changes (`.scratch/cs-demo-spike.md`)
 - [x] **UI6** Copy and bench fixes — designer — PR #34
@@ -21,3 +21,4 @@ Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 19 / 19.
 - [x] **VZ3** Real OpenAI demo UI with Bylaw inside it — designer (prototype approved 2026-11-01), reviewer — PR #52
 - [x] **LV1** Live session backend (vz3-contract v1.0) — test-author and builder, then reviewer — PR #50
 - [x] **DM5** Close D3 on the customer's words, cover unrequested write actions — builder, then reviewer — PR #51
+- [x] **BR1** Product name written "bylaw" in user-visible strings — assistant — PR #53
