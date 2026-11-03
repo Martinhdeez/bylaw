@@ -1,5 +1,5 @@
 """Align Martín's voice to the script beats. Usage:
-  python3 video/align.py video/out/voice/transcript.json [--closed] [-o video/out/voice/timing.json]
+  python3 video/align.py video/out/voice/transcript.json [-o video/out/voice/timing.json]
 
 Input: the word list from `npx hyperframes transcribe` ([{"text", "start", "end"}, ...]).
 Output: per beat, where the voice starts and ends, and per subtitle chunk (the script's '/' pieces)
@@ -14,7 +14,6 @@ from pathlib import Path
 HERE = Path(__file__).parent
 args = [a for a in sys.argv[1:] if not a.startswith("-")]
 out = Path(sys.argv[sys.argv.index("-o") + 1]) if "-o" in sys.argv else HERE / "out/voice/timing.json"
-want = "B8-closed" if "--closed" in sys.argv else "B8-open"
 norm = lambda w: re.sub(r"[^a-z0-9]", "", w.lower())
 
 words = json.loads(Path(args[0]).read_text())
@@ -27,8 +26,6 @@ beats, tokens = [], []  # tokens: (word, beat index, chunk index)
 for part in re.split(r"^## ", script, flags=re.M)[1:]:
     head, body = part.split("\n", 1)
     bid, title, span, dur = [x.strip() for x in head.split("·")]
-    if bid == "B8":
-        body = body.split(f"**{want} (")[1].split("**B8-")[0]
     line = " ".join(l[1:].strip() for l in body.splitlines() if l.startswith(">"))
     chunks = [c.strip() for c in line.split("/") if c.strip()]
     for ci, c in enumerate(chunks):
@@ -64,5 +61,5 @@ for bi, beat in enumerate(beats):
 total = beats[-1]["start"] + beats[-1]["duration"]
 print(f"total {total:.2f} s" + ("  OVER 180 s: trim pauses or re-record a beat" if total > 180 else ""))
 out.parent.mkdir(parents=True, exist_ok=True)
-out.write_text(json.dumps({"version": want, "total": total, "beats": beats}, indent=1))
+out.write_text(json.dumps({"total": total, "beats": beats}, indent=1))
 print(f"wrote {out}")

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# VD4 build (v2, silent): generated beats, placeholder app footage, rough cut. Run from the repo root:
+# VD4 build (v3, silent): generated beats, app captures, rough and final silent cut. Run from the repo root:
 #   video/build.sh            # everything
 #   video/build.sh figures    # recount every figure and rewrite figures.json / scenes/assets/figures.js
 #   video/build.sh beats      # render the scenes and cut one MP4 per generated beat
-#   video/build.sh rough      # silent rough cut, out/rough-cut-v2.mp4 (needs beats and placeholders)
+#   video/build.sh rough      # silent rough cut, out/rough-cut.mp4 (needs beats and placeholders)
+#   video/build.sh silent     # final silent cut, out/final-silent.mp4 (captures from video/capture/, ASSEMBLY.md)
 #   video/build.sh final      # optional: same picture timed to a recorded voice, with the voice mixed (ASSEMBLY.md)
 # Needs node 22+, ffmpeg. Outputs land in video/out/ (gitignored).
 set -euo pipefail
@@ -25,7 +26,8 @@ beats() {
 B0-opening 0 7
 B2-what-happened 7 12
 B3-thesis 19 14
-B4-how 33 30
+B4-how-a 33 25
+B4-how-b 58 5
 B7-generality 63 16
 B8-measured 79 18
 B9-trace 97 20
@@ -44,6 +46,10 @@ placeholders() {
     ffmpeg -nostdin -v error -y -loop 1 -i "$VZ3/1920-$s-guard-on-end.png" -t 6.667 -vf "scale=1500:-2:flags=lanczos,fps=30,format=yuv420p" "${enc[@]}" "$OUT/placeholders/B6-$i-$s.mp4"
     i=$((i + 1))
   done
+  # B4 ratify slot (C8, to record): until the user records his own click, hold B4's store frame, which says the
+  # DM2 builder agent ratified A6 and when (how.html at 24 s)
+  ffmpeg -nostdin -v error -y -ss 57 -i "$OUT/scenes-all.mp4" -frames:v 1 "$OUT/placeholders/br.png"
+  ffmpeg -nostdin -v error -y -loop 1 -i "$OUT/placeholders/br.png" -t 6 -vf "fps=30,format=yuv420p" "${enc[@]}" "$OUT/placeholders/BR-user-ratifies-fallback.mp4"
 }
 
 stage() {
@@ -56,15 +62,24 @@ stage() {
 
 rough() {
   stage
-  python3 roughcut/make.py ${CLOSED:+--closed}
-  (cd roughcut && npx --yes hyperframes@0.8.226 render --quality looks --output ../$OUT/rough-cut-v2.mp4)
+  python3 roughcut/make.py
+  (cd roughcut && npx --yes hyperframes@0.8.226 render --quality looks --output ../$OUT/rough-cut.mp4)
 }
 
-# Optional, once a voice is recorded: VOICE (wav), TIMING (from align.py). CLOSED=1 uses the B8-closed text.
+# The final silent cut: every capture in place, delivery quality, no audio stream.
+silent() {
+  stage
+  python3 roughcut/make.py --final
+  (cd roughcut && npx --yes hyperframes@0.8.226 render --quality delivery --output "../$OUT/final-silent-picture.mp4")
+  ffmpeg -nostdin -v error -y -i "$OUT/final-silent-picture.mp4" -map 0:v -c copy -an -movflags +faststart "$OUT/final-silent.mp4"
+  echo "wrote $OUT/final-silent.mp4"
+}
+
+# Optional, once a voice is recorded: VOICE (wav), TIMING (from align.py).
 final() {
   local voice=${VOICE:-$OUT/voice/voice.wav} timing=${TIMING:-$OUT/voice/timing.json} dst=${FINAL:-$OUT/final.mp4}
   stage
-  python3 roughcut/make.py --final --timing "$timing" ${CLOSED:+--closed}
+  python3 roughcut/make.py --final --timing "$timing"
   (cd roughcut && npx --yes hyperframes@0.8.226 render --quality delivery --output "../$OUT/final-picture.mp4")
   # voice only, to -14 LUFS, -1.5 dBTP
   ffmpeg -nostdin -v error -y -i "$OUT/final-picture.mp4" -i "$voice" -filter_complex \
@@ -78,6 +93,7 @@ case "${1:-all}" in
   beats) beats ;;
   placeholders) placeholders ;;
   rough) rough ;;
+  silent) silent ;;
   final) final ;;
   all) beats; placeholders; rough ;;
 esac

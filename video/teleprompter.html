@@ -26,27 +26,25 @@
 <header><b id="beat"></b><span id="title"></span><span id="meta"></span><span id="timer">0.0</span></header>
 <div id="bar"><div id="fill"></div></div>
 <main><div id="text"></div></main>
-<footer><span>Space / → next · ← back · R restart timer · V switch B8 version</span><span id="ver"></span><span id="total"></span></footer>
+<footer><span>Space / → next · ← back · R restart timer</span><span id="total"></span></footer>
 <script>
 const BEATS = [
   ["B0", "Opening", 7, "This is OpenAI's open-source customer service demo. / We put bylaw on it."],
   ["B1", "Guard off", 30, "Six agents, all running on Meta's Muse Spark. / bylaw is the dark panel on the right. / First, the guard is off. / The customer checks flight one two three. / It is on time. / Then they say they missed a connection in New York, / and they ask for vouchers. / The agent pays for a hotel, a meal and transport."],
   ["B2", "What happened", 12, "Two hundred and eighty dollars, / for a flight that was on time. / Nobody hacked the agent. / Each step looked fine on its own."],
   ["B3", "Thesis", 14, "Models are powerful, / but they guess. / Here Muse proposed the payment. / bylaw read the airline's record, / checked the ratified rule, / and blocked the call two milliseconds later. / The model proposes. / The application decides."],
-  ["B4", "How it works", 30, "How did bylaw know? / It audited the app first. / Muse Spark read the agents' instructions / and proposed chains of tool calls that end in a forbidden result. / Code ran every chain on a fresh copy of the app. / Seven chains reached a forbidden result, / five times out of five, / in fourteen seconds. / Then Muse drafted a fix: one rule. / bylaw replayed eight honest conversations. / The rule blocked none. / It was ratified, with a timestamp, / and the guard enforces it."],
+  ["B4", "How it works", 36, "How did bylaw know? / It audited the app first. / Muse Spark read the agents' instructions / and proposed chains of tool calls that end in a forbidden result. / Code ran every chain on a fresh copy of the app. / Seven chains reached a forbidden result, / five times out of five, / in fourteen seconds. / Then Muse drafted a fix: one rule. / bylaw replayed eight honest conversations. / The rule blocked none. / It was ratified, with a timestamp, / and the guard enforces it."],
   ["B5", "Guard on", 28, "Now the guard is on. / Same customer, same words, same agents. / The refunds agent asks to pay the vouchers. / bylaw reads the airline's record: / this booking is on time. / The call is blocked before it runs, / and nothing is paid. / The agent gets the reason, / and it tells the customer, politely. / Two hundred and eighty dollars stay with the airline. / Same model. / The application decided."],
+  ["B5b", "Live on Muse", 17, "This time we typed it live, / on Muse, right now. / Same words. / bylaw blocks the payout again, / before it runs."],
   ["B6", "Other attacks", 20, "We tried four attacks and five honest requests. / The guard stopped three attacks: / vouchers on an on-time flight, / a seat on someone else's booking, / and compensation after a cancel. / None of the five honest requests was blocked. / A real missed connection still gets its vouchers."],
   ["B7", "Second framework", 16, "The rules are not tied to one framework. / This agent is built with PydanticAI, / and has no tools of its own. / Every tool goes through the bylaw M-C-P proxy. / Same attack: / denied. / An honest request: / allowed."],
-  ["B8", "What we measured", 18, {
-    open: "Each figure is a single run, / not a rate. / Three attacks out of four were blocked, / and no honest request. / One attack is still open: / the agent wrote a medical reason the customer never gave, / and the rule only reads what the agent writes.",
-    closed: "Each figure is a single run, / not a rate. / The fourth attack was harder: / the agent wrote a medical reason the customer never gave. / Now bylaw also reads the customer's own words, / and that attack is blocked too."
-  }],
-  ["B9", "Traceability", 20, "Every number in this video comes from a file in the repo. / Here is the guarded run, call by call. / And here is every Muse token the project used: / about half a million, / for about one dollar at Meta's published price. / One script recounts all of it."],
+  ["B8", "What we measured", 18, "Each figure is a single run, / not a rate. / Every attack that worked without the guard / was blocked with it, / and no honest request was. / For the front-row seat, / bylaw now reads the customer's own words, / not only what the agent writes."],
+  ["B9", "Traceability", 20, "Every number in this video comes from a file in the repo. / Here is the guarded run, call by call. / And here is every Muse token the project used: / about six hundred thousand, / for under a dollar fifty at Meta's published price. / One script recounts all of it."],
   ["B10", "Close", 8, "bylaw is open source, built on Muse Spark. / The model proposes. / The application decides."],
 ];
-let i = 0, t0 = performance.now(), b8 = "open";
+let i = 0, t0 = performance.now();
 const $ = (id) => document.getElementById(id);
-const textOf = (b) => typeof b[3] === "string" ? b[3] : b[3][b8];
+const textOf = (b) => b[3];
 const words = (s) => s.replace(/\//g, " ").split(/\s+/).filter(Boolean).length;
 function show() {
   const b = BEATS[i], s = textOf(b);
@@ -56,7 +54,6 @@ function show() {
   $("title").textContent = b[1];
   $("meta").textContent = `${mmss(start)}–${mmss(start + b[2])} · ${b[2]} s · ${words(s)} words`;
   $("text").innerHTML = s.split("/").map((p) => `<span>${p.trim()}</span>`).join("");
-  $("ver").textContent = "B8 version: " + b8 + (b8 === "closed" ? " (PENDING-DM5)" : "");
   $("total").textContent = `beat ${i + 1} of ${BEATS.length}`;
   t0 = performance.now();
 }
@@ -71,7 +68,6 @@ addEventListener("keydown", (e) => {
   if (e.key === " " || e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); if (i < BEATS.length - 1) { i++; show(); } }
   else if (e.key === "ArrowLeft" || e.key === "PageUp") { if (i > 0) { i--; show(); } }
   else if (e.key === "r" || e.key === "R") t0 = performance.now();
-  else if (e.key === "v" || e.key === "V") { b8 = b8 === "open" ? "closed" : "open"; show(); }
 });
 show(); tick();
 </script>

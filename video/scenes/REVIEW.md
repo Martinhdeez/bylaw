@@ -1,4 +1,11 @@
-# Review of the generated beats (VD4 v2)
+# Review of the generated beats (VD4 v2, v3)
+
+## v3 (2026-11-03)
+
+- **B8 closed.** The composition variables for the open D3 are gone; the scene now shows 3 of 3 attacks that worked unguarded blocked, and D3 blocked: customer said, agent wrote (violet, Muse acts), the check time and rule id in red. Critique on the rendered frame: the first layout ran the source line into the D3 note and wrapped the rule id; the source moved under the table (28 px) and the panel widened to 730 px so the rule id holds one line.
+- **B9.** Ten usage rows did not fit: the footnote ran under the recount chip, and it still said LV1 was unmerged. Rows are tighter (6 px padding) and the footnote keeps only the DM2 caveat.
+- **Live HUD (B5b).** The first version overflowed into the price line; the policy row (same as B5) is dropped for the live run and the title shortened to one line. The HUD says the cut skips 23.2 s of waiting.
+- **Ratify slot.** No new frame: the slot holds B4's store frame (agent-ratified, with its timestamp) until the user's own click is recorded.
 
 The storyboard is `video/storyboard.md` (its "Visual direction (v2)" holds the design plan); this note covers the eight scenes in `compositions/`.
 
