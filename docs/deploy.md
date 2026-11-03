@@ -43,6 +43,7 @@ Run every command below in the checkout directory on the server.
    | `BYLAW_BASIC_AUTH_USER` | the login name |
    | `BYLAW_BASIC_AUTH_HASH` | the hash from step 2, **in single quotes** (it contains `$`) |
    | `BYLAW_DOMAIN` | the domain, e.g. `bylaw.example.org`. Empty: plain HTTP on :80. |
+   | `BYLAW_READONLY` | `1` on a public deploy: `POST /api/holes/{key}/ratify` and `POST /api/audits` answer `403 {"detail": "read-only deployment"}`, and the Ratify button is disabled. Reads, replays and live sessions keep working. `GET /api/config` reports `{"readonly": true}`. Unset: writable. |
 
    Compose refuses to start if the user or the hash is missing.
 

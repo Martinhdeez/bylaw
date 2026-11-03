@@ -84,7 +84,7 @@ export const LIVE = ["csdemo-d1.json", "csdemo-d1-guard.json"];
 const liveFx = (f: string) => fx(`live/${f}`);
 
 // `live` lists the event files /api/live serves (default both fixtures); `liveEdit` changes one before it is served.
-export async function mockApi(page: Page, { partial = false, stored = true, fallback = false, fixture = "", edit = (_: any) => {}, bench = BENCH as object, live = LIVE, liveEdit = (_file: string, _run: any) => {} } = {}) {
+export async function mockApi(page: Page, { partial = false, stored = true, fallback = false, fixture = "", edit = (_: any) => {}, bench = BENCH as object, live = LIVE, liveEdit = (_file: string, _run: any) => {}, readonly = false } = {}) {
   let report = fixture ? fx(fixture) : stored ? storedReport() : adjudicate(fx("airline.report.json"));
   if (fallback) {
     report.run = { ...report.run, mode: "bfs-fallback", model: null };
@@ -113,6 +113,7 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
       liveEdit(file, run);
       return route.fulfill(json(run));
     }
+    if (p === "/api/config") return route.fulfill(json({ readonly }));
     if (p === "/api/domains") return route.fulfill(json(["airline", "retail"]));
     if (p === "/api/policy") return route.fulfill(json(domain === "csdemo" ? cs.policy : policy));
     if (p === "/api/reports/latest") return route.fulfill(json(report));

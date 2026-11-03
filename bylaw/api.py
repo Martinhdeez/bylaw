@@ -149,6 +149,21 @@ def _run(job: Job):
         job.emit("error", job.error)
 
 
+def _readonly() -> bool:
+    return os.environ.get("BYLAW_READONLY") == "1"
+
+
+def _writable():
+    """RO1: the public deploy sets BYLAW_READONLY=1, so nobody can change the ratified store or the reports."""
+    if _readonly():
+        raise HTTPException(403, "read-only deployment")
+
+
+@app.get("/api/config")
+def config():
+    return {"readonly": _readonly()}
+
+
 @app.get("/api/domains")
 def domains():
     return DOMAINS
@@ -169,6 +184,7 @@ def report_latest(domain: Domain):
 
 @app.post("/api/audits", status_code=202)
 def start_audit(req: AuditRequest):
+    _writable()
     job = Job(req)
     JOBS[job.id] = job
     threading.Thread(target=_run, args=(job,), daemon=True).start()
@@ -223,6 +239,7 @@ def hole(key: str, domain: Domain):
 
 @app.post("/api/holes/{key}/ratify")
 def ratify(key: str, domain: Domain):
+    _writable()
     h = _hole(domain, key)
     if not h.get("amendment"):
         raise HTTPException(409, f"hole {key} has no amendment")

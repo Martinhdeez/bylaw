@@ -103,6 +103,7 @@ export const api = {
   policy: (d: Domain) => `/api/policy?${q(d)}`,
   ratified: (d: Domain) => `/api/ratified?${q(d)}`,
   bench: (d: Domain) => `/api/bench?${q(d)}`,
+  config: () => "/api/config",
   live: () => "/api/live",
   liveFile: (file: string) => `/api/live/${encodeURIComponent(file)}`,
   startAudit: (body: { domain: Domain; use_llm: boolean; budget: number; amend: boolean }) =>
