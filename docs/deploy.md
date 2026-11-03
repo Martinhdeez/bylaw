@@ -143,3 +143,34 @@ Then, on the server:
 - [ ] `.env` filled per First install, step 3, with `chmod 600`.
 - [ ] `docker compose up -d --build`, then `docker compose ps` shows `bylaw` healthy.
 - [ ] From another machine: `/` answers 401 without credentials, `/api/domains` answers with them, `/api/live` returns a JSON list, and port 8000 is closed.
+
+## VPS with Coolify/Traefik (DP1)
+
+The public demo runs on the user's VPS from `docker-compose.vps.yml`, not from the Caddy setup above. The VPS's Coolify Traefik (`coolify-proxy`) terminates HTTPS with Let's Encrypt and routes by `Host()` on the external `coolify` network, so there is no Caddy and no basic auth. The stack is plain compose, not a Coolify resource, so Coolify does not stop it or clean its images.
+
+| Container | Image | Public at |
+|---|---|---|
+| `bylaw-ui` | `bylaw-ui:dp1` (`targets/cs_demo/ui/Dockerfile`, `next start` on 3000) | `https://bylaw.martinhdeez.com/` (front door; `/api/*` is proxied by Next to `bylaw-api`) |
+| `bylaw-api` | `bylaw-api:dp1` (`Dockerfile`, uvicorn on 8000) | `https://console-bylaw.martinhdeez.com/` (the bylaw console, `web/`) |
+
+Neither publishes a port; Traefik reaches them over `coolify`. DNS: the `*.martinhdeez.com` wildcard already points at the VPS. The compose file fixes `BYLAW_READONLY=1` (ratify answers 403) and `BYLAW_LIVE_TOKEN_CAP=300000`; `reports/` and `ratified/` are mounted read-only.
+
+Secret: `MODEL_API_KEY` lives only in `/etc/bylaw/bylaw.env` (owner root, `chmod 600`), one line `MODEL_API_KEY=<key>`. The user writes it; it is never in the image, the compose file or the repo. Without it the site still serves replays and live typing fails per turn.
+
+First install (on the VPS, as `mrtx`):
+
+```sh
+git clone -b bylaw/build https://github.com/Martinhdeez/bylaw.git ~/bylaw && cd ~/bylaw
+mkdir -p .cache
+sudo install -d -m 700 /etc/bylaw && sudo install -m 600 /dev/null /etc/bylaw/bylaw.env   # then the user edits it
+sudo docker compose -p bylaw -f docker-compose.vps.yml build
+sudo docker compose -p bylaw -f docker-compose.vps.yml up -d
+sudo docker compose -p bylaw -f docker-compose.vps.yml ps    # both healthy
+curl -s https://bylaw.martinhdeez.com/api/live/status        # enabled true, token_cap 300000, readonly true
+```
+
+Update: `git pull`, then the `build` and `up -d` lines again. Note the previous image ids first (`sudo docker images 'bylaw-*'`) if you want a rollback.
+
+Stop live typing only (replays keep working): `sudo BYLAW_LIVE=0 docker compose -p bylaw -f docker-compose.vps.yml up -d bylaw-api`. Stop everything: `sudo docker compose -p bylaw -f docker-compose.vps.yml down` (no `-v`; there are no named volumes, the state is in `~/bylaw/.cache`). Traefik drops the routes when the containers stop; nothing else on the VPS is touched.
+
+Rollback: `git checkout <previous commit>` in `~/bylaw`, then `build` and `up -d`; or retag a kept image (`sudo docker tag <old id> bylaw-api:dp1`) and `up -d`. To remove the deploy entirely: `down`, `sudo docker rmi bylaw-api:dp1 bylaw-ui:dp1`, `sudo rm -r /etc/bylaw`.
