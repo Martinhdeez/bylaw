@@ -1,0 +1,36 @@
+{
+  "session": "93eff1516e74",
+  "source": "GET /api/live/status before and after the session, http://127.0.0.1:8765",
+  "status_before": {
+    "enabled": true,
+    "model": "muse-spark-1.3",
+    "tokens_used": 0,
+    "token_cap": 60000,
+    "sessions": 0
+  },
+  "status_after": {
+    "enabled": true,
+    "model": "muse-spark-1.3",
+    "tokens_used": 20728,
+    "token_cap": 60000,
+    "sessions": 1
+  },
+  "marks": [
+    {
+      "what": "send",
+      "t": 2.861
+    },
+    {
+      "what": "turn done",
+      "t": 17.286
+    },
+    {
+      "what": "send",
+      "t": 22.708
+    },
+    {
+      "what": "turn done",
+      "t": 51.306
+    }
+  ]
+}
