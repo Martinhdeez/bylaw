@@ -25,7 +25,7 @@ DOMAINS = ["airline", "retail"]  # C9: the domains listed by /api/domains (tau2 
 Domain = Literal[tuple(MODULES)]  # every registered domain plug-in, csdemo included (RA1)
 TICK_S = 0.5  # minimum seconds between two search progress events
 
-app = FastAPI(title="Bylaw")
+app = FastAPI(title="bylaw")
 JOBS: dict[str, "Job"] = {}  # ponytail: in memory, lost on restart; a store is needed only for multi-process serving
 
 
@@ -259,6 +259,130 @@ def live_list():
     """CS-C3: the event files in <reports>/live/."""
     return [{"name": d.get("name"), "guard": d.get("guard"), "file": p.name}
             for p in sorted((reports_dir() / "live").glob("*.json")) if isinstance(d := _live_header(p), dict)]
+
+
+# ---------- VZ3-C2..C6 live sessions ----------
+
+LIVE_MAX_SESSIONS, LIVE_IDLE_S, LIVE_MAX_TURNS = 20, 30 * 60, 12
+SESSIONS: dict = {}  # id -> bylaw.live.Session; ponytail: in memory, one process
+
+
+def _live_on() -> bool:
+    return os.environ.get("BYLAW_LIVE", "1") != "0"
+
+
+def _token_cap() -> int:
+    return int(os.environ.get("BYLAW_LIVE_TOKEN_CAP") or 300000)
+
+
+def _live_gate(cap: bool = False):
+    """503 when live is off (before any 404); 429 once the process-wide token cap is reached."""
+    from bylaw import live
+
+    if not _live_on():
+        raise HTTPException(503, "live disabled")
+    if cap and live.USAGE["tokens"] >= _token_cap():
+        raise HTTPException(429, "token cap")
+
+
+def _live_sessions() -> dict:
+    """The sessions still alive: idle ones past LIVE_IDLE_S are dropped."""
+    now = time.monotonic()
+    for k, s in list(SESSIONS.items()):
+        if not s.busy and now - s.used > LIVE_IDLE_S:
+            del SESSIONS[k]
+    return SESSIONS
+
+
+def _live_session(sid: str):
+    s = _live_sessions().get(sid)
+    if s is None:
+        raise HTTPException(404, f"no live session {sid}")
+    return s
+
+
+def _safe(e: Exception) -> str:
+    """An error message for the client: no key, no stack trace."""
+    msg = f"{type(e).__name__}: {e}"[:500]
+    key = os.environ.get("MODEL_API_KEY")
+    return msg.replace(key, "[redacted]") if key else msg
+
+
+class SessionRequest(BaseModel):
+    guard: bool
+
+
+class TurnRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=2000)
+
+
+@app.get("/api/live/status")
+def live_status():
+    from bylaw import live
+
+    return {"enabled": _live_on(), "model": llm.model(), "tokens_used": live.USAGE["tokens"],
+            "token_cap": _token_cap(), "sessions": len(_live_sessions())}
+
+
+@app.post("/api/live/session", status_code=201)
+def live_session(req: SessionRequest):
+    from bylaw import live
+
+    _live_gate(cap=True)
+    s = live.Session(req.guard, live.Counted(live.muse_model()))
+    sessions = _live_sessions()
+    idle = sorted((x for x in sessions.items() if not x[1].busy), key=lambda x: x[1].used)
+    for k, _ in idle[:max(0, len(sessions) - LIVE_MAX_SESSIONS + 1)]:  # v1.1: evict the least recently used
+        del sessions[k]
+    sid = uuid.uuid4().hex[:12]
+    sessions[sid] = s
+    return {"session": sid, "guard": s.guard, "model": llm.model(), "current_agent": s.agent.name,
+            "context": s.state.model_dump(mode="json")}
+
+
+@app.post("/api/live/session/{sid}/turn")
+async def live_turn(sid: str, req: TurnRequest):
+    """SSE: one `data:` message per CS-C3 event, then `event: done` (or `event: error`). Async, so the busy check
+    and set run on the event loop without a race."""
+    _live_gate()
+    s = _live_session(sid)
+    if s.busy:
+        raise HTTPException(409, "a turn of this session is running")
+    if s.turns >= LIVE_MAX_TURNS:
+        raise HTTPException(429, "turn limit")
+    _live_gate(cap=True)
+    s.busy, s.turns = True, s.turns + 1
+
+    async def stream():
+        try:
+            async for ev in s.turn(req.text):
+                yield f"data: {json.dumps(ev, default=str)}\n\n"
+            done = {"current_agent": s.agent.name, "context": s.state.model_dump(mode="json")}
+            yield f"event: done\ndata: {json.dumps(done)}\n\n"
+        except Exception as e:  # the session stays usable: the turn's items were not kept
+            yield f"event: error\ndata: {json.dumps({'message': _safe(e)})}\n\n"
+        finally:
+            s.busy, s.used = False, time.monotonic()
+
+    return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/api/live/session/{sid}/export")
+def live_export(sid: str):
+    _live_gate()
+    return _live_session(sid).export(f"live-{sid}")
+
+
+@app.get("/api/csdemo/agents")
+def csdemo_agents():
+    """VZ3-C5: upstream's _build_agents_list() shape, from the vendored agents."""
+    from bylaw.live import _demo_agents
+
+    return [{"name": a.name, "description": a.handoff_description or "",
+             "handoffs": [getattr(h, "agent_name", None) or h.name for h in a.handoffs],
+             "tools": [t.name for t in a.tools],
+             "input_guardrails": [g.get_name() for g in a.input_guardrails]}
+            for a in _demo_agents()[0]]
 
 
 @app.get("/api/live/{file}")

@@ -33,3 +33,10 @@ video/out/
 video/roughcut/assets/
 video/*/.hyperframes/
 video/*/renders/
+# next
+.next/
+.next-dev/
+targets/cs_demo/ui/test-results/
+targets/cs_demo/ui/playwright-report/
+tsconfig.tsbuildinfo
+targets/cs_demo/ui/next-env.d.ts

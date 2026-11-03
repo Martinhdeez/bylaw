@@ -73,7 +73,7 @@ export function Failure({ error, onRetry }: { error: ApiError; onRetry: () => vo
     <div className="notice" role="alert">
       <AlertTriangle aria-hidden="true" />
       <div>
-        <b>{error.status ? `The API answered ${error.status}.` : "The Bylaw API is not reachable."}</b>
+        <b>{error.status ? `The API answered ${error.status}.` : "The bylaw API is not reachable."}</b>
         <p>{error.status ? error.message.slice(0, 300) : "Start it from the repository root with uv run uvicorn bylaw.api:app, then retry."}</p>
         <div className="acts">
           <button className="btn sm" onClick={onRetry}><RotateCcw aria-hidden="true" />Retry</button>

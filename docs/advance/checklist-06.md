@@ -1,6 +1,6 @@
 # Checklist 06 — Showcase: scan and fix, visible
 
-Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 16 / 19.
+Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 20 / 20.
 
 - [x] **CS1** Spike on openai-cs-agents-demo — assistant — go with changes (`.scratch/cs-demo-spike.md`)
 - [x] **UI6** Copy and bench fixes — designer — PR #34
@@ -18,6 +18,7 @@ Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 16 / 19.
 - [x] **UI7** Open findings and de-slop of the other screens — designer — UI7 part 1 (findings) — PR #42; restyle approved by user 2026-10-30 — PR #46
 - [x] **PA1** PydanticAI agent guarded by the MCP proxy — builder, then reviewer — PR #49
 - [x] **RD1** README for submission and secret scan — assistant — PR #48
-- [ ] **VZ3** Real OpenAI demo UI with Bylaw inside it — designer (prototype approved 2026-11-01), reviewer
-- [ ] **LV1** Live session backend (vz3-contract v1.0) — test-author and builder, then reviewer
-- [ ] **DM5** Close D3 on the customer's words, cover unrequested write actions — builder, then reviewer
+- [x] **VZ3** Real OpenAI demo UI with Bylaw inside it — designer (prototype approved 2026-11-01), reviewer — PR #52
+- [x] **LV1** Live session backend (vz3-contract v1.0) — test-author and builder, then reviewer — PR #50
+- [x] **DM5** Close D3 on the customer's words, cover unrequested write actions — builder, then reviewer — PR #51
+- [x] **BR1** Product name written "bylaw" in user-visible strings — assistant — PR #53

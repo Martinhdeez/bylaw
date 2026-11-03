@@ -1,6 +1,6 @@
 # Deploy runbook
 
-Bylaw runs on one Linux server with Docker Compose. Two containers:
+bylaw runs on one Linux server with Docker Compose. Two containers:
 
 - `bylaw`: the API and the web UI on port 8000, reachable only on the compose network. The API has no auth of its own.
 - `caddy` (`caddy:2.10.2-alpine`): the only public entry, on 80 and 443. It asks for HTTP basic auth on every path, then proxies to `bylaw:8000`. With `BYLAW_DOMAIN` set it gets a Let's Encrypt certificate and redirects HTTP to HTTPS; without it, it serves plain HTTP on :80.
@@ -17,7 +17,7 @@ Run every command below in the checkout directory on the server.
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/Martinhdeez/meta-hackathon.git bylaw
+   git clone https://github.com/Martinhdeez/bylaw.git bylaw
    cd bylaw
    mkdir -p .cache   # so Docker does not create it owned by root
    ```

@@ -12,6 +12,7 @@ setup:
 	fi
 	uv sync
 	@if [ -f web/package.json ]; then cd web && npm ci; fi
+	cd targets/cs_demo/ui && npm ci
 
 tau2:
 	@test -f $(TAU2_DIR)/pyproject.toml || { echo "$(TAU2_DIR) is missing. Run 'make setup' first."; exit 1; }
@@ -19,3 +20,4 @@ tau2:
 check: tau2
 	uv run pytest -q
 	@if [ -f web/package.json ]; then cd web && npm run build; fi
+	cd targets/cs_demo/ui && npm ci --prefer-offline --no-audit --no-fund && NEXT_TELEMETRY_DISABLED=1 npm run build
