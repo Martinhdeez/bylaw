@@ -22,7 +22,8 @@ from bylaw.proxy.core import default_ruleset
 from bylaw.ratified import ROOT
 from targets.cs_demo.airline.context import AirlineAgentChatContext, create_initial_context
 
-USAGE = {"tokens": 0}  # VZ3-C6: input plus output tokens reported by the live sessions' models, process-wide
+# VZ3-C6: input plus output tokens reported by the live sessions' models, process-wide; TR1: also split in and out
+USAGE = {"tokens": 0, "input_tokens": 0, "output_tokens": 0}
 _LOCKS: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()  # event loop -> its turn lock
 
 
@@ -54,7 +55,10 @@ class Counted(Model):
 
     def _add(self, usage):
         if usage is not None:
-            USAGE["tokens"] += (usage.input_tokens or 0) + (usage.output_tokens or 0)
+            i, o = usage.input_tokens or 0, usage.output_tokens or 0
+            USAGE["input_tokens"] += i
+            USAGE["output_tokens"] += o
+            USAGE["tokens"] += i + o
 
     async def get_response(self, *a, **kw):
         r = await self.inner.get_response(*a, **kw)

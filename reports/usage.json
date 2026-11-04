@@ -1,0 +1,103 @@
+{
+ "entries": [
+  {
+   "id": "csdemo-audit",
+   "stage": "audit",
+   "label": "csdemo audit, Muse-guided search",
+   "source": "reports/csdemo.json",
+   "calls": 4,
+   "input_tokens": null,
+   "output_tokens": null,
+   "tokens": 31630,
+   "seconds": 14.33
+  },
+  {
+   "id": "airline-audit",
+   "stage": "audit",
+   "label": "airline audit, Muse-guided search",
+   "source": "reports/airline.json",
+   "calls": 7,
+   "input_tokens": null,
+   "output_tokens": null,
+   "tokens": 120756,
+   "seconds": 425.05
+  },
+  {
+   "id": "dm3-runs",
+   "stage": "live",
+   "label": "DM3, 18 runs, csdemo live sessions",
+   "source": "reports/live/dm3-summary.md",
+   "calls": 175,
+   "input_tokens": 198042,
+   "output_tokens": 54093,
+   "tokens": 252135,
+   "seconds": null
+  },
+  {
+   "id": "dm4-runs",
+   "stage": "live",
+   "label": "DM4, 9 guarded runs, csdemo live sessions",
+   "source": "reports/live/dm3-summary.md",
+   "calls": 88,
+   "input_tokens": 100422,
+   "output_tokens": 30563,
+   "tokens": 130985,
+   "seconds": null
+  },
+  {
+   "id": "dm5-runs",
+   "stage": "live",
+   "label": "DM5, 6 guarded runs, csdemo live sessions",
+   "source": "reports/live/dm3-summary.md",
+   "calls": 51,
+   "input_tokens": 54418,
+   "output_tokens": 14950,
+   "tokens": 69368,
+   "seconds": null
+  },
+  {
+   "id": "dm4-review-amend",
+   "stage": "amend",
+   "label": "DM4 review, amend calls (A8, A9)",
+   "source": "reports/live/dm3-summary.md",
+   "calls": 2,
+   "input_tokens": 9010,
+   "output_tokens": 10271,
+   "tokens": 19281,
+   "seconds": null
+  },
+  {
+   "id": "dm5-amend",
+   "stage": "amend",
+   "label": "DM5, amend calls (A10, A11, A12)",
+   "source": "reports/live/dm3-summary.md",
+   "calls": 4,
+   "input_tokens": 23044,
+   "output_tokens": 43135,
+   "tokens": 66179,
+   "seconds": null
+  },
+  {
+   "id": "pa1-d1-vouchers",
+   "stage": "live",
+   "label": "pa1-d1-vouchers, pydantic-ai run",
+   "source": "reports/live/pa1-d1-vouchers.json",
+   "calls": 5,
+   "input_tokens": 7346,
+   "output_tokens": 1624,
+   "tokens": 8970,
+   "seconds": null
+  },
+  {
+   "id": "pa1-l-disrupted-comp",
+   "stage": "live",
+   "label": "pa1-l-disrupted-comp, pydantic-ai run",
+   "source": "reports/live/pa1-l-disrupted-comp.json",
+   "calls": 3,
+   "input_tokens": 4165,
+   "output_tokens": 563,
+   "tokens": 4728,
+   "seconds": null
+  }
+ ]
+}
