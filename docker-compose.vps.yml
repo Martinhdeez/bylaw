@@ -1,0 +1,77 @@
+# DP1: bylaw on the user's VPS behind its Coolify Traefik (external network `coolify`, Let's Encrypt, Host() rules).
+# Public, no login: ratify is off (BYLAW_READONLY=1), live typing has the VZ3-C6 limits.
+#   demo UI  https://bylaw.martinhdeez.com/          -> bylaw-ui:3000 (Next.js; proxies /api/* to bylaw-api)
+#   console  https://console-bylaw.martinhdeez.com/  -> bylaw-api:8000 (FastAPI serving web/dist and /api)
+# MODEL_API_KEY lives only in /etc/bylaw/bylaw.env (root, chmod 600) on the server. Runbook: docs/deploy.md.
+services:
+  bylaw-api:
+    build: .
+    image: bylaw-api:dp1
+    pull_policy: never
+    container_name: bylaw-api
+    env_file:
+      - path: /etc/bylaw/bylaw.env
+        required: false
+    environment:
+      BYLAW_READONLY: "1"
+      BYLAW_LIVE: ${BYLAW_LIVE:-1}
+      BYLAW_LIVE_TOKEN_CAP: "300000"
+    volumes:
+      - ./reports:/app/reports:ro
+      - ./ratified:/app/ratified:ro
+      - ./.cache:/app/.cache
+    networks: [coolify]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/domains', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      traefik.http.middlewares.bylaw-https.redirectscheme.scheme: https
+      traefik.http.routers.bylaw-console-http.entrypoints: http
+      traefik.http.routers.bylaw-console-http.rule: Host(`console-bylaw.martinhdeez.com`)
+      traefik.http.routers.bylaw-console-http.middlewares: bylaw-https
+      traefik.http.routers.bylaw-console.entrypoints: https
+      traefik.http.routers.bylaw-console.rule: Host(`console-bylaw.martinhdeez.com`)
+      traefik.http.routers.bylaw-console.tls: "true"
+      traefik.http.routers.bylaw-console.tls.certresolver: letsencrypt
+      traefik.http.services.bylaw-console.loadbalancer.server.port: "8000"
+
+  bylaw-ui:
+    build:
+      context: targets/cs_demo/ui
+      args:
+        BYLAW_API_URL: http://bylaw-api:8000
+    image: bylaw-ui:dp1
+    pull_policy: never
+    container_name: bylaw-ui
+    depends_on:
+      bylaw-api:
+        condition: service_healthy
+    networks: [coolify]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      traefik.http.routers.bylaw-ui-http.entrypoints: http
+      traefik.http.routers.bylaw-ui-http.rule: Host(`bylaw.martinhdeez.com`)
+      traefik.http.routers.bylaw-ui-http.middlewares: bylaw-https
+      traefik.http.routers.bylaw-ui.entrypoints: https
+      traefik.http.routers.bylaw-ui.rule: Host(`bylaw.martinhdeez.com`)
+      traefik.http.routers.bylaw-ui.tls: "true"
+      traefik.http.routers.bylaw-ui.tls.certresolver: letsencrypt
+      traefik.http.services.bylaw-ui.loadbalancer.server.port: "3000"
+
+networks:
+  coolify:
+    external: true
