@@ -341,6 +341,35 @@ def live_status():
             "token_cap": _token_cap(), "sessions": len(_live_sessions())}
 
 
+# TR1: official price, Meta Model API "Pricing and rate limits", Standard mode, USD per 1M tokens (read 2026-11-01)
+PRICE = {"model": "muse-spark-1.3", "input_per_1m": 1.25, "output_per_1m": 4.25,
+         "source": "https://dev.meta.ai/docs/pricing-rate-limits", "read": "2026-11-01"}
+
+
+def _cost(i: int, o: int) -> float:
+    return i * PRICE["input_per_1m"] / 1e6 + o * PRICE["output_per_1m"] / 1e6
+
+
+@app.get("/api/usage")
+def usage():
+    """TR1: the committed usage ledger with its cost, and this process's live counters."""
+    from bylaw import live
+
+    entries = (_load(reports_dir() / "usage.json") or {}).get("entries", [])
+    for e in entries:
+        if e.get("input_tokens") is not None and e.get("output_tokens") is not None:
+            low = high = _cost(e["input_tokens"], e["output_tokens"])
+        else:
+            low, high = _cost(e["tokens"], 0), _cost(0, e["tokens"])
+        e["cost_usd"] = {"low": round(low, 4), "high": round(high, 4)}
+    total = {"calls": sum(e.get("calls") or 0 for e in entries), "tokens": sum(e["tokens"] for e in entries),
+             "cost_usd": {k: round(sum(e["cost_usd"][k] for e in entries), 4) for k in ("low", "high")}}
+    status, u = live_status(), live.USAGE
+    return {"price": PRICE, "recorded": {"entries": entries, "total": total},
+            "live": {**status, "input_tokens": u["input_tokens"], "output_tokens": u["output_tokens"],
+                     "cost_usd": round(_cost(u["input_tokens"], u["output_tokens"]), 4)}}
+
+
 @app.post("/api/live/session", status_code=201)
 def live_session(req: SessionRequest):
     from bylaw import live

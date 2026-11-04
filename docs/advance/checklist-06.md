@@ -22,3 +22,4 @@ Plan: `docs/plan/06-showcase/00-plan.md`. Progress: 20 / 20.
 - [x] **LV1** Live session backend (vz3-contract v1.0) — test-author and builder, then reviewer — PR #50
 - [x] **DM5** Close D3 on the customer's words, cover unrequested write actions — builder, then reviewer — PR #51
 - [x] **BR1** Product name written "bylaw" in user-visible strings — assistant — PR #53
+- [x] **TR1** Usage and cost traceability route (tr1-contract v1.0) — test-author and builder, then reviewer — PR #54

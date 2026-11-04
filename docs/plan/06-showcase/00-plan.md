@@ -26,6 +26,7 @@ Target app: OpenAI's MIT-licensed `openai-cs-agents-demo` (airline customer serv
 | LV1 | Live session backend for VZ3: `vz3-contract.md` v1.0 C2–C6 (session, SSE turn, extra `bylaw_check` fields, demo guardrail events, agents list, limits) | feature | full | test-author and builder in parallel, then reviewer | VZ3 prototype approved |
 | DM5 | Close D3 on the customer's own words and cover unrequested write actions (the PA441 status question that rebooked NY950); ratify, backtest 0/8, re-run the affected guarded scripts | evidence | full | builder, then reviewer | DM4 |
 | BR1 | Write the product name as "bylaw" in every user-visible string; repo renamed to Martinhdeez/bylaw | copy | light | assistant | VZ3 |
+| TR1 | Usage and cost traceability: `GET /api/usage` per `tr1-contract.md` v1.0 (price, committed ledger `reports/usage.json` from `scripts/usage_ledger.py`, live input/output counters) | feature | full | test-author and builder in parallel, then reviewer | LV1 |
 | VZ2 | Scan and Fix views on the csdemo data (agent app pane, Bylaw lane, scenes) | view | full | designer, then reviewer | VZ1 approved, CS2, CS3 contracts |
 
 CS1 verdict (2026-10-28): go with changes (`.scratch/cs-demo-spike.md`). User decisions: scope cut to about 4 days (no ChatKit, no demo Next.js UI; Bylaw web shows the whole scene from recorded event files), vendor the backend only.
