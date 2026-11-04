@@ -1,0 +1,106 @@
+{
+  "price": {
+    "model": "muse-spark-1.3",
+    "input_per_1m": 1.25,
+    "output_per_1m": 4.25,
+    "source": "https://dev.meta.ai/docs/pricing-rate-limits",
+    "read": "2026-11-01"
+  },
+  "recorded": {
+    "entries": [
+      {
+        "id": "csdemo-compile",
+        "stage": "compile",
+        "label": "customer service policy compiled to a RuleSet",
+        "source": "reports/csdemo.json",
+        "calls": 3,
+        "input_tokens": 9412,
+        "output_tokens": 3108,
+        "tokens": 12520,
+        "seconds": 21.6,
+        "cost_usd": {
+          "low": 0.025,
+          "high": 0.025
+        }
+      },
+      {
+        "id": "csdemo-audit",
+        "stage": "audit",
+        "label": "csdemo audit, Muse-guided search",
+        "source": "reports/csdemo.json",
+        "calls": 4,
+        "input_tokens": null,
+        "output_tokens": null,
+        "tokens": 31630,
+        "seconds": 14.33,
+        "cost_usd": {
+          "low": 0.0395,
+          "high": 0.1344
+        }
+      },
+      {
+        "id": "airline-audit",
+        "stage": "audit",
+        "label": "airline audit, Muse-guided search",
+        "source": "reports/airline.json",
+        "calls": 7,
+        "input_tokens": null,
+        "output_tokens": null,
+        "tokens": 120756,
+        "seconds": 425.05,
+        "cost_usd": {
+          "low": 0.1509,
+          "high": 0.5132
+        }
+      },
+      {
+        "id": "airline-bench",
+        "stage": "bench",
+        "label": "airline bench, Muse run against blind BFS",
+        "source": "reports/airline.bench.json",
+        "calls": 14,
+        "input_tokens": null,
+        "output_tokens": null,
+        "tokens": 400360,
+        "seconds": 236.0,
+        "cost_usd": {
+          "low": 0.5004,
+          "high": 1.7015
+        }
+      },
+      {
+        "id": "dm3-live",
+        "stage": "live",
+        "label": "DM3 recorded live runs, 16 sessions with and without the guard",
+        "source": "reports/live/dm3-summary.md",
+        "calls": null,
+        "input_tokens": 52118,
+        "output_tokens": 12246,
+        "tokens": 64364,
+        "seconds": null,
+        "cost_usd": {
+          "low": 0.1172,
+          "high": 0.1172
+        }
+      }
+    ],
+    "total": {
+      "calls": 28,
+      "tokens": 629630,
+      "cost_usd": {
+        "low": 0.833,
+        "high": 2.4913
+      }
+    }
+  },
+  "live": {
+    "enabled": true,
+    "model": "muse-spark-1.3",
+    "sessions": 3,
+    "input_tokens": 38412,
+    "output_tokens": 9876,
+    "tokens_used": 48288,
+    "token_cap": 300000,
+    "cost_usd": 0.09
+  }
+}

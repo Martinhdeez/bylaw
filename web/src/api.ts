@@ -80,6 +80,18 @@ export type LiveEvent = { t: number } & (
 );
 export type LiveRun = { name: string; guard: boolean; model: string | null; started: string; events: LiveEvent[]; final_state: Record<string, unknown> | null };
 
+// TR1 v1.0 usage and cost traceability. Null fields: the source does not record them.
+export type UsageEntry = {
+  id: string; stage: "compile" | "audit" | "amend" | "bench" | "live"; label: string; source: string;
+  calls: number | null; input_tokens: number | null; output_tokens: number | null; tokens: number; seconds: number | null;
+  cost_usd: { low: number; high: number };
+};
+export type Usage = {
+  price: { model: string; input_per_1m: number; output_per_1m: number; source: string; read: string };
+  recorded: { entries: UsageEntry[]; total: { calls: number; tokens: number; cost_usd: { low: number; high: number } } };
+  live: { enabled: boolean; model: string; sessions: number; input_tokens: number; output_tokens: number; tokens_used: number; token_cap: number; cost_usd: number };
+};
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -105,6 +117,7 @@ export const api = {
   bench: (d: Domain) => `/api/bench?${q(d)}`,
   config: () => "/api/config",
   live: () => "/api/live",
+  usage: () => "/api/usage",
   liveFile: (file: string) => `/api/live/${encodeURIComponent(file)}`,
   startAudit: (body: { domain: Domain; use_llm: boolean; budget: number; amend: boolean }) =>
     call<{ id: string }>("/api/audits", { method: "POST", body: JSON.stringify(body) }),
