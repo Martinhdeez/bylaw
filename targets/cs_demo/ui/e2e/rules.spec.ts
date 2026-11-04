@@ -42,6 +42,11 @@ test("a block links to its rule; Enter on See rule opens the rules with that ame
   const a6 = rail(page).locator('[data-key="a-A6"]');
   await expect(a6).toHaveAttribute("data-focus", "true");
   await expect(a6).toBeInViewport();
+  await expect(a6).toBeFocused();
+  // back on Checks, the mark is cleared: opening Rules again shows no rule marked
+  await rail(page).getByRole("button", { name: /^Checks/ }).click();
+  await rulesTab(page).click();
+  await expect(rail(page).locator('[data-focus="true"]')).toHaveCount(0);
 });
 
 test("a block by a base rule opens the base rules on that rule", async ({ page }) => {
@@ -49,7 +54,9 @@ test("a block by a base rule opens the base rules on that rule", async ({ page }
   await open(page, "/?scenario=d1&tour=0&step=14"); // the first get_matching_flights block, R-match-disrupted
   await rail(page).locator(".br-step[data-latest=true]").getByRole("button", { name: /See rule/ }).click();
   await expect(rail(page).locator(".brr-base")).toHaveAttribute("open", "");
-  await expect(rail(page).locator('[data-key="r-R-match-disrupted"]')).toHaveAttribute("data-focus", "true");
+  const rule = rail(page).locator('[data-key="r-R-match-disrupted"]');
+  await expect(rule).toHaveAttribute("data-focus", "true");
+  await expect(rule).toBeFocused();
 });
 
 test("on a phone the rules start collapsed behind the switch", async ({ page }) => {

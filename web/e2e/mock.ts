@@ -96,7 +96,7 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
   // csdemo policy and ratified store, from the API on bylaw/build (RA1, DM2), so its goals and lines resolve.
   const cs = { ratified: fx("csdemo.ratified.json"), policy: fx("csdemo.policy.json") };
 
-  let usageCalls = 0;
+  let usageCalls = 0, usageDown = false;
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
     const method = route.request().method();
@@ -117,7 +117,10 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
     // TR1 v1.0: the live counters grow by one Muse turn per request, so the 5 s refresh shows.
     if (p === "/api/usage") {
       const u = fx("usage.json");
-      const n = usageCalls++, i = u.live.input_tokens + 2140 * n, o = u.live.output_tokens + 512 * n;
+      const n = usageCalls++;
+      // failUsage(true) answers every request with a 503 until failUsage(false).
+      if (usageDown) return route.fulfill(json({ detail: "usage unavailable" }, 503));
+      const i = u.live.input_tokens + 2140 * n, o = u.live.output_tokens + 512 * n;
       u.live = { ...u.live, input_tokens: i, output_tokens: o, tokens_used: i + o, cost_usd: Math.round((i * 1.25 + o * 4.25) / 100) / 10000 };
       usage(u);
       return route.fulfill(json(u));
@@ -151,5 +154,5 @@ export async function mockApi(page: Page, { partial = false, stored = true, fall
     }
     return route.fulfill(json({ detail: `mock has no ${method} ${p}` }, 404));
   });
-  return { place: () => void (report = storedReport()) };
+  return { place: () => void (report = storedReport()), failUsage: (down: boolean) => void (usageDown = down) };
 }

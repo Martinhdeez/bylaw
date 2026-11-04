@@ -234,7 +234,7 @@ export function BylawRail(p: BylawRailProps) {
 
       {rules && (
         <div className="br-tabs" role="group" aria-label="Show">
-          <button type="button" aria-pressed={!showRules} onClick={() => setTab("checks")}>
+          <button type="button" aria-pressed={!showRules} onClick={() => { setTab("checks"); setFocus(null); }}>
             Checks{started && <span className="br-tab-n">{p.checks.length}</span>}
           </button>
           <button type="button" aria-pressed={showRules} onClick={() => setTab("rules")}>
