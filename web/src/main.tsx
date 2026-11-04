@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useRef, useState, type KeyboardEvent as KeyEv } from "react";
 import { createRoot } from "react-dom/client";
-import { Database, FileWarning, Gauge, Moon, PanelLeftClose, PanelLeftOpen, PlayCircle, Radio, Search, Sun, type LucideIcon } from "lucide-react";
+import { Database, FileWarning, Gauge, Moon, PanelLeftClose, PanelLeftOpen, PlayCircle, Radio, Receipt, Search, Sun, type LucideIcon } from "lucide-react";
 import { DOMAINS, DOMAIN_NAME, api, useGet, type Domain, type Report } from "./api";
 import { Logo, Ticker, when } from "./ui";
 import { Audit } from "./screens/Audit";
@@ -9,6 +9,7 @@ import { HoleView } from "./screens/Hole";
 import { AmendmentView } from "./screens/Amendment";
 import { Bench } from "./screens/Bench";
 import { Live } from "./screens/Live";
+import { Usage } from "./screens/Usage";
 import "./styles.css";
 
 const useHash = () => {
@@ -49,7 +50,7 @@ const useTheme = () => {
   return [t, flip] as const;
 };
 
-// Routes: #/ (audit), #/<domain>/report, #/<domain>/holes/<key>[/amendment], #/<domain>/bench, #/live
+// Routes: #/ (audit), #/<domain>/report, #/<domain>/holes/<key>[/amendment], #/<domain>/bench, #/live, #/usage
 // ?film=1 (before the hash) hides the rail and the player chrome, for the recording.
 const FILM = new URLSearchParams(location.search).get("film") === "1";
 function App() {
@@ -77,6 +78,7 @@ function App() {
 
   let page;
   if (seg === "live") page = <Live film={FILM} />;
+  else if (seg === "usage") page = <Usage />;
   else if (inUrl && section === "report") page = <ReportView domain={domain} report={report} />;
   else if (inUrl && section === "holes" && key && sub === "amendment") page = <AmendmentView domain={domain} hkey={key} effort={report.data?.run.effort} />;
   else if (inUrl && section === "holes" && key) page = <HoleView domain={domain} hkey={key} muse={report.data?.run.mode === "muse"} />;
@@ -86,10 +88,11 @@ function App() {
   const r = report.data;
   const nA = r?.holes.length ?? 0, nB = r?.contradictions?.length ?? 0;
   const nav: { href: string; icon: LucideIcon; label: string; on: boolean; count?: number; red?: boolean }[] = [
-    { href: "#/", icon: PlayCircle, label: "Audit", on: !inUrl && seg !== "live" },
+    { href: "#/", icon: PlayCircle, label: "Audit", on: !inUrl && seg !== "live" && seg !== "usage" },
     { href: `#/${domain}/report`, icon: FileWarning, label: "Report", on: section === "report" || section === "holes", count: nA || nB, red: nA > 0 },
     { href: `#/${domain}/bench`, icon: Gauge, label: "Bench", on: section === "bench" },
     { href: "#/live", icon: Radio, label: "Live", on: seg === "live" },
+    { href: "#/usage", icon: Receipt, label: "Usage", on: seg === "usage" },
   ];
 
   return (
@@ -161,6 +164,7 @@ function Palette({ domain, collapsed, theme, onToggle, onTheme, onClose }: {
     { label: `Open the ${DOMAIN_NAME[domain]} report`, icon: FileWarning, hint: "Report", run: go(`#/${domain}/report`) },
     { label: "Compare Muse with blind BFS", icon: Gauge, hint: "Bench", run: go(`#/${domain}/bench`) },
     { label: "Watch the live run", icon: Radio, hint: "Live", run: go("#/live") },
+    { label: "See Muse Spark tokens and cost", icon: Receipt, hint: "Usage", run: go("#/usage") },
     ...DOMAINS.filter((d) => d !== domain).map((d) => ({ label: `Switch to ${DOMAIN_NAME[d]}`, icon: Database, hint: "Domain", run: go(`#/${d}/report`) })),
     { label: collapsed ? "Expand the sidebar" : "Collapse the sidebar", icon: collapsed ? PanelLeftOpen : PanelLeftClose, hint: "View", run: onToggle },
     { label: theme === "light" ? "Use the dark theme" : "Use the light theme", icon: theme === "light" ? Moon : Sun, hint: "View", run: onTheme },
