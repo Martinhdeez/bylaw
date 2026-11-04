@@ -5,12 +5,24 @@ import { join } from "node:path";
 
 export const LIVE_DIR = join(__dirname, "..", "..", "..", "..", "reports", "live");
 
+const ROOT = join(__dirname, "..", "..", "..", "..");
+
+/** GET /api/ratified?domain=csdemo as bylaw/api.py serves it: the store, and the hand RuleSet with every patch applied
+ *  (patched rule ids carry a hole prefix, so applying is appending). */
+export function ratifiedBody() {
+  const store = JSON.parse(readFileSync(join(ROOT, "ratified", "csdemo.json"), "utf8"));
+  const rs = JSON.parse(readFileSync(join(ROOT, "bylaw", "rulesets", "csdemo.json"), "utf8"));
+  rs.tool_rules = [...rs.tool_rules, ...store.amendments.flatMap((a: any) => a.rule_patch)];
+  return { domain: "csdemo", amendments: store.amendments, ruleset: rs };
+}
+
 export const STATUS_ON = { enabled: true, model: "muse-spark-1.3", tokens_used: 1200, token_cap: 300000, sessions: 1 };
 
 export interface LiveMock {
   status?: object | number; // body, or an HTTP status for a refusal
   session?: number | { status: number; detail: string };
   turn?: string | { status: number; detail: string }; // SSE body, or a refusal
+  rules?: boolean; // serve /api/ratified (off: 404, the rail shows only the checks)
 }
 
 export function sse(events: object[], done = { current_agent: "Triage Agent", context: {} }) {
@@ -36,6 +48,7 @@ export async function mockApi(page: Page, live: LiveMock = {}) {
       const s = live.status ?? 404;
       return typeof s === "number" ? json(route, s, { detail: "Not Found" }) : json(route, 200, s);
     }
+    if (path === "/api/ratified" && live.rules && url.searchParams.get("domain") === "csdemo") return json(route, 200, ratifiedBody());
     if (path === "/api/csdemo/agents") return json(route, 404, { detail: "Not Found" });
     if (path === "/api/live/session" && method === "POST") {
       calls.session.push(route.request().postDataJSON());
