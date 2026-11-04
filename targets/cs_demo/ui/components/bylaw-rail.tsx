@@ -1,12 +1,13 @@
 "use client";
 
 // Bylaw: the rail beside the demo. Picks a recorded run, switches the guard, and narrates every check.
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, X, Pause, Play, RotateCcw, ShieldCheck, ShieldOff, Clapperboard } from "lucide-react";
 import type { BylawCheck } from "@/lib/types";
 import type { LiveFile, Scenario } from "@/lib/replay";
 import type { LiveStatus } from "@/lib/live";
 import { BylawMark } from "./bylaw-mark";
+import { RulesList, fetchRules, ruleKey, type Rules } from "./bylaw-rules";
 import { scrollMode } from "@/lib/utils";
 
 interface BylawRailProps {
@@ -40,7 +41,7 @@ function verdict(c: BylawCheck) {
   return { tone: "amber", label: "Would block" };
 }
 
-function CheckEntry({ c, latest }: { c: BylawCheck; latest: boolean }) {
+function CheckEntry({ c, latest, onRule }: { c: BylawCheck; latest: boolean; onRule?: () => void }) {
   const v = verdict(c);
   if (c.readOnly && c.allowed) {
     return (
@@ -74,7 +75,15 @@ function CheckEntry({ c, latest }: { c: BylawCheck; latest: boolean }) {
         )}
         <div className="br-verdict" data-tone={v.tone}>
           <span className="br-stamp">{v.label}</span>
-          {c.rule_id && <code className="br-rule">{c.rule_id}</code>}
+          {c.rule_id &&
+            (onRule ? (
+              <button type="button" className="br-rule-link" onClick={onRule}>
+                <code className="br-rule">{c.rule_id}</code>
+                <span>See rule</span>
+              </button>
+            ) : (
+              <code className="br-rule">{c.rule_id}</code>
+            ))}
         </div>
         {c.reason && <p className="br-reason">{c.reason}</p>}
         {!c.allowed && !c.enforced && <p className="br-reason br-off">The guard is off, so the call ran anyway.</p>}
@@ -97,10 +106,25 @@ export function BylawRail(p: BylawRailProps) {
   const done = !isLive && total > 0 && p.step >= total;
   const blocked = p.checks.filter((c) => !c.allowed).length;
   const scenario = p.scenarios.find((s) => s.id === p.scenarioId);
+  const [rules, setRules] = useState<Rules | null>(null);
+  const [tab, setTab] = useState<"checks" | "rules">("rules");
+  const [focus, setFocus] = useState<string | null>(null);
+  const started = p.checks.length > 0;
+  const showRules = !!rules && tab === "rules";
 
   useEffect(() => {
-    feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: scrollMode() });
-  }, [p.checks.length, p.moneyOut, p.moneyStopped, p.step]);
+    void fetchRules().then(setRules);
+  }, []);
+
+  // idle: the rules (collapsed on phones); from the first check of a conversation: the checks
+  useEffect(() => {
+    setTab(started || window.matchMedia("(max-width: 480px)").matches ? "checks" : "rules");
+    setFocus(null);
+  }, [started]);
+
+  useEffect(() => {
+    if (!showRules) feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: scrollMode() });
+  }, [p.checks.length, p.moneyOut, p.moneyStopped, p.step, showRules]);
 
   return (
     <aside className="bylaw-rail" aria-label="bylaw guard">
@@ -208,6 +232,22 @@ export function BylawRail(p: BylawRailProps) {
         </div>
       </dl>
 
+      {rules && (
+        <div className="br-tabs" role="group" aria-label="Show">
+          <button type="button" aria-pressed={!showRules} onClick={() => setTab("checks")}>
+            Checks{started && <span className="br-tab-n">{p.checks.length}</span>}
+          </button>
+          <button type="button" aria-pressed={showRules} onClick={() => setTab("rules")}>
+            Rules bylaw enforces
+          </button>
+        </div>
+      )}
+
+      {showRules ? (
+        <div className="br-feed">
+          <RulesList rules={rules} focus={focus} />
+        </div>
+      ) : (
       <div className="br-feed" ref={feed}>
         {p.error ? (
           <p className="br-empty br-error">{p.error}</p>
@@ -222,7 +262,19 @@ export function BylawRail(p: BylawRailProps) {
         ) : (
           <ol className="br-steps">
             {p.checks.map((c, i) => (
-              <CheckEntry key={i} c={c} latest={i === p.checks.length - 1} />
+              <CheckEntry
+                key={i}
+                c={c}
+                latest={i === p.checks.length - 1}
+                onRule={
+                  ruleKey(rules, c.rule_id) && !c.allowed
+                    ? () => {
+                        setFocus(ruleKey(rules, c.rule_id));
+                        setTab("rules");
+                      }
+                    : undefined
+                }
+              />
             ))}
           </ol>
         )}
@@ -237,6 +289,7 @@ export function BylawRail(p: BylawRailProps) {
           </p>
         )}
       </div>
+      )}
 
       {isLive && p.live.status ? (
         <footer className="br-foot">

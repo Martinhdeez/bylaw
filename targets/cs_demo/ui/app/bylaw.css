@@ -221,6 +221,38 @@ body { font-family: "Inter", system-ui, sans-serif; }
 .bylaw-caption :focus-visible { outline: 2px solid #bd9bff; outline-offset: 2px; }
 @keyframes bc-swap { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
 
+/* ── the rules bylaw enforces (RL1) ── */
+.br-tabs { display: grid; grid-template-columns: auto 1fr; border: 1px solid var(--line-2); border-radius: 999px; overflow: hidden; flex: none; }
+.br-tabs button { height: 32px; padding: 0 14px; color: var(--muted); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.br-tabs button + button { border-left: 1px solid var(--line-2); }
+.br-tabs button[aria-pressed="true"] { background: var(--raise); color: var(--ink); }
+.br-tabs button:hover:not([aria-pressed="true"]) { background: var(--step); }
+.br-tab-n { font-size: 11px; padding: 0 6px; border-radius: 999px; background: var(--violet-soft); color: var(--violet-hi); }
+.br-rule-link { display: inline-flex; align-items: baseline; gap: 6px; text-align: left; border-radius: 4px; }
+.br-rule-link span { color: var(--violet-hi); font-size: 12px; font-weight: 600; white-space: nowrap; text-decoration: underline; text-underline-offset: 2px; }
+.br-rule-link:hover .br-rule { color: var(--ink-2); }
+.brr { padding: 2px 0 8px; }
+.brr .br-label { margin: 12px 0 6px; }
+.brr .br-label:first-child { margin-top: 2px; }
+.brr-goals { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.brr-goals li { display: flex; gap: 8px; align-items: baseline; font-size: 13px; color: var(--ink-2); }
+.brr-id { flex: none; font-family: var(--bylaw-code), ui-monospace, monospace; font-size: 11px; font-weight: 600; padding: 0 5px; border-radius: 4px; color: var(--violet-hi); background: var(--violet-soft); }
+.brr-id[data-tone="red"] { color: var(--red); background: var(--red-soft); }
+.brr-amends { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.brr-amend { padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); scroll-margin: 8px; }
+.brr-amend[data-focus="true"], .brr-base li[data-focus="true"] { border-color: var(--red-edge); background: linear-gradient(var(--red-soft), var(--red-soft)), var(--surface); }
+.brr-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 12px; color: var(--muted); }
+.brr-meta code, .brr-base code { font-family: var(--bylaw-code), ui-monospace, monospace; font-size: 11px; color: var(--ink-2); }
+.brr-closes { margin-left: auto; color: var(--faint); }
+.brr-text { margin: 6px 0; font-size: 13px; color: var(--ink); text-wrap: pretty; }
+.brr-foot { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--faint); }
+.brr-none { color: var(--muted); font-size: 13px; }
+.brr-base { margin-top: 12px; }
+.brr-base summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; padding: 4px 0; }
+.brr-base summary:hover { color: var(--ink-2); }
+.brr-base ul { list-style: none; display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.brr-base li { display: flex; flex-direction: column; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); font-size: 12px; color: var(--ink-2); scroll-margin: 8px; }
+
 /* below 1280: chat and rail side by side on top, the Agent View full width below */
 @media (max-width: 1279px) {
   .bylaw-rail { order: 2; height: 760px; }
