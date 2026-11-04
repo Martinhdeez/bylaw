@@ -69,3 +69,52 @@ test("ledger with only split entries: exact costs and no range footnote", async 
   await expect(page.locator(".ledger tbody tr")).toHaveCount(2);
   await expect(page.locator(".foot-note")).toHaveCount(0);
 });
+
+test("first load fails: the error, then Retry loads the page", async ({ page }) => {
+  const api = await mockApi(page);
+  api.failUsage(true);
+  await page.goto("/#/usage");
+  await expect(page.getByRole("alert")).toContainText("The API answered 503.");
+  api.failUsage(false);
+  await page.getByRole("button", { name: "Retry" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Muse Spark usage and cost");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
+test("a refresh fails: the last answer stays, marked stale", async ({ page }) => {
+  const api = await mockApi(page);
+  await page.goto("/#/usage");
+  await expect(page.getByText("Refreshing every 5 s")).toBeVisible();
+  api.failUsage(true);
+  await expect(page.getByText(/^Refresh failed, showing \d\d:\d\d:\d\d$/)).toBeVisible({ timeout: 12_000 });
+  await expect(page.locator(".ledger tbody tr")).toHaveCount(5);
+  await expect(page.getByRole("meter", { name: "Tokens used of the cap" })).toBeVisible();
+});
+
+test("the meter's value never passes the cap", async ({ page }) => {
+  await mockApi(page, { usage: (u) => { u.live = { ...u.live, input_tokens: 250000, output_tokens: 70000, tokens_used: 320000 }; } });
+  await page.goto("/#/usage");
+  await expect(page.getByRole("meter")).toHaveAttribute("aria-valuenow", "300000");
+  await expect(page.getByText("Cap reached")).toBeVisible();
+});
+
+// FX1: on a page taller than the viewport the rail column keeps the rail's colour to the bottom, and the grid is unchanged.
+for (const [name, url] of [["audit", "/#/"], ["report", "/#/airline/report"], ["live", "/?at=43.5#/live"], ["usage", "/#/usage"]])
+  test(`rail column fills a tall ${name} page`, async ({ page }) => {
+    await mockApi(page);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url);
+    await page.waitForLoadState("networkidle");
+    const m = await page.evaluate(() => {
+      const shell = document.querySelector(".shell")!;
+      return {
+        rail: getComputedStyle(document.querySelector(".rail")!).backgroundColor, under: getComputedStyle(shell).backgroundImage,
+        tall: shell.getBoundingClientRect().height, main: document.querySelector(".main")!.getBoundingClientRect().left,
+      };
+    });
+    expect(m.under).toContain(m.rail);
+    if (name === "report" || name === "usage") expect(m.tall).toBeGreaterThan(900);
+    expect(m.main).toBe(240);
+    if (dir) await page.screenshot({ path: `${dir}/fx1-rail-${name}-1440.png`, fullPage: true });
+  });

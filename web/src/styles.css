@@ -139,13 +139,11 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 /* ── shell ─────────────────────────────────────────── */
 .shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100dvh; transition: grid-template-columns .3s var(--spring); }
 .rail { position: sticky; top: 0; height: 100dvh; padding: 20px 12px; display: flex; flex-direction: column; gap: 24px; z-index: 5; background: var(--ground); border-right: 1px solid var(--line); }
-/* The rail is sticky and one viewport tall; a pseudo-element under it paints its column down the whole page. */
+/* The rail is sticky and one viewport tall; the shell paints the rail's colour and edge down its column (--rail-bg, set with .rail's own background). */
 @media (min-width: 761px) {
-  .shell::before { content: ""; grid-area: 1 / 1; background: var(--surface); border-right: 1px solid var(--line); }
-  .shell > .rail { grid-area: 1 / 1; }
-  .shell > .main { grid-area: 1 / 2; }
-  .shell.film::before { display: none; }
-  .shell.film > .main { grid-area: 1 / 1; }
+  .shell { --rail-w: 240px; background: linear-gradient(var(--line), var(--line)) calc(var(--rail-w) - 1px) 0 / 1px 100% no-repeat, linear-gradient(var(--rail-bg), var(--rail-bg)) 0 0 / var(--rail-w) 100% no-repeat; }
+  .collapsed { --rail-w: 76px; }
+  .film { background: none; }
 }
 .rail-head { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px; }
 .lockup { display: flex; align-items: center; gap: 12px; padding: 0 4px; white-space: nowrap; border-radius: var(--tile-r); }
@@ -806,7 +804,8 @@ b, strong, h1, h2, h3 { font-weight: 600; }
 .nav a[aria-current="page"] svg { color: var(--blue); }
 .domain[aria-checked="true"] { border-color: var(--blue-edge); box-shadow: inset 0 0 0 1px var(--blue-edge); background: var(--step); }
 .domain .n .ck { background: var(--blue-btn); color: #fff; }
-.rail { background: var(--surface); border-color: var(--line); }
+:root { --rail-bg: var(--surface); }
+.rail { background: var(--rail-bg); border-color: var(--line); }
 .hole-mark, .closing::before { background: var(--red-soft); }
 
 /* ── UI7 colour pass 2 (user, 29 Oct): darker indigo dark, violet back as the brand, blue second, colour with intent ──

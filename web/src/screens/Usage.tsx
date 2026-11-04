@@ -73,7 +73,7 @@ export function Usage() {
       <section className="panel">
         <div className="panel-h">
           <h2>Recorded runs</h2>
-          <span className="label">{recorded.entries.length} {recorded.entries.length === 1 ? "entry" : "entries"}, from reports/usage.json</span>
+          <span className="label">{recorded.entries.length} {recorded.entries.length === 1 ? "entry" : "entries"}, from the committed ledger</span>
         </div>
         {recorded.entries.length ? (
           <>
@@ -101,7 +101,7 @@ export function Usage() {
         ) : (
           <div className="empty-state">
             <span className="shield"><Receipt aria-hidden="true" /></span>
-            <p>No recorded runs. This deploy has no <code translate="no">reports/usage.json</code>, so only the live counters above count.</p>
+            <p>No recorded runs. This deploy has no committed ledger, so only the live counters above count.</p>
           </div>
         )}
       </section>
@@ -119,7 +119,7 @@ function Live({ l }: { l: UsageT["live"] }) {
           <span className="label">Tokens used of the cap</span>
           <span className={"cap-v " + tone}><Ticker value={l.tokens_used} testId="usage-tokens" /> <span>of {int(l.token_cap)}</span></span>
         </div>
-        <div className={"cap-bar " + tone} role="meter" aria-label="Tokens used of the cap" aria-valuemin={0} aria-valuemax={l.token_cap} aria-valuenow={l.tokens_used}
+        <div className={"cap-bar " + tone} role="meter" aria-label="Tokens used of the cap" aria-valuemin={0} aria-valuemax={l.token_cap} aria-valuenow={Math.min(l.tokens_used, l.token_cap)}
           aria-valuetext={`${int(l.tokens_used)} of ${int(l.token_cap)} tokens, ${used.toFixed(1)}%`}>
           <i className="in" style={{ width: `${pct(l.input_tokens, l.token_cap)}%` }} />
           <i className="out" style={{ width: `${pct(l.output_tokens, l.token_cap)}%` }} />

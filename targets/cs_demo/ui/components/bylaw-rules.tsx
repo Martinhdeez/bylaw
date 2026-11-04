@@ -55,7 +55,10 @@ export function RulesList({ rules, focus }: { rules: Rules; focus: string | null
   const goals = rules.ruleset.forbidden_goals;
 
   useEffect(() => {
-    if (focus) root.current?.querySelector(`[data-key="${CSS.escape(focus)}"]`)?.scrollIntoView({ block: "nearest" });
+    const el = focus ? root.current?.querySelector<HTMLElement>(`[data-key="${CSS.escape(focus)}"]`) : null;
+    el?.scrollIntoView({ block: "nearest" });
+    // keyboard users land on the rule they asked for, not back at the top of the rail
+    el?.focus({ preventScroll: true });
   }, [focus]);
 
   return (
@@ -76,7 +79,7 @@ export function RulesList({ rules, focus }: { rules: Rules; focus: string | null
       ) : (
         <ul className="brr-amends">
           {rules.amendments.map((a) => (
-            <li key={a.id} data-key={`a-${a.id}`} data-focus={focus === `a-${a.id}`} className="brr-amend">
+            <li key={a.id} tabIndex={-1} data-key={`a-${a.id}`} data-focus={focus === `a-${a.id}`} className="brr-amend">
               <div className="brr-meta">
                 <span className="brr-id">{a.id}</span>
                 <span>
@@ -102,7 +105,7 @@ export function RulesList({ rules, focus }: { rules: Rules; focus: string | null
         </summary>
         <ul>
           {base.map((r) => (
-            <li key={r.id} data-key={`r-${r.id}`} data-focus={focus === `r-${r.id}`}>
+            <li key={r.id} tabIndex={-1} data-key={`r-${r.id}`} data-focus={focus === `r-${r.id}`}>
               <code>{r.tool}</code>
               <span>{firstSentence(r.note)}</span>
             </li>
