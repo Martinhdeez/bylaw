@@ -7,6 +7,7 @@ export function AmendmentView({ domain, hkey, effort }: { domain: Domain; hkey: 
   const hole = useGet<Hole>(`/api/holes/${encodeURIComponent(hkey)}?domain=${domain}`);
   const ratified = useGet<Ratified>(api.ratified(domain));
   const policy = useGet<Policy>(api.policy(domain));
+  const readonly = !!useGet<{ readonly: boolean }>(api.config()).data?.readonly;
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState<ApiError>();
   // Set by this page's own ratify, so the stamp lands only then and not on a later visit.
@@ -143,9 +144,9 @@ export function AmendmentView({ domain, hkey, effort }: { domain: Domain; hkey: 
                   <AlertTriangle size={13} aria-hidden="true" /> {fail.status === 409 ? "The API says this hole has no amendment to ratify. Reload the report." : fail.status ? `The API answered ${fail.status}. Try again.` : fail.message}
                 </p>
               )}
-              <button className="btn ratify" onClick={ratify} disabled={busy}>
+              <button className="btn ratify" onClick={ratify} disabled={busy || readonly}>
                 {busy ? <Loader2 className="spin" aria-hidden="true" /> : <Check aria-hidden="true" />}
-                {busy ? "Ratifying…" : "Ratify"}
+                {busy ? "Ratifying…" : readonly ? "Ratify is off on the public demo" : "Ratify"}
               </button>
             </section>
           )}
